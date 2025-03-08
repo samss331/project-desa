@@ -1,58 +1,62 @@
 import pendudukRepo from "../repositories/pendudukRepo.js";
+import { PendudukDTO } from "../dto/dto.js";
 
 const getAllPenduduk = async () => {
     try {
         const results = await pendudukRepo.getAllPenduduk();
-        return results;
+        return results.map(p => new PendudukDTO(p.id, p.nama, p.nik, p.alamat, p.tanggalLahir));
     } catch (error) {
-        throw new Error('Gagal mengambil data semua penduduk');
+        throw new Error("Gagal mengambil data semua penduduk");
     }
 };
 
-const getPendudukByNik = async (nik) => {
+const getPendudukById = async (id) => {
+    console.log("service : ", id);
     try {
-        const results = await pendudukRepo.getPendudukByNik(nik);
-        if(!results){
-            return {success: false, message: "Data tidak ditemukan"};
+        const result = await pendudukRepo.getPendudukById(id);
+        if (!result) {
+            return { success: false, message: "Data tidak ditemukan" };
         }
-        return results;
+        return new PendudukDTO(result.id, result.nama, result.nik, result.alamat, result.tanggalLahir);
     } catch (error) {
-        throw new Error("Gagal mengambil data penduduk berdasarkan nik")
+        throw new Error("Gagal mengambil data penduduk berdasarkan NIK");
     }
 };
 
-const addPenduduk = async (nama, nik, alamat) => {
-    if (!nama || !nik || !alamat){
-        throw new Error("Nama dan alamat wajib diisi!");
-    } 
+const addPenduduk = async (nama, nik, alamat, tanggalLahir) => {
+    if (!nama || !nik || !alamat || !tanggalLahir) {
+        throw new Error("Semua data wajib diisi!");
+    }
     try {
-        const results = await pendudukRepo.addPenduduk(nama, nik, alamat);
-        return results 
+        const result = await pendudukRepo.addPenduduk(nama, nik, alamat, tanggalLahir);
+        console.log(result);
+        return new PendudukDTO(result.id, result.nama, result.nik, result.alamat, result.tanggalLahir);;
     } catch (error) {
-        throw new Error("Gagal menambahkan data penduduk")
+        throw new Error("Gagal menambahkan data penduduk");
     }
 };
 
-const updateDataPenduduk = async (nama, nik, alamat) => {
+const updateDataPenduduk = async (id, nama, nik, alamat, tanggalLahir) => {
     try {
-        const existing = await pendudukRepo.getPendudukByNik(nik);
-        if(!existing){
-            return {success: false, message: "Data dengan Nik tersebut tidak ditemukan"};
+        console.log("service : ", id);
+        const existing = await pendudukRepo.getPendudukById(id);
+        if (!existing) {
+            return { success: false, message: "Data dengan NIK tersebut tidak ditemukan" };
         }
-        const results = await pendudukRepo.updateDataPenduduk(nama, nik, alamat);
-        return results;
+        const result = await pendudukRepo.updateDataPenduduk(id, nama, nik, alamat, tanggalLahir);
+        return new PendudukDTO(result.id, result.nama, result.nik, result.alamat, result.tanggalLahir);
     } catch (error) {
         throw error;
     }
-}
+};
 
-const deleteDataPenduduk = async (nik) => {
+const deleteDataPenduduk = async (id) => {
     try {
-        const existing = await pendudukRepo.getPendudukByNik(nik);
-        if(!existing){
-            return {success: false, message: "Data dengan Nik tersebut tidak ditemukan"};
+        const existing = await pendudukRepo.getPendudukById(id);
+        if (!existing) {
+            return { success: false, message: "Data dengan NIK tersebut tidak ditemukan" };
         }
-        const isDeleted = await pendudukRepo.deleteDataPenduduk(nik);
+        const isDeleted = await pendudukRepo.deleteDataPenduduk(id);
         if (!isDeleted) {
             return { success: false, message: "Gagal menghapus data" };
         }
@@ -60,6 +64,6 @@ const deleteDataPenduduk = async (nik) => {
     } catch (error) {
         throw error;
     }
-}
+};
 
-export default { getAllPenduduk, getPendudukByNik, addPenduduk, updateDataPenduduk, deleteDataPenduduk };
+export default { getAllPenduduk, getPendudukById, addPenduduk, updateDataPenduduk, deleteDataPenduduk };

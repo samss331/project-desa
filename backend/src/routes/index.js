@@ -1,7 +1,7 @@
 import express from "express";
 import pendudukRoutes from "./pendudukRoute.js";
 import suratRoutes from "./suratRoute.js";
-import authRoutes from "./authRoutes.js";
+import authRoutes from "./userRoutes.js";
 
 const router = express.Router();
 

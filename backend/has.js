@@ -5,4 +5,4 @@ const hashPassword = async (password) => {
     console.log("Password Terhash:", hashedPw);
 };
 
-hashPassword("bahontobungku12"); // Ganti dengan password yang ingin di-hash
+hashPassword("bahontobungku123"); // Ganti dengan password yang ingin di-hash
