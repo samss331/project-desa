@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 /* eslint-enable no-unused-vars */
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import CarouselVisiMisi from '../components/CarouselVisiMisi';
-import CarouselAparatur from "../components/CarouselProfil";
+import CarouselVisiMisi from '../components/ProfilDesa/CarouselVisiMisi';
+import CarouselAparatur from "../components/ProfilDesa/CarouselProfil";
 import riceField from '../assets/rice-field-7890204_1920.jpg';
 import Kantor from '../assets/kantor.png';
 
@@ -23,7 +23,7 @@ export default function ProfilDesa() {
       <InformasiWilayah />
 
       {/* Visi & Misi */}
-      <CarouselVisiMisi />
+      <CarouselVisiMisi id="VisiMisi"/>
 
       {/* Perangkat Desa */}
       <CarouselAparatur />

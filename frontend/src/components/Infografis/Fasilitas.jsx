@@ -82,7 +82,7 @@ export default function Fasilitas() {
               {fasilitasDetail[category].map((item, index) => (
                 <div
                   key={index}
-                  className="flex justify-between items-center bg-gray-100 p-3 rounded-xl hover:bg-gray-200 transition"
+                  className="flex justify-between items-center bg-white p-3 rounded-xl hover:bg-gray-200 transition"
                 >
                   <span className="text-gray-600">{item.name}</span>
                   <span className="font-bold text-gray-800">{item.count}</span>

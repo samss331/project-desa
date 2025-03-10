@@ -30,7 +30,7 @@ export default function Infografis() {
       <HeroSection activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* Konten Dinamis */}
-      <div className="bg-gray-100 py-10 px-5 md:px-20 space-y-10">
+      <div className="bg-white py-10 px-5 md:px-20 space-y-10">
         {renderContent()}
       </div>
 
@@ -51,7 +51,7 @@ const HeroSection = ({ activeTab, setActiveTab }) => {
   return (
     <section className="relative bg-white h-auto py-16 px-6 grid grid-cols-1 md:grid-cols-2 items-center gap-12">
       {/* ICON */}
-      <div className="flex justify-center md:justify-end">
+      <div className="flex justify-center md:justify-around">
         <img
           src={Chart1}
           alt="Icon Infografis"
@@ -61,9 +61,10 @@ const HeroSection = ({ activeTab, setActiveTab }) => {
 
       {/* KETERANGAN DAN BUTTON */}
       <div className="text-center md:text-center max-w-lg">
-        <h2 className="text-5xl md:text-4xl font-bold text-gray-900 leading-snug bg-gradient-to-t from-gray-600 to-gray-300 bg-clip-text text-transparent">
-          Halaman ini menyajikan informasi dalam bentuk visual infografis
-        </h2>
+      <h2 className="text-5xl md:text-4xl font-bold leading-snug bg-gradient-to-t from-gray-600 to-gray-300 bg-clip-text text-transparent">
+        Halaman ini menyajikan informasi dalam bentuk visual infografis
+      </h2>
+
         <p className="text-gray-600 text-lg mt-4">
           Ketahui berbagai informasi tentang desa Bahontobungku dengan tampilan
           yang menarik
