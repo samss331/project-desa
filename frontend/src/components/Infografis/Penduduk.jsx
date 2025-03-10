@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { ArrowUpRight } from "lucide-react";
 
 ChartJS.register(
   CategoryScale,
@@ -20,7 +21,9 @@ ChartJS.register(
 );
 
 export default function Penduduk() {
-  // Dummy data sementara
+  const totalPenduduk = 370; // Total keseluruhan penduduk (misal)
+
+  // Data Chart Dummy
   const kelompokUmurData = {
     labels: ["0-14", "15-24", "25-54", "55-64", "65+"],
     datasets: [
@@ -70,10 +73,63 @@ export default function Penduduk() {
 
   return (
     <section className="space-y-10">
-      {/* Chart 1 */}
+      {/* Deskripsi dan Kartu Total Penduduk */}
+      <div>
+        {/* Deskripsi */}
+        <h2 className="text-xl font-bold mb-4">
+          <span className="bg-yellow-300 px-1 rounded">
+            Demografi Penduduk.
+          </span>{" "}
+          <span className="text-gray-700">
+            Memberikan informasi lengkap mengenai karakteristik demografi
+            penduduk desa bahontobungku
+          </span>
+        </h2>
+
+        {/* Kartu */}
+        <div className="bg-gray-100 rounded-3xl p-5">
+          <h3 className="font-bold text-2xl text-center bg-lime-400 rounded-xl py-2 mb-6">
+            Jumlah Penduduk desa bahontobungku
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {["#60A5FA", "#F87171", "#34D399", "#FBBF24"].map((color, idx) => (
+              <div
+                key={idx}
+                className={`rounded-3xl p-4 flex flex-col justify-between relative overflow-hidden shadow-md`}
+                style={{ backgroundColor: color }}
+              >
+                {/* Content */}
+                <div className="z-10 space-y-3">
+                  <div className="bg-white inline-block px-3 py-1 rounded-lg text-sm font-semibold">
+                    Total Penduduk
+                  </div>
+                  <div className="text-white font-bold text-2xl">
+                    {totalPenduduk} orang
+                  </div>
+                  <button className="flex items-center gap-1 text-white hover:underline">
+                    Detail Statistik <ArrowUpRight size={16} />
+                  </button>
+                </div>
+
+                {/* Background Illustration Placeholder */}
+                <div className="absolute bottom-0 right-0 opacity-40">
+                  <img
+                    src="/assets/chart-1.png"
+                    alt="Ilustrasi"
+                    className="w-28 h-28 object-cover"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Chart 1 - Kelompok Umur */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
         <h3 className="font-bold text-xl text-lime-700 mb-4">
-          Berdasarkan kelompok Umur
+          Berdasarkan Kelompok Umur
         </h3>
         <div className="w-full max-w-4xl mx-auto">
           <Bar
@@ -85,7 +141,7 @@ export default function Penduduk() {
         <p className="text-right italic text-gray-500 mt-2">Learn more</p>
       </div>
 
-      {/* Chart 2 */}
+      {/* Chart 2 - Penduduk Dusun */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
         <h3 className="font-bold text-xl text-lime-700 mb-4">
           Berdasarkan Penduduk Dusun
@@ -100,7 +156,7 @@ export default function Penduduk() {
         <p className="text-right italic text-gray-500 mt-2">Learn more</p>
       </div>
 
-      {/* Chart 3 */}
+      {/* Chart 3 - Pekerjaan */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
         <h3 className="font-bold text-xl text-lime-700 mb-4">
           Berdasarkan Pekerjaan
@@ -119,7 +175,7 @@ export default function Penduduk() {
         <p className="text-right italic text-gray-500 mt-2">Learn more</p>
       </div>
 
-      {/* Chart 4 */}
+      {/* Chart 4 - Keyakinan */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
         <h3 className="font-bold text-xl text-lime-700 mb-4">
           Berdasarkan Keyakinan
