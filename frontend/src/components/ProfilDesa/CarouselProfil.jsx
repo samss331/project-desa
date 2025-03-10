@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 /* eslint-enable no-unused-vars */
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Pic from "../assets/dad.png";
-import Pic2 from "../assets/download.png";
+import Pic from "../../assets/dad.png";
+import Pic2 from "../../assets/download.png";
 
 const aparatur = [
   {
