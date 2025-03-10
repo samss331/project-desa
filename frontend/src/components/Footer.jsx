@@ -5,7 +5,7 @@ import Mobile from "../assets/mobile.png";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white py-10 mt-28">
+    <footer className="bg-gray-900 text-white py-10 mt-10 md:mt-28">
       <div className="container mx-auto px-6">
         <div className="flex flex-wrap justify-between">
 
