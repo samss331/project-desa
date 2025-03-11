@@ -1,5 +1,6 @@
 import React from "react";
 import { Bar, Pie } from "react-chartjs-2";
+import Ilustrasi from "../../assets/Ilustrasi.png";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -21,7 +22,13 @@ ChartJS.register(
 );
 
 export default function Penduduk() {
-  const totalPenduduk = 370; // Total keseluruhan penduduk (misal)
+  // Data total untuk kartu (example static data)
+  const infoCards = [
+    { title: "Total Penduduk", count: 370, color: "#6CABCA" }, // Biru
+    { title: "Kepala Keluarga", count: 120, color: "#FE7C66" }, // Merah
+    { title: "Laki-laki", count: 180, color: "#5DE1C4" }, // Hijau
+    { title: "Perempuan", count: 190, color: "#B9FF66" }, // Kuning
+  ];
 
   // Data Chart Dummy
   const kelompokUmurData = {
@@ -66,7 +73,7 @@ export default function Penduduk() {
     datasets: [
       {
         data: [200, 50, 10, 5],
-        backgroundColor: ["#4BC0C0", "#FF6384", "#FFCE56", "#36A2EB"],
+        backgroundColor: ["#B9FF66", "#FE7C66", "#5DE1C4", "#6CABCA"],
       },
     ],
   };
@@ -76,48 +83,65 @@ export default function Penduduk() {
       {/* Deskripsi dan Kartu Total Penduduk */}
       <div>
         {/* Deskripsi */}
-        <h2 className="text-xl font-bold mb-4">
-          <span className="bg-yellow-300 px-1 rounded">
+        <h2 className="text-2xl m-5 max-w-200">
+          <span className="font-bold bg-yellow-300 px-1 rounded">
             Demografi Penduduk.
           </span>{" "}
-          <span className="text-gray-700">
+          <span className="text-gray-700" style={{ fontFamily: "poppins" }}>
             Memberikan informasi lengkap mengenai karakteristik demografi
-            penduduk desa bahontobungku
+            penduduk desa Bahontobungku.
           </span>
         </h2>
 
         {/* Kartu */}
         <div className="bg-white rounded-3xl p-5">
-          <h3 className="font-bold text-2xl text-center bg-lime-400 rounded-xl py-2 mb-6">
-            Jumlah Penduduk desa bahontobungku
-          </h3>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {["#60A5FA", "#F87171", "#34D399", "#FBBF24"].map((color, idx) => (
+            {infoCards.map((item, idx) => (
               <div
                 key={idx}
-                className={`rounded-3xl p-4 flex flex-col justify-between relative overflow-hidden shadow-md`}
-                style={{ backgroundColor: color }}
+                className={`
+                  rounded-3xl
+                  p-4
+                  flex
+                  flex-col
+                  justify-between
+                  relative
+                  overflow-hidden
+                  shadow-md
+                  transition-all
+                  duration-300
+                  ease-in-out
+                  border
+                  border-2
+                  border-black
+                  hover:shadow-[5px_5px_0px_black]
+                  hover:-translate-x-1
+                  hover:-translate-y-1
+                `}
+                style={{ backgroundColor: item.color }}
               >
                 {/* Content */}
                 <div className="z-10 space-y-3">
-                  <div className="bg-white inline-block px-3 py-1 rounded-lg text-sm font-semibold">
-                    Total Penduduk
+                  <div
+                    className="bg-white inline-block px-3 py-1 rounded-lg text-3xl font-semibold"
+                    style={{ fontFamily: "Space Grotesk" }}
+                  >
+                    {item.title}
                   </div>
                   <div className="text-white font-bold text-2xl">
-                    {totalPenduduk} orang
+                    {item.count} orang
                   </div>
                   <button className="flex items-center gap-1 text-white hover:underline">
                     Detail Statistik <ArrowUpRight size={16} />
                   </button>
                 </div>
 
-                {/* Background Illustration Placeholder */}
-                <div className="absolute bottom-0 right-0 opacity-40">
+                {/* Background Illustration */}
+                <div className="absolute top-0 right-0 opacity-40">
                   <img
-                    src="/assets/chart-1.png"
-                    alt="Ilustrasi"
-                    className="w-28 h-28 object-cover"
+                    src={Ilustrasi}
+                    alt="Icon Infografis"
+                    className="w-40 h-40 object-contain"
                   />
                 </div>
               </div>
@@ -128,7 +152,10 @@ export default function Penduduk() {
 
       {/* Chart 1 - Kelompok Umur */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
-        <h3 className="font-bold text-xl text-lime-700 mb-4">
+        <h3
+          className="font-bold text-xl bg-yellow-300 px-1 rounded mb-4"
+          style={{ fontFamily: "Poppins" }}
+        >
           Berdasarkan Kelompok Umur
         </h3>
         <div className="w-full max-w-4xl mx-auto">
@@ -143,7 +170,10 @@ export default function Penduduk() {
 
       {/* Chart 2 - Penduduk Dusun */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
-        <h3 className="font-bold text-xl text-lime-700 mb-4">
+        <h3
+          className="font-bold text-xl bg-yellow-300 px-1 rounded mb-4"
+          style={{ fontFamily: "Poppins" }}
+        >
           Berdasarkan Penduduk Dusun
         </h3>
         <div className="w-full max-w-3xl mx-auto">
@@ -158,7 +188,10 @@ export default function Penduduk() {
 
       {/* Chart 3 - Pekerjaan */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
-        <h3 className="font-bold text-xl text-lime-700 mb-4">
+        <h3
+          className="font-bold text-xl bg-yellow-300 px-1 rounded mb-4"
+          style={{ fontFamily: "Poppins" }}
+        >
           Berdasarkan Pekerjaan
         </h3>
         <div className="w-full max-w-4xl mx-auto">
@@ -177,7 +210,10 @@ export default function Penduduk() {
 
       {/* Chart 4 - Keyakinan */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
-        <h3 className="font-bold text-xl text-lime-700 mb-4">
+        <h3
+          className="font-bold text-xl bg-yellow-300 px-1 rounded mb-4"
+          style={{ fontFamily: "Poppins" }}
+        >
           Berdasarkan Keyakinan
         </h3>
         <div className="w-full max-w-3xl mx-auto">

@@ -61,11 +61,17 @@ const HeroSection = ({ activeTab, setActiveTab }) => {
 
       {/* KETERANGAN DAN BUTTON */}
       <div className="text-center md:text-center max-w-lg">
-      <h2 className="text-5xl md:text-4xl font-bold leading-snug bg-gradient-to-t from-gray-600 to-gray-300 bg-clip-text text-transparent">
-        Halaman ini menyajikan informasi dalam bentuk visual infografis
-      </h2>
+        <h2
+          className="text-5xl md:text-4xl font-bold leading-snug bg-gradient-to-t from-gray-600 to-gray-300 bg-clip-text text-transparent"
+          style={{ fontFamily: "poppins" }}
+        >
+          Halaman ini menyajikan informasi dalam bentuk visual infografis
+        </h2>
 
-        <p className="text-gray-600 text-lg mt-4">
+        <p
+          className="text-gray-600 text-lg mt-4"
+          style={{ fontFamily: "poppins" }}
+        >
           Ketahui berbagai informasi tentang desa Bahontobungku dengan tampilan
           yang menarik
         </p>

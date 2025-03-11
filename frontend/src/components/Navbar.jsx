@@ -1,255 +1,165 @@
-import React, { useState } from 'react';
-import { Link } from "react-router-dom";
-import logoPlaceholder from '../assets/logo-placeholder.png';
+"use client";
+
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import logoPlaceholder from "../assets/logo-placeholder.png";
+import { Menu, X } from "lucide-react";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation(); // untuk mendeteksi path aktif
 
-  const handleBurgerClick = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  // Handle scroll effect for navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-  const handleCloseClick = () => {
-    setIsMenuOpen(false);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const [dropdownOpen, setDropdownOpen] = useState({
-    profilDesa: false,
-    infografis: false,
-    pelayanan: false,
-    media: false,
-    arsip: false,
-  });
-
-  const toggleDropdown = (menu) => {
-    setDropdownOpen((prevState) => ({
-      ...prevState,
-      [menu]: !prevState[menu], // Toggle hanya dropdown yang diklik
-    }));
-  };
+  const navLinks = [
+    { name: "Home", path: "/" },
+    { name: "Profil Desa", path: "/ProfilDesa" },
+    { name: "Infografis", path: "/Infografis" },
+    { name: "Pelayanan", path: "#" },
+    { name: "Media", path: "#" },
+    { name: "Arsip", path: "#" },
+  ];
 
   return (
-    <>
-      <header className={`flex flex-wrap bg-white shadow-md top-0 z-30 py-2 ${isMenuOpen ? '' : 'sticky'}`}>
-        <nav className="container flex justify-between mx-4 md:mx-auto md:justify-around items-center">
-          <Link to="/">
-            <div className="flex justify-center items-center space-x-2 md:space-x-4">
-              <img src={logoPlaceholder} alt="Logo" className="h-14" />
-              <h3 className="font-bold md:text-base text-xs">
+    <header
+      className={`w-full fixed top-0 z-50 transition-all duration-300 backdrop-blur-md ${
+        scrolled ? "bg-white/80 shadow-md" : "bg-white/40"
+      }`}
+    >
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="flex items-center justify-between py-2 md:py-3">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-3">
+            <img
+              src={logoPlaceholder || "/placeholder.svg"}
+              alt="Logo Desa"
+              className="h-10 md:h-12 w-auto"
+            />
+            <div className="hidden sm:block">
+              <h3 className="font-bold text-xs md:text-sm leading-tight text-gray-800">
                 PEMERINTAH DESA BAHONTOBUNGKU <br />
                 KABUPATEN MOROWALI
               </h3>
             </div>
           </Link>
-          {/* Navbar List */}
-          <NavbarList />
-          {/* Burger Nav */}
-          <BurgerNav />
-        </nav>
-      </header>
-      {/* Aside Nav */}
-      <AsideNav />
-    </>
-  );
 
-  function NavbarList() {
-    return (
-      <>
-        <ul className="hidden md:flex space-x-6 text-gray-700">
-          <li><Link to="/" className="relative flex items-center space-x-1 hover:text-gray-900 font-bold">Home</Link></li>
-          <li className="relative group">
-            <Link to="/ProfilDesa" className="flex items-center space-x-1 hover:text-gray-200">
-              <span>Profil Desa</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6 relative">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className={`relative pb-1 text-black hover:text-white font-medium text-sm transition-colors ${
+                  location.pathname === link.path
+                    ? "text-black"
+                    : "text-gray-700"
+                }`}
+              >
+                {link.name}
+                {/* Underline animation */}
+                <span
+                  className={`absolute left-0 bottom-0 h-[2px] w-full bg-green-600 rounded-full transition-transform duration-300 ${
+                    location.pathname === link.path
+                      ? "scale-x-100"
+                      : "scale-x-0"
+                  }`}
+                ></span>
+              </Link>
+            ))}
+            <Link
+              to="/login"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+            >
+              Login
             </Link>
-            <ul className="absolute left-0 mt-2 w-48 bg-white text-gray-800 shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 1</a></li>
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 2</a></li>
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 3</a></li>
-            </ul>
-          </li>
-          <li className="relative group">
-            <Link to="/Infografis" className="flex items-center space-x-1 hover:text-gray-200">
-              <span>Infografis</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </Link>
-            <ul className="absolute left-0 mt-2 w-48 bg-white text-gray-800 shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 1</a></li>
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 2</a></li>
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 3</a></li>
-            </ul>
-          </li>
-          <li className="relative group">
-            <Link to="#" className="flex items-center space-x-1 hover:text-gray-200">
-              <span>Pelayanan</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </Link>
-            <ul className="absolute left-0 mt-2 w-48 bg-white text-gray-800 shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 1</a></li>
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 2</a></li>
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 3</a></li>
-            </ul>
-          </li>
-          <li className="relative group">
-            <Link to="#" className="flex items-center space-x-1 hover:text-gray-200">
-              <span>Media</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </Link>
-            <ul className="absolute left-0 mt-2 w-48 bg-white text-gray-800 shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 1</a></li>
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 2</a></li>
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 3</a></li>
-            </ul>
-          </li>
-          <li className="relative group">
-            <Link to="#" className="flex items-center space-x-1 hover:text-gray-200">
-              <span>Arsip</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </Link>
-            <ul className="absolute left-0 mt-2 w-48 bg-white text-gray-800 shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 1</a></li>
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 2</a></li>
-              <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Subitem 3</a></li>
-            </ul>
-          </li>
-        </ul>
-        <div id="login" className="hidden p-2 pt-1 items-center md:flex">
-          <Link to="/login" className="text-[#16BE27] items-center font-bold text-xl">Login</Link>
+          </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={toggleMenu}
+            className="md:hidden text-gray-700 focus:outline-none"
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
-      </>
-    );
-  }
-
-  function BurgerNav() {
-    return (
-      <div className="flex md:hidden">
-        <button id="BurgerButton" className="block md:hidden" onClick={handleBurgerClick}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-8 w-8"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16m-7 6h7"
-            />
-          </svg>
-        </button>
       </div>
-    );
-  }
-  
-  function AsideNav() {
-    return (
-      <aside id="menuAside" className={`fixed left-0 w-full h-full bg-black/30 z-20 top-0 ${isMenuOpen ? '' : 'hidden'}`}>
-        <ul className="flex flex-col space-y-4 h-full w-2/3 bg-white py-2 px-2">
-          <li>
-            <Link to="/" className="relative flex items-center space-x-1 hover:text-gray-900 font-bold">Home</Link>
-          </li>
-  
-          {/* Profil Desa */}
-          <li className="relative">
-            <div className="flex items-center space-x-1 hover:text-gray-200 cursor-pointer" onClick={() => toggleDropdown("profilDesa")}>
-              <Link to="/ProfilDesa">Profil Desa</Link>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
-              </svg>
-            </div>
-            {dropdownOpen.profilDesa && (
-              <ul className="left-0 mt-2 w-48 text-gray-800 rounded-lg bg-white shadow-lg">
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Visi & Misi</a></li>
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Struktur Pemerintahan</a></li>
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Peta Wilayah</a></li>
-              </ul>
-            )}
-          </li>
-  
-          {/* Infografis */}
-          <li className="relative">
-            <div className="flex items-center space-x-1 hover:text-gray-200 cursor-pointer" onClick={() => toggleDropdown("infografis")}>
-              <Link to="/Infografis">Infografis</Link>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
-              </svg>
-            </div>
-            {dropdownOpen.infografis && (
-              <ul className="left-0 mt-2 w-48 text-gray-800 rounded-lg bg-white shadow-lg">
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Data Statistik</a></li>
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Laporan Tahunan</a></li>
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Peta Infrastruktur</a></li>
-              </ul>
-            )}
-          </li>
-  
-          {/* Pelayanan */}
-          <li className="relative">
-            <div className="flex items-center space-x-1 hover:text-gray-200 cursor-pointer" onClick={() => toggleDropdown("pelayanan")}>
-              <Link to="#">Pelayanan</Link>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
-              </svg>
-            </div>
-            {dropdownOpen.pelayanan && (
-              <ul className="left-0 mt-2 w-48 text-gray-800 rounded-lg bg-white shadow-lg">
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Pembuatan KTP</a></li>
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Pembuatan KK</a></li>
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Surat Domisili</a></li>
-              </ul>
-            )}
-          </li>
-  
-          {/* Media */}
-          <li className="relative">
-            <div className="flex items-center space-x-1 hover:text-gray-200 cursor-pointer" onClick={() => toggleDropdown("media")}>
-              <Link to="#">Media</Link>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
-              </svg>
-            </div>
-            {dropdownOpen.media && (
-              <ul className="left-0 mt-2 w-48 text-gray-800 rounded-lg bg-white shadow-lg">
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Galeri Foto</a></li>
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Video Dokumentasi</a></li>
-              </ul>
-            )}
-          </li>
-  
-          {/* Arsip */}
-          <li className="relative">
-            <div className="flex items-center space-x-1 hover:text-gray-200 cursor-pointer" onClick={() => toggleDropdown("arsip")}>
-              <Link to="#">Arsip</Link>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
-              </svg>
-            </div>
-            {dropdownOpen.arsip && (
-              <ul className="left-0 mt-2 w-48 text-gray-800 rounded-lg bg-white shadow-lg">
-                <li><a href="#" className="block px-4 py-2 hover:bg-gray-200">Dokumen Penting</a></li>
-              </ul>
-            )}
-          </li>
-  
-          <div id="login" className="p-2 pt-1">
-            <Link to="/login" className="text-[#16BE27] font-bold md:text-xl">Login</Link>
+
+      {/* Mobile Navigation */}
+      <div
+        className={`fixed inset-0 bg-white/95 backdrop-blur-md z-40 transform transition-transform duration-300 ease-in-out ${
+          isMenuOpen ? "translate-x-0" : "-translate-x-full"
+        } md:hidden`}
+      >
+        <div className="flex flex-col h-full p-6">
+          <div className="flex justify-between items-center mb-8">
+            <Link to="/" className="flex items-center space-x-2">
+              <img
+                src={logoPlaceholder || "/placeholder.svg"}
+                alt="Logo"
+                className="h-10 w-auto"
+              />
+              <h3 className="font-bold text-xs leading-tight">
+                PEMERINTAH DESA
+                <br />
+                BAHONTOBUNGKU
+              </h3>
+            </Link>
+            <button
+              onClick={toggleMenu}
+              className="text-gray-700 focus:outline-none"
+              aria-label="Close menu"
+            >
+              <X size={24} />
+            </button>
           </div>
-        </ul>
-        <div id="close" className="absolute right-0 top-0 text-3xl pr-4 font-bold w-1/3 h-full text-end cursor-pointer" onClick={handleCloseClick}>x</div>
-      </aside>
-    );
-  }
+
+          <nav className="flex flex-col space-y-6 mt-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className={`relative text-gray-800 hover:text-green-600 font-medium text-lg transition-colors ${
+                  location.pathname === link.path ? "text-green-600" : ""
+                }`}
+                onClick={toggleMenu}
+              >
+                {link.name}
+                {/* Underline for mobile */}
+                <span
+                  className={`absolute left-0 bottom-0 h-[2px] w-full bg-green-600 rounded-full transition-transform duration-300 ${
+                    location.pathname === link.path
+                      ? "scale-x-100"
+                      : "scale-x-0"
+                  }`}
+                ></span>
+              </Link>
+            ))}
+          </nav>
+
+          <div className="mt-auto pt-6 border-t border-gray-100">
+            <Link
+              to="/login"
+              className="flex items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg text-base font-medium transition-colors"
+              onClick={toggleMenu}
+            >
+              Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
 }
 
 export default Navbar;

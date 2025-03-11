@@ -3,17 +3,14 @@ import React, { useState, useEffect } from "react";
 /* eslint-disable no-unused-vars */
 import { motion, AnimatePresence } from "framer-motion";
 /* eslint-enable no-unused-vars */
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import CarouselVisiMisi from '../components/ProfilDesa/CarouselVisiMisi';
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import CarouselVisiMisi from "../components/ProfilDesa/CarouselVisiMisi";
 import CarouselAparatur from "../components/ProfilDesa/CarouselProfil";
-import riceField from '../assets/rice-field-7890204_1920.jpg';
-import Kantor from '../assets/kantor.png';
+import Bg from "../assets/Background.jpg";
+import Kantor from "../assets/kantor.png";
 
-const images = [
-  riceField,
-  Kantor,
-]; // Ganti dengan path gambar yang sesuai
+const images = [Bg, Kantor]; // Ganti dengan path gambar yang sesuai
 
 export default function ProfilDesa() {
   return (
@@ -23,7 +20,7 @@ export default function ProfilDesa() {
       <InformasiWilayah />
 
       {/* Visi & Misi */}
-      <CarouselVisiMisi id="VisiMisi"/>
+      <CarouselVisiMisi id="VisiMisi" />
 
       {/* Perangkat Desa */}
       <CarouselAparatur />
@@ -59,9 +56,14 @@ export default function ProfilDesa() {
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/70 md:bg-black/30 flex flex-col justify-center text-white h-full text-xl">
           <div className="flex flex-col justify-center md:block md:w-1/2 mx-8 md:mx-[6rem] h-full md:mt-[10rem] space-y-2 md:space-y-10">
-            <h1 className="text-[2rem] md:text-[5rem] font-bold leading-none">Informasi Wilayah</h1>
+            <h1 className="text-[2rem] md:text-[5rem] font-bold leading-none">
+              Informasi Wilayah
+            </h1>
             <p className="md:w-[31rem] text-justify text-sm md:text-xl">
-              Secara Geografis Desa Bahontobungku terletak pada wilayah administrasi Kecamatan Bungku Tengah, dengan perkiraan titik kordinat berada pada Bujur Timur : 〖121〗° 956690” Lintang Selatan : -2,649603”.
+              Secara Geografis Desa Bahontobungku terletak pada wilayah
+              administrasi Kecamatan Bungku Tengah, dengan perkiraan titik
+              kordinat berada pada Bujur Timur : 〖121〗° 956690” Lintang
+              Selatan : -2,649603”.
             </p>
             <div>
               <a className="bg-[#16BE27] text-lg md:text-2xl rounded-lg p-1 md:p-3 text-black font-bold cursor-pointer md:w-fit">
