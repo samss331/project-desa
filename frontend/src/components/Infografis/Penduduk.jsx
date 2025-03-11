@@ -87,7 +87,7 @@ export default function Penduduk() {
         </h2>
 
         {/* Kartu */}
-        <div className="bg-gray-100 rounded-3xl p-5">
+        <div className="bg-white rounded-3xl p-5">
           <h3 className="font-bold text-2xl text-center bg-lime-400 rounded-xl py-2 mb-6">
             Jumlah Penduduk desa bahontobungku
           </h3>
