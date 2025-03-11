@@ -43,8 +43,8 @@ export default function Fasilitas() {
     <section className="space-y-8">
       {/* PIE CHART */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
-        <h3 className="font-bold text-xl text-lime-700 mb-4">
-          Persebaran Fasilitas Desa Bahontobungku
+        <h3 className="font-bold text-xl text black mb-4">
+          Persebaran Fasilitas di Desa Bahontobungku
         </h3>
         <div className="w-full max-w-3xl mx-auto">
           <Pie
