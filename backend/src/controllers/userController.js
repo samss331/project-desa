@@ -1,10 +1,10 @@
-import authServices from "../services/authServices.js";
+import authServices from "../services/userServices.js";
 
 const login = async (req, res) => {
     try {
         const {email, password} = req.body;
-        const {token} = await authServices.loginAdmin(email, password);
-        res.status(200).json({success: true, token})
+        const data = await authServices.loginAdmin(email, password);
+        res.status(200).json({success: true, data})
     } catch (error) {
         res.status(500).json({success: false, message: error.message});
     }

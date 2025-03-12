@@ -1,50 +1,130 @@
 import suratServices from "../services/suratServices.js";
 
-console.log("Endpoint addSuratMasuk dipanggil");
-
 const addSuratMasuk = async (req, res) => {
     try {
-        const {nomor_surat, perihal} = req.body;
-        const file_surat = req.file ? req.file.filename : null;
+        const { nomorSurat, pengirim, perihal, tanggalTerima } = req.body;
+        const file = req.file ? req.file.filename : null; // Jika ada file yang di-upload
 
-        console.log("Data yang diterima dari request:", { nomor_surat, perihal, file_surat });
-
-        const result = await suratServices.addSuratMasuk(nomor_surat, perihal, file_surat);
-        console.log("Hasil query MySQL:", result);
-        res.status(201).json({succes: true, message: "Surat berhasil di tambahkan"});
+        const result = await suratServices.addSuratMasuk(nomorSurat, pengirim, perihal, tanggalTerima, file);
+        res.status(201).json({ success: true, message: "Surat masuk berhasil ditambahkan", data: result });
     } catch (error) {
-        res.status(500).json({succes: false, message: error.message});
+        res.status(500).json({ success: false, message: error.message });
     }
-}
+};
 
 const addSuratKeluar = async (req, res) => {
     try {
-        const {nomor_surat, perihal} = req.body;
-        const file_surat = req.file ? req.file.filename : null;
+        const { nomorSurat, penerima, perihal, tanggalKirim } = req.body;
+        const file = req.file ? req.file.filename : null; // Jika ada file yang di-upload
 
-        await suratServices.addSuratKeluar(nomor_surat, perihal, file_surat);
-        res.status(201).json({succes: true, message: "Surat berhasil ditambahkan"})
+        const result = await suratServices.addSuratKeluar(nomorSurat, penerima, perihal, tanggalKirim, file);
+        res.status(201).json({ success: true, message: "Surat keluar berhasil ditambahkan", data: result });
     } catch (error) {
-        res.status(400).json({succes: false, message: "Semua data harus diisi!"})
+        res.status(400).json({ success: false, message: error.message });
     }
-}
+};
 
 const getAllSuratMasuk = async (req, res) => {
     try {
-        const data = await suratServices.getAllSuratMasuk()
-        res.status(200).json({succes: true, message: data});
+        const data = await suratServices.getAllSuratMasuk();
+        res.json({ success: true, data });
     } catch (error) {
-        res.status(500).json({succes: false, message: error.message})
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
 const getAllSuratKeluar = async (req, res) => {
     try {
-        const data = await suratServices.getAllSuratKeluar()
-        res.status(200).json({succes: true, message: data});
+        const data = await suratServices.getAllSuratKeluar();
+        res.json({ success: true, data });
     } catch (error) {
-        res.status(500).json({succes: false, message: error.message})
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
-export default {addSuratMasuk, addSuratKeluar, getAllSuratMasuk, getAllSuratKeluar};
+const getSuratMasukById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const data = await suratServices.getSuratMasukById(id);
+        res.json({ success: true, data });
+    } catch (error) {
+        res.status(404).json({ success: false, message: error.message });
+    }
+};
+
+const getSuratKeluarById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const data = await suratServices.getSuratKeluarById(id);
+        res.json({ success: true, data });
+    } catch (error) {
+        res.status(404).json({ success: false, message: error.message });
+    }
+};
+
+const updateSuratMasuk = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nomorSurat, pengirim, perihal, tanggalTerima } = req.body;
+        const file = req.file ? req.file.filename : null;
+
+        const updated = await suratServices.updateSuratMasuk(id, nomorSurat, pengirim, perihal, tanggalTerima, file);
+        if (!updated) {
+            return res.status(404).json({ success: false, message: "Surat masuk tidak ditemukan" });
+        }
+
+        res.json({ success: true, message: "Surat masuk berhasil diperbarui" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const updateSuratKeluar = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nomorSurat, penerima, perihal, tanggalKirim } = req.body;
+        const file = req.file ? req.file.filename : null;
+
+        const updated = await suratServices.updateSuratKeluar(id, nomorSurat, penerima, perihal, tanggalKirim, file);
+        if (!updated) {
+            return res.status(404).json({ success: false, message: "Surat keluar tidak ditemukan" });
+        }
+
+        res.json({ success: true, message: "Surat keluar berhasil diperbarui" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const deleteSuratMasuk = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deleted = await suratServices.deleteSuratMasuk(id);
+        if (!deleted) {
+            return res.status(404).json({ success: false, message: "Surat masuk tidak ditemukan" });
+        }
+
+        res.json({ success: true, message: "Surat masuk berhasil dihapus" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const deleteSuratKeluar = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deleted = await suratServices.deleteSuratKeluar(id);
+        if (!deleted) {
+            return res.status(404).json({ success: false, message: "Surat keluar tidak ditemukan" });
+        }
+
+        res.json({ success: true, message: "Surat keluar berhasil dihapus" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export default { 
+    addSuratMasuk, getAllSuratMasuk, updateSuratMasuk, deleteSuratMasuk, getSuratMasukById,
+    addSuratKeluar, getAllSuratKeluar, updateSuratKeluar, deleteSuratKeluar, getSuratKeluarById
+};

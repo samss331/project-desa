@@ -1,14 +1,14 @@
 import db from "../config/database.js";
-import User from "../model/user.js";
+import model from "../model/model.js";
 
 const getUserByEmail = async (email) => {
     const [rows] = await db.promise().query(
-        "SELECT * FROM users where email = ?", [email]
+        "SELECT * FROM user where email = ?", [email]
     );
     if(rows.length === 0) return null;
 
     const {id, nama, password} = rows[0];
-    return new User (id, nama, email, password);
+    return new model.User (id, nama, email, password);
 }
 
 const updateUserByEmail = async (nama, email, password) => {
@@ -16,7 +16,7 @@ const updateUserByEmail = async (nama, email, password) => {
     if(!user) throw new Error ("User dengan email tersebut tidak ditemukan!")
 
     const [result] = await db.promise().query(
-        "UPDATE users SET nama = ?, password = ? WHERE email = ?", 
+        "UPDATE user SET nama = ?, password = ? WHERE email = ?", 
         [nama, password, email]
     );
     return result.affectedRows > 0;
