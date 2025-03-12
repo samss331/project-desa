@@ -16,7 +16,6 @@ export default function ProfilDesa() {
   return (
     <div>
       <Navbar />
-      {/* Hero Section */}
       <InformasiWilayah />
 
       {/* Visi & Misi */}
