@@ -9,12 +9,10 @@ const getAllPenduduk = async (req, res) => {
     }
 };
 
-const getPendudukById = async (req, res) => {
-    console.log("controller : ", req.params);
-    const { id } = req.params;
-    console.log("controller : ", id);
+const getPendudukByNik = async (req, res) => {
+    const { nik } = req.params;
     try {
-        const result = await pendudukServices.getPendudukById(id);
+        const result = await pendudukServices.getPendudukByNik(nik);
         if (!result) {
             return res.status(404).json({ success: false, message: "Data tidak ditemukan" });
         }
@@ -36,21 +34,20 @@ const addPenduduk = async (req, res) => {
 };
 
 const updateDataPenduduk = async (req, res) => {
-    const {id} = req.params;
-    const { nama, nik, alamat, tanggalLahir } = req.body;
+    const { oldNik, newNik, nama, alamat, tanggalLahir } = req.body;
     try {
-        const result = await pendudukServices.updateDataPenduduk(id, nama, nik, alamat, tanggalLahir);
-        console.log("dalam controller : ", result);
-        res.json({ success: true, message: "Data berhasil diperbarui", data: result });
+        const result = await pendudukServices.updateDataPenduduk(oldNik, nama, newNik, alamat, tanggalLahir);
+        res.json(result);
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
 
 const deleteDataPenduduk = async (req, res) => {
-    const { id } = req.params;
+    const { nik } = req.params;
+    console.log(nik, "a")
     try {
-        const result = await pendudukServices.deleteDataPenduduk(id);
+        const result = await pendudukServices.deleteDataPenduduk(nik);
         if (!result.success) {
             return res.status(404).json(result);
         }
@@ -60,4 +57,4 @@ const deleteDataPenduduk = async (req, res) => {
     }
 };
 
-export default { getAllPenduduk, getPendudukById, addPenduduk, updateDataPenduduk, deleteDataPenduduk };
+export default { getAllPenduduk, getPendudukByNik, addPenduduk, updateDataPenduduk, deleteDataPenduduk };

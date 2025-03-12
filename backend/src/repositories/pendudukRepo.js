@@ -9,10 +9,9 @@ const getAllPenduduk = async () => {
     }
 };
 
-const getPendudukById = async (id) => {
-    console.log("repo : ", id);
+const getPendudukByNik = async (nik) => {
     try {
-        const [results] = await db.promise().query("SELECT * FROM PENDUDUK WHERE id =?", [id]);
+        const [results] = await db.promise().query("SELECT * FROM PENDUDUK WHERE nik =?", [nik]);
         return results.length ? results[0] : null;
     } catch (error) {
         throw error;
@@ -30,22 +29,24 @@ const addPenduduk = async (nama, nik, alamat, tanggalLahir) => {
     }
 };
 
-const updateDataPenduduk = async (id, nama, nik, alamat, tanggalLahir) => {
+const updateDataPenduduk = async (oldNik, nama, newNik, alamat, tanggalLahir) => {
     try {
-        const [results] = await db.promise().query("UPDATE PENDUDUK SET nama = ?, nik = ?, alamat = ?, tanggalLahir = ? where id =?", [nama, nik, alamat, tanggalLahir, id]);
-        return {id: results.id, nama, nik, alamat, tanggalLahir};
+        const [results] = await db.promise().query("UPDATE PENDUDUK SET nama = ?, nik = ?, alamat = ?, tanggalLahir = ? where nik =?", [nama, newNik, alamat, tanggalLahir, oldNik]);
+        return results;
     } catch (error) {
+        console.log(error)
         throw error;
     }
 }
 
-const deleteDataPenduduk = async (id) => {
+const deleteDataPenduduk = async (nik) => {
     try {
-        const [results] = await db.promise().query("DELETE FROM PENDUDUK WHERE id = ?", [id])
+        console.log(nik)
+        const [results] = await db.promise().query("DELETE FROM PENDUDUK WHERE nik = ?", [nik])
         return results.affectedRows > 0;
     } catch (error) {
         throw error;
     }
 }
 
-export default {getAllPenduduk, getPendudukById, addPenduduk, updateDataPenduduk, deleteDataPenduduk};
+export default {getAllPenduduk, getPendudukByNik, addPenduduk, updateDataPenduduk, deleteDataPenduduk};

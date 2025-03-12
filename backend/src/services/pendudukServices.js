@@ -10,15 +10,15 @@ const getAllPenduduk = async () => {
     }
 };
 
-const getPendudukById = async (id) => {
-    console.log("service : ", id);
+const getPendudukByNik = async (nik) => {
     try {
-        const result = await pendudukRepo.getPendudukById(id);
+        const result = await pendudukRepo.getPendudukByNik(nik);
         if (!result) {
             return { success: false, message: "Data tidak ditemukan" };
         }
         return new PendudukDTO(result.id, result.nama, result.nik, result.alamat, result.tanggalLahir);
     } catch (error) {
+        console.log(error)
         throw new Error("Gagal mengambil data penduduk berdasarkan NIK");
     }
 };
@@ -36,27 +36,31 @@ const addPenduduk = async (nama, nik, alamat, tanggalLahir) => {
     }
 };
 
-const updateDataPenduduk = async (id, nama, nik, alamat, tanggalLahir) => {
-    try {
-        console.log("service : ", id);
-        const existing = await pendudukRepo.getPendudukById(id);
-        if (!existing) {
-            return { success: false, message: "Data dengan NIK tersebut tidak ditemukan" };
-        }
-        const result = await pendudukRepo.updateDataPenduduk(id, nama, nik, alamat, tanggalLahir);
-        return new PendudukDTO(result.id, result.nama, result.nik, result.alamat, result.tanggalLahir);
-    } catch (error) {
-        throw error;
+const updateDataPenduduk = async (oldNik, nama, newNik, alamat, tanggalLahir) => {
+    const existingPenduduk = await pendudukRepo.getPendudukByNik(oldNik);
+    if (!existingPenduduk) {
+        throw new Error("Data dengan NIK tersebut tidak ditemukan");
     }
+
+    if (newNik !== oldNik) {
+        const nikExists = await pendudukRepo.getPendudukByNik(newNik);
+        if (nikExists) {
+            throw new Error("NIK baru sudah digunakan oleh penduduk lain");
+        }
+    }
+
+    await pendudukRepo.updateDataPenduduk(oldNik, nama, newNik, alamat, tanggalLahir);
+    return { success: true, message: "Data berhasil diperbarui", nama, newNik, alamat, tanggalLahir };
 };
 
-const deleteDataPenduduk = async (id) => {
+const deleteDataPenduduk = async (nik) => {
     try {
-        const existing = await pendudukRepo.getPendudukById(id);
-        if (!existing) {
+        const existingPenduduk = await pendudukRepo.getPendudukByNik(nik);
+        if (!existingPenduduk) {
             return { success: false, message: "Data dengan NIK tersebut tidak ditemukan" };
         }
-        const isDeleted = await pendudukRepo.deleteDataPenduduk(id);
+        const isDeleted = await pendudukRepo.deleteDataPenduduk(nik);
+        console.log(nik)
         if (!isDeleted) {
             return { success: false, message: "Gagal menghapus data" };
         }
@@ -66,4 +70,4 @@ const deleteDataPenduduk = async (id) => {
     }
 };
 
-export default { getAllPenduduk, getPendudukById, addPenduduk, updateDataPenduduk, deleteDataPenduduk };
+export default { getAllPenduduk, getPendudukByNik, addPenduduk, updateDataPenduduk, deleteDataPenduduk };

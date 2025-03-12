@@ -2,6 +2,8 @@ import express from "express";
 import pendudukRoutes from "./pendudukRoute.js";
 import suratRoutes from "./suratRoute.js";
 import authRoutes from "./userRoutes.js";
+import pengumumanRoutes from "./pengumumanRoute.js"
+import beritaRoutes from "./beritaRoute.js"
 
 const router = express.Router();
 
@@ -13,5 +15,7 @@ router.get("/", (req, res) => {
 router.use("/auth", authRoutes)
 router.use("/penduduk", pendudukRoutes);
 router.use("/surat", suratRoutes);
+router.use("/pengumuman", pengumumanRoutes)
+router.use("/berita", beritaRoutes)
 
 export default router;
