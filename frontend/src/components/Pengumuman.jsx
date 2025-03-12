@@ -4,21 +4,28 @@ import { motion } from "framer-motion";
 
 export default function Pengumuman() {
   return (
-    <div className="bg-gray-600 text-white py-2 overflow-hidden flex items-center">
-      {/* Ikon 📢 */}
-      <div className="w-1/12 flex justify-center items-center">
+    <div
+      className="absolute left-1/2 transform -translate-x-1/2 bottom-0 translate-y-1/2 z-30
+                 bg-gray-800/80 backdrop-blur-md text-white py-3 px-4 rounded-xl shadow-lg
+                 w-[96%] md:max-w-9xl flex items-center gap-3 overflow-hidden"
+      style={{ fontFamily: "Poppins" }}
+    >
+      {/* Icon 📢 */}
+      <div className="flex-shrink-0">
         <span className="text-2xl">📢</span>
       </div>
 
       {/* Teks Berjalan */}
       <motion.div
-        className="w-11/12 whitespace-nowrap"
-        initial={{ x: "100%" }} // Mulai dari luar layar (kanan)
-        animate={{ x: "-100%" }} // Bergerak sampai keluar layar (kiri)
-        transition={{ duration: 10, repeat: Infinity, ease: "linear" }} // Animasi berjalan terus
+        className="whitespace-nowrap"
+        initial={{ x: "100%" }}
+        animate={{ x: "-100%" }}
+        transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
       >
-        <p className="text-lg">
-          teks berjalan berisi pengumuman penting untuk pengunjung website desa
+        <p className="text-sm md:text-base">
+          ⚠️ Pengumuman: Harap memperhatikan jadwal kegiatan desa terbaru yang
+          telah diumumkan di papan informasi desa. Tetap pantau website ini
+          untuk update penting lainnya.
         </p>
       </motion.div>
     </div>

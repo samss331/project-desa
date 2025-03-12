@@ -111,7 +111,6 @@ export default function Penduduk() {
                   transition-all
                   duration-300
                   ease-in-out
-                  border
                   border-2
                   border-black
                   hover:shadow-[5px_5px_0px_black]

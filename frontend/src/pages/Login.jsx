@@ -12,42 +12,51 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+    <div
+      className="flex items-center justify-center h-screen bg-gray-100"
+      style={{ fontFamily: "poppins" }}
+    >
       <div className="bg-white p-8 rounded-lg shadow-md w-96">
         <h2 className="text-2xl font-semibold text-center">Log in</h2>
         <form onSubmit={handleLogin}>
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium">Email address</label>
-            <input 
-              type="email" 
+            <label className="block text-gray-700 text-sm font-medium">
+              Email address
+            </label>
+            <input
+              type="email"
               className="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={email} 
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="mb-4 relative">
-            <label className="block text-gray-700 text-sm font-medium">Password</label>
-            <input 
-              type={showPassword ? "text" : "password"} 
+            <label className="block text-gray-700 text-sm font-medium">
+              Password
+            </label>
+            <input
+              type={showPassword ? "text" : "password"}
               className="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={password} 
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <span 
-              className="absolute right-3 top-9 text-gray-500 cursor-pointer text-sm" 
+            <span
+              className="absolute right-3 top-9 text-gray-500 cursor-pointer text-sm"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? "Hide" : "Show"}
             </span>
           </div>
           <div className="text-right text-sm mb-4">
-            <a href="/ResetPassword" className="text-blue-600 font-medium">Forgot password?</a>
+            <a href="/ResetPassword" className="text-blue-600 font-medium">
+              Forgot password?
+            </a>
           </div>
-          <button 
-            type="submit" 
-            className="w-full bg-gray-300 text-white py-2 rounded-lg cursor-not-allowed" 
+          <button
+            type="submit"
+            className="w-full bg-gray-300 text-white py-2 rounded-lg cursor-not-allowed"
             disabled
           >
             Log in

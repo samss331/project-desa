@@ -8,9 +8,9 @@ import Footer from "../components/Footer";
 import CarouselVisiMisi from "../components/ProfilDesa/CarouselVisiMisi";
 import CarouselAparatur from "../components/ProfilDesa/CarouselProfil";
 import Bg from "../assets/Background.jpg";
-import Kantor from "../assets/kantor.png";
+import placeholder from "../assets/ph.jpg";
 
-const images = [Bg, Kantor]; // Ganti dengan path gambar yang sesuai
+const images = [Bg, placeholder]; // Ganti dengan path gambar yang sesuai
 
 export default function ProfilDesa() {
   return (
@@ -39,7 +39,7 @@ export default function ProfilDesa() {
     }, []);
 
     return (
-      <section className="relative h-[30rem] md:h-[45rem] overflow-hidden">
+      <section className="relative h-[30rem] md:h-[49rem] overflow-hidden">
         {/* Slideshow Background */}
         <AnimatePresence>
           <motion.div
@@ -54,7 +54,10 @@ export default function ProfilDesa() {
         </AnimatePresence>
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black/70 md:bg-black/30 flex flex-col justify-center text-white h-full text-xl">
+        <div
+          className="absolute inset-0 bg-black/70 md:bg-black/30 flex flex-col justify-center text-white h-full text-xl"
+          style={{ fontFamily: "poppins" }}
+        >
           <div className="flex flex-col justify-center md:block md:w-1/2 mx-8 md:mx-[6rem] h-full md:mt-[10rem] space-y-2 md:space-y-10">
             <h1 className="text-[2rem] md:text-[5rem] font-bold leading-none">
               Informasi Wilayah
@@ -66,7 +69,10 @@ export default function ProfilDesa() {
               Selatan : -2,649603”.
             </p>
             <div>
-              <a className="bg-[#16BE27] text-lg md:text-2xl rounded-lg p-1 md:p-3 text-black font-bold cursor-pointer md:w-fit">
+              <a
+                className="bg-[#16BE27] text-lg md:text-2xl rounded-lg p-1 md:p-3 font-bold cursor-pointer md:w-fit text-gray-700"
+                style={{ fontFamily: "poppins" }}
+              >
                 Baca Selengkapnya
               </a>
             </div>

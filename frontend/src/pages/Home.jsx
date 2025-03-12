@@ -10,8 +10,12 @@ export default function Home() {
   return (
     <div>
       <Navbar />
-      <HeroSection />
-      <Pengumuman />
+      <div className="relative">
+        {" "}
+        {/* Hero dibungkus relative agar pengumuman bisa absolute */}
+        <HeroSection />
+        <Pengumuman /> {/* Ditempel tepat di batas Hero */}
+      </div>
       <InfoSection />
       <Footer />
     </div>
@@ -21,22 +25,21 @@ export default function Home() {
 const HeroSection = () => {
   return (
     <section
-      className="relative bg-cover bg-center h-[30rem] md:h-[45rem]"
-      style={{ backgroundImage: `url(${Bg})` }}
+      className="py-8 px-4 md:px-8 pt-24 pb-11"
+      style={{ fontFamily: "Poppins" }}
     >
-      <div className="absolute inset-0 bg-black/50 md:bg-black/30 flex flex-col justify-center items-center text-white text-center">
-        <h2
-          className="text-[2rem] md:text-[5rem] font-bold"
-          style={{ fontFamily: "Poppins" }}
-        >
-          WEBSITE RESMI
-        </h2>
-        <p
-          className="text-[1rem] md:text-[3rem] font-bold"
-          style={{ fontFamily: "Poppins" }}
-        >
-          DESA BAHONTOBUNGKU
-        </p>
+      <div
+        className="relative w-full max-w-9xl h-[40rem] md:h-[37rem] bg-cover bg-center rounded-3xl overflow-hidden mx-auto"
+        style={{ backgroundImage: `url(${Bg})` }}
+      >
+        <div className="absolute inset-0 bg-black/50 md:bg-black/30 flex flex-col justify-center items-center text-white text-center px-4">
+          <h2 className="text-[2rem] md:text-[5rem] font-bold">
+            WEBSITE RESMI
+          </h2>
+          <p className="text-[1rem] md:text-[3rem] font-bold">
+            DESA BAHONTOBUNGKU
+          </p>
+        </div>
       </div>
     </section>
   );
@@ -44,8 +47,11 @@ const HeroSection = () => {
 
 const InfoSection = () => {
   return (
-    <div className="relative bg-white pt-4 md:pt-12 px-5">
+    <div className="relative bg-white pt-20 md:pt-28 px-5">
+      {" "}
+      {/* Ditambah padding atas agar tidak tabrakan */}
       <div className="block md:flex w-full h-full md:h-[50rem] mx-auto text-center relative">
+        {/* SVG Decoration */}
         <svg
           width="1100"
           height="600"
@@ -59,40 +65,7 @@ const InfoSection = () => {
             fill="#F4F9FF"
           />
         </svg>
-        <svg
-          width="210"
-          height="150"
-          viewBox="0 0 200 150"
-          xmlns="http://www.w3.org/2000/svg"
-          className="hidden absolute inset-0 top-[17rem] left-8 z-0 md:flex"
-        >
-          <path
-            d="M0,40 A40,40 0 0,1 40,0 H200 V110 A40,40 0 0,1 160,150 H0 Z"
-            fill="#FFF5DC"
-          />
-        </svg>
-        <svg
-          width="400"
-          height="150"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="hidden absolute inset-x-0 bottom-16 z-0 md:flex"
-        >
-          <defs>
-            <pattern
-              id="dotPattern"
-              x="0"
-              y="0"
-              width="13"
-              height="13"
-              patternUnits="userSpaceOnUse"
-            >
-              <circle cx="4" cy="4" r="3" fill="#DDE7F8" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#dotPattern)" />
-        </svg>
-
+        {/* Cards */}
         <div className="flex flex-col w-full md:w-2/5 h-full justify-center md:pl-20 relative z-10 px-6">
           <h2 className="w-full md:w-3/4 text-3xl md:text-4xl font-bold text-gray-800 leading-12 text-left">
             Dapatkan Informasi Terbaru terkait desa

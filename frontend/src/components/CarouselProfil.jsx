@@ -68,6 +68,7 @@ export default function CarouselAparatur() {
   return (
     <div
       className="relative md:w-full md:max-w-7xl mx-4 md:mx-auto overflow-hidden pt-28"
+      style={{ fontFamily: "poppins" }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -99,7 +100,8 @@ export default function CarouselAparatur() {
           {aparatur.map((_, i) => (
             <div
               key={i}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${i === index ? "bg-white scale-110" : "bg-gray-400"
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                i === index ? "bg-white scale-110" : "bg-gray-400"
               }`}
             />
           ))}

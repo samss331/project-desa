@@ -35,6 +35,7 @@ function Navbar() {
       className={`w-full fixed top-0 z-50 transition-all duration-300 backdrop-blur-md ${
         scrolled ? "bg-white/80 shadow-md" : "bg-white/40"
       }`}
+      style={{ fontFamily: "poppins" }}
     >
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between py-2 md:py-3">
