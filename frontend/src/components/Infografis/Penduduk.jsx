@@ -79,11 +79,11 @@ export default function Penduduk() {
   };
 
   return (
-    <section className="space-y-10">
+    <section className="relative space-y-10 z-10">
       {/* Deskripsi dan Kartu Total Penduduk */}
       <div>
         {/* Deskripsi */}
-        <h2 className="text-2xl m-5 max-w-200">
+        <h2 className="text-lg md:text-2xl m-5 max-w-200">
           <span className="font-bold bg-yellow-300 px-1 rounded">
             Demografi Penduduk.
           </span>{" "}
@@ -122,7 +122,7 @@ export default function Penduduk() {
                 {/* Content */}
                 <div className="z-10 space-y-3">
                   <div
-                    className="bg-white inline-block px-3 py-1 rounded-lg text-3xl font-semibold"
+                    className="bg-white inline-block px-3 py-1 rounded-lg text-lg md:text-3xl font-semibold"
                     style={{ fontFamily: "Space Grotesk" }}
                   >
                     {item.title}
