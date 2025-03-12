@@ -69,7 +69,7 @@ function Navbar() {
                 {link.name}
                 {/* Underline animation */}
                 <span
-                  className={`absolute left-0 bottom-0 h-[2px] w-full bg-green-600 rounded-full transition-transform duration-300 ${
+                  className={`absolute left-0 bottom-0 h-[2px] w-full bg-black rounded-full transition-transform duration-300 ${
                     location.pathname === link.path
                       ? "scale-x-100"
                       : "scale-x-0"

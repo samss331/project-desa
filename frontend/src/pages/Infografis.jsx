@@ -49,7 +49,7 @@ const HeroSection = ({ activeTab, setActiveTab }) => {
     }`;
 
   return (
-    <section className="relative bg-white h-auto py-16 px-6 grid grid-cols-1 md:grid-cols-2 items-center gap-12">
+    <section className="relative bg-white h-auto px-6 grid grid-cols-1 md:grid-cols-2 items-center gap-12 pt-20">
       {/* ICON */}
       <div className="flex justify-center md:justify-around">
         <img
