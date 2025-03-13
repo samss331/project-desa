@@ -105,7 +105,7 @@ const Informasi = () => {
                   <div className="mt-4">
                     <h3 className="text-lg sm:text-xl font-semibold">TP PKK Morowali Peringati Hari Kesatuan Gerak PKK</h3>
                     <p className="text-gray-700 flex items-center text-xs mt-1">
-                      <CalendarDots size={18} /> 12-03-2025
+                      <CalendarDots size={18} /> 13-03-2025
                     </p>
                   </div>
                 </div>
