@@ -84,10 +84,13 @@ export default function Penduduk() {
       <div>
         {/* Deskripsi */}
         <h2 className="text-lg md:text-2xl m-5 max-w-200">
-          <span className="font-bold bg-yellow-300 px-1 rounded">
+          <span className="font-bold bg-yellow-300 px-1 rounded md:flex flex-col w-fit hidden">
             Demografi Penduduk.
-          </span>{" "}
-          <span className="text-gray-700" style={{ fontFamily: "poppins" }}>
+          </span>
+          <span
+            className="text-gray-700 md:flex hidden"
+            style={{ fontFamily: "poppins" }}
+          >
             Memberikan informasi lengkap mengenai karakteristik demografi
             penduduk desa Bahontobungku.
           </span>

@@ -52,16 +52,19 @@ export default function Media() {
   const currentMedia = mediaData[selectedYear] || { images: [], videos: [] };
 
   return (
-    <div className="flex flex-col bg-white items-center" style={{ fontFamily: "poppins" }}>
+    <div
+      className="flex flex-col bg-white items-center"
+      style={{ fontFamily: "poppins" }}
+    >
       <Navbar />
       <div className="min-h-screen w-full max-w-5xl flex flex-col items-center justify-center bg-white p-6 pt-16">
         <h1 className="text-[2.8rem] md:text-[7rem] w-5/6 md:w-9/12 font-extrabold md:font-black bg-gradient-to-b from-black to-gray-200 bg-clip-text text-transparent leading-tight py-4">
-          Gallery <p>Digital Desa</p> 
+          Gallery <p>Digital Desa</p>
         </h1>
 
         {/* Dropdown Pilihan Tahun */}
         <select
-          className="mt-2 md:mt-6 border rounded-lg text-lg self-end md:mr-12"
+          className="mt-2 md:mt-6 rounded-lg text-lg self-end md:mr-12"
           onChange={(e) => setSelectedYear(e.target.value)}
           value={selectedYear}
         >
@@ -77,7 +80,9 @@ export default function Media() {
           {currentMedia.images.length > 0 ? (
             <ImageCarousel images={currentMedia.images} />
           ) : (
-            <p className="text-gray-500 text-center mt-2">Gambar tidak tersedia</p>
+            <p className="text-gray-500 text-center mt-2">
+              Gambar tidak tersedia
+            </p>
           )}
         </ExpandableSection>
 
@@ -86,7 +91,9 @@ export default function Media() {
           {currentMedia.videos.length > 0 ? (
             <VideoCarousel videos={currentMedia.videos} autoplay={true} />
           ) : (
-            <p className="text-gray-500 text-center mt-2">Video tidak tersedia</p>
+            <p className="text-gray-500 text-center mt-2">
+              Video tidak tersedia
+            </p>
           )}
         </ExpandableSection>
       </div>
