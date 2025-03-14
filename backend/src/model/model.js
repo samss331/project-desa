@@ -8,12 +8,15 @@ class User {
 }
 
 class Penduduk {
-    constructor(id, nama, nik, alamat, tanggalLahir) {
+    constructor(id, nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga) {
         this.id = id;
         this.nama = nama;
         this.nik = nik;
         this.alamat = alamat;
         this.tanggalLahir = tanggalLahir;
+        this.jenisKelamin = jenisKelamin;
+        this.agama = agama;
+        this.kepalaKeluarga = kepalaKeluarga;
     }
 }
 
