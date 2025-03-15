@@ -38,7 +38,7 @@ const updatePengumuman = async (req, res) => {
         const {id} = req.params;
         const {judul, isi, tanggalMulai, tanggalSelesai} = req.body;
         const result = await pengumumanServices.updatePengumuman(id, judul, isi, tanggalMulai, tanggalSelesai);
-        res.json({success: true, message: "Data berhasil diperbarui!"});
+        res.json({success: true, message: "Data berhasil diperbarui!", data: result});
     } catch (error) {
         res.status(400).json({success: false, message: error.message})
     }

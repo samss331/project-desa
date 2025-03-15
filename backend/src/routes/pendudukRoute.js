@@ -1,13 +1,13 @@
 import express from "express";
 import pendudukController from "../controllers/pendudukController.js";
-
+import authAdmin from "../middleware/authAdmin.js";
 const router = express.Router();
 
-router.get("/", pendudukController.getAllPenduduk);
-router.get("/nik/:nik", pendudukController.getPendudukByNik);
-router.post("/", pendudukController.addPenduduk);
-router.put("/update", pendudukController.updateDataPenduduk);
-router.delete("/delete/:nik", pendudukController.deleteDataPenduduk);
+router.get("/", authAdmin, pendudukController.getAllPenduduk);
+router.get("/nik/:nik", authAdmin, pendudukController.getPendudukByNik);
+router.post("/", authAdmin, pendudukController.addPenduduk);
+router.put("/update", authAdmin, pendudukController.updateDataPenduduk);
+router.delete("/delete/:nik", authAdmin, pendudukController.deleteDataPenduduk);
 
 router.get("/stats/total", pendudukController.getTotalPenduduk);
 router.get("/stats/kepala-keluarga", pendudukController.getTotalKepalaKeluarga);

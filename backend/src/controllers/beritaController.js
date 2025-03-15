@@ -40,7 +40,7 @@ const updateBerita = async (req, res) => {
         if (!result) {
             return res.status(404).json({ success: false, message: "Data tidak ditemukan" });
         }
-        res.json({ success: true, message: "Data berhasil diperbarui!" });
+        res.json({ success: true, message: "Data berhasil diperbarui!", result});
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }

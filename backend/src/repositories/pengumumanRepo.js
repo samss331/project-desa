@@ -36,7 +36,6 @@ const updatePengumuman = async (id, judul, isi, tanggalMulai, tanggalSelesai) =>
         const [result] = await db.promise().query(
             "UPDATE  pengumuman SET judul = ?, isi = ?, tanggalMulai = ?, tanggalSelesai = ? where id = ?", [judul, isi, tanggalMulai, tanggalSelesai, id] 
         );
-        console.log("SQL Query:", result, [judul, isi, tanggalMulai, tanggalSelesai]);
         return result.affectedRows > 0;
     } catch (error) {
         console.log(error)
