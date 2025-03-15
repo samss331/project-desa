@@ -1,14 +1,17 @@
-// src/pages/admin/DashboardAdmin.jsx
 import { Outlet } from "react-router-dom";
-import SidebarAdmin from "../admin/components/SidebarAdmin";
+import SidebarAdmin from "./components/SidebarAdmin";
+import HeaderAdmin from "./components/HeaderAdmin";
 
 export default function DashboardAdmin() {
   return (
-    <div className="flex">
+    <div className="flex h-screen">
       <SidebarAdmin />
-      <main className="flex-1 p-4">
-        <Outlet /> {/* Tempat load BeritaAdmin, PengumumanAdmin, dll */}
-      </main>
+      <div className="flex-1 flex flex-col">
+        <HeaderAdmin />
+        <main className="flex-1 bg-gray-100 p-6 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

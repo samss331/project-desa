@@ -1,21 +1,27 @@
-// src/pages/admin/pages/BeritaAdmin.jsx
-import React from "react";
 import TableAdmin from "../../../components/admin/TableAdmin";
 
-const BeritaAdmin = () => {
-  const dataDummy = [
-    { id: 1, judul: "Berita 1", tanggal: "2024-01-01" },
-    { id: 2, judul: "Berita 2", tanggal: "2024-01-02" },
+export default function BeritaAdmin() {
+  const columns = ["Judul", "Tanggal", "Penulis"];
+  const data = [
+    { Judul: "Berita 1", Tanggal: "2024-01-01", Penulis: "Admin" },
+    { Judul: "Berita 2", Tanggal: "2024-01-02", Penulis: "Admin" },
   ];
 
-  const columns = ["ID", "Judul", "Tanggal"];
+  const handleEdit = (row) => console.log("Edit", row);
+  const handleDelete = (row) => console.log("Delete", row);
 
   return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-4">Manajemen Berita</h2>
-      <TableAdmin data={dataDummy} columns={columns} />
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">Manajemen Berita</h2>
+      <button className="bg-blue-500 text-white px-4 py-2 rounded-lg">
+        Tambah Berita
+      </button>
+      <TableAdmin
+        columns={columns}
+        data={data}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
     </div>
   );
-};
-
-export default BeritaAdmin;
+}
