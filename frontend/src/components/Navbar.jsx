@@ -8,9 +8,9 @@ import { Menu, X } from "lucide-react";
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const location = useLocation(); // untuk mendeteksi path aktif
+  const [hideHeader, setHideHeader] = useState(false);
+  const location = useLocation();
 
-  // Handle scroll effect for navbar
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -19,7 +19,15 @@ function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleMenu = () => {
+    if (!isMenuOpen) {
+      setHideHeader(true);
+      setTimeout(() => setIsMenuOpen(true), 300); // Delay munculnya sidebar
+    } else {
+      setIsMenuOpen(false);
+      setTimeout(() => setHideHeader(false), 300); // Delay munculnya header
+    }
+  };
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -31,80 +39,75 @@ function Navbar() {
   ];
 
   return (
-    <header
-      className={`w-full fixed top-0 z-50 transition-all duration-300 backdrop-blur-md ${
-        scrolled ? "bg-white/80 shadow-md" : "bg-white/40"
-      }`}
-      style={{ fontFamily: "poppins" }}
-    >
-      <div className="container mx-auto px-4 md:px-6 py-4 md:py-3">
-        <div className={`flex items-center justify-between ${isMenuOpen ? "hidden" : "flex"}`}>
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3">
-            <img
-              src={logoPlaceholder || "/placeholder.svg"}
-              alt="Logo Desa"
-              className="h-10 md:h-12 w-auto"
-            />
-            <div className="hidden sm:block">
-              <h3 className="font-bold text-xs md:text-sm leading-tight text-gray-800">
-                PEMERINTAH DESA BAHONTOBUNGKU <br />
-                KABUPATEN MOROWALI
-              </h3>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6 relative">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`relative pb-1 text-black hover:text-gray-300 font-medium text-sm transition-colors ${
-                  location.pathname === link.path
-                    ? "text-black"
-                    : "text-gray-700"
-                }`}
-              >
-                {link.name}
-                {/* Underline animation */}
-                <span
-                  className={`absolute left-0 bottom-0 h-[2px] w-full bg-black rounded-full transition-transform duration-300 ${
-                    location.pathname === link.path
-                      ? "scale-x-100"
-                      : "scale-x-0"
-                  }`}
-                ></span>
-              </Link>
-            ))}
-            <Link
-              to="/login"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
-            >
-              Login
+    <>
+      {/* Header dengan efek delay saat menghilang */}
+      <header
+        className={`w-full fixed top-0 z-50 backdrop-blur-md ${
+          scrolled ? "bg-white/80 shadow-md" : "bg-white/40"
+        } ${hideHeader ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}
+        style={{ fontFamily: "Poppins" }}
+      >
+        <div className="container mx-auto px-4 md:px-6 py-4 md:py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-3">
+              <img
+                src={logoPlaceholder || "/placeholder.svg"}
+                alt="Logo Desa"
+                className="h-10 md:h-12 w-auto"
+              />
+              <div className="hidden sm:block">
+                <h3 className="font-bold text-xs md:text-sm leading-tight text-gray-800">
+                  PEMERINTAH DESA BAHONTOBUNGKU <br /> KABUPATEN MOROWALI
+                </h3>
+              </div>
             </Link>
-          </nav>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className="md:hidden text-gray-700 focus:outline-none"
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-6 relative">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`relative pb-1 text-black hover:text-gray-500 font-medium text-sm transition-colors ${
+                    location.pathname === link.path
+                      ? "text-black font-semibold"
+                      : "text-gray-700"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+              <Link
+                to="/login"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+              >
+                Login
+              </Link>
+            </nav>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={toggleMenu}
+              className="md:hidden text-gray-700 focus:outline-none"
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Navigation */}
-      <div
-        className={`fixed inset-0 bg-white/95 backdrop-blur-md z-40 transform transition-transform duration-300 ease-in-out ${
+      {/* Sidebar dengan efek transisi */}
+      <aside
+        className={`fixed inset-0 z-50 w-full transform transition-transform ease-in-out ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         } md:hidden`}
+        style={{ fontFamily: "Poppins" }}
       >
-        <div className="flex flex-col h-full p-6">
+        <div className="flex flex-col h-full p-6 w-3/4 sm:w-1/2 bg-white/95 backdrop-blur-md">
           <div className="flex justify-between items-center mb-8">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2" onClick={toggleMenu}>
               <img
                 src={logoPlaceholder || "/placeholder.svg"}
                 alt="Logo"
@@ -112,17 +115,9 @@ function Navbar() {
               />
               <h3 className="font-bold text-xs leading-tight">
                 PEMERINTAH DESA
-                <br />
-                BAHONTOBUNGKU
+                <br /> BAHONTOBUNGKU
               </h3>
             </Link>
-            <button
-              onClick={toggleMenu}
-              className="text-gray-700 focus:outline-none"
-              aria-label="Close menu"
-            >
-              <X size={24} />
-            </button>
           </div>
 
           <nav className="flex flex-col space-y-6 mt-4">
@@ -136,14 +131,6 @@ function Navbar() {
                 onClick={toggleMenu}
               >
                 {link.name}
-                {/* Underline for mobile */}
-                <span
-                  className={`absolute left-0 bottom-0 h-[2px] w-full bg-green-600 rounded-full transition-transform duration-300 ${
-                    location.pathname === link.path
-                      ? "scale-x-100"
-                      : "scale-x-0"
-                  }`}
-                ></span>
               </Link>
             ))}
           </nav>
@@ -157,9 +144,17 @@ function Navbar() {
               Login
             </Link>
           </div>
+
         </div>
-      </div>
-    </header>
+          <button
+              onClick={toggleMenu}
+              className="text-gray-700 focus:outline-none absolute top-4 right-0 z-50 p-3"
+              aria-label="Close menu"
+            >
+              <X size={28} />
+            </button>
+      </aside>
+    </>
   );
 }
 

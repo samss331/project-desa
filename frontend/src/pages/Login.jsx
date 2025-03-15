@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -12,10 +14,19 @@ const Login = () => {
   };
 
   return (
+
     <div
       className="flex items-center justify-center h-screen bg-gray-100"
       style={{ fontFamily: "poppins" }}
     >
+        <button
+          className="text-gray-700 focus:outline-none absolute top-4 right-4 z-50 p-3"
+          aria-label="Close menu"
+        >
+          <Link to="/">
+           <X size={28} />
+          </Link>
+         </button>
       <div className="bg-white p-8 rounded-lg shadow-md w-96">
         <h2 className="text-2xl font-semibold text-center">Log in</h2>
         <form onSubmit={handleLogin}>
