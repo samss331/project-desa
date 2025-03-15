@@ -25,9 +25,9 @@ function Navbar() {
     { name: "Home", path: "/" },
     { name: "Profil Desa", path: "/ProfilDesa" },
     { name: "Infografis", path: "/Infografis" },
-    { name: "Pelayanan", path: "#" },
-    { name: "Media", path: "#" },
-    { name: "Arsip", path: "#" },
+    { name: "Pelayanan", path: "/Pelayanan" },
+    { name: "Media", path: "/Media" },
+    { name: "Arsip", path: "/Arsip" },
   ];
 
   return (
@@ -37,8 +37,8 @@ function Navbar() {
       }`}
       style={{ fontFamily: "poppins" }}
     >
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex items-center justify-between py-2 md:py-3">
+      <div className="container mx-auto px-4 md:px-6 py-4 md:py-3">
+        <div className={`flex items-center justify-between ${isMenuOpen ? "hidden" : "flex"}`}>
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img
@@ -60,7 +60,7 @@ function Navbar() {
               <Link
                 key={link.name}
                 to={link.path}
-                className={`relative pb-1 text-black hover:text-white font-medium text-sm transition-colors ${
+                className={`relative pb-1 text-black hover:text-gray-300 font-medium text-sm transition-colors ${
                   location.pathname === link.path
                     ? "text-black"
                     : "text-gray-700"
