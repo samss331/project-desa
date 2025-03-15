@@ -40,7 +40,7 @@ export default function Fasilitas() {
   };
 
   return (
-    <section className="space-y-8" style={{ fontFamily: "poppins" }}>
+    <section className="relative space-y-8 z-10" style={{ fontFamily: "poppins" }}>
       {/* PIE CHART */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
         <h3 className="font-bold text-xl text black mb-4">

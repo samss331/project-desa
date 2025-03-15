@@ -30,7 +30,7 @@ export default function Infografis() {
       <HeroSection activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* Konten Dinamis */}
-      <div className="bg-white py-10 px-5 md:px-20 space-y-10">
+      <div className="bg-white py-10 px-5 md:px-20 space-y-10 z-10">
         {renderContent()}
       </div>
 
@@ -42,34 +42,34 @@ export default function Infografis() {
 // Hero Section modular
 const HeroSection = ({ activeTab, setActiveTab }) => {
   const buttonStyle = (tabName) =>
-    `border border-gray-300 font-medium px-7 py-5 rounded-lg shadow-md transition ${
+    `border border-gray-300 font-medium px-5 py-2 md:px-7 md:py-5 rounded-lg shadow-md transition ${
       activeTab === tabName
         ? "bg-lime-400 text-black"
         : "bg-white hover:bg-lime-200 text-black"
     }`;
 
   return (
-    <section className="relative bg-white h-auto px-6 grid grid-cols-1 md:grid-cols-2 items-center gap-12 pt-20">
+    <section className="relative bg-white h-auto px-2 md:px-6 grid grid-cols-1 md:grid-cols-2 items-center gap-12 pt-12 md:pt-20">
       {/* ICON */}
-      <div className="flex justify-center md:justify-around">
+      <div className="flex justify-center md:justify-around ">
         <img
           src={Chart1}
           alt="Icon Infografis"
-          className="w-96 h-96 object-contain"
+          className="absolute inset-0 left-1 top-24 md:top-0 md:relative w-96 h-96 object-contain z-0 opacity-50 md:opacity-100"
         />
       </div>
 
       {/* KETERANGAN DAN BUTTON */}
-      <div className="text-center md:text-center max-w-lg">
+      <div className="text-center max-w-lg z-10">
         <h2
-          className="text-5xl md:text-4xl font-bold leading-snug bg-gradient-to-t from-gray-600 to-gray-300 bg-clip-text text-transparent"
+          className="text-[28px] md:text-4xl font-bold md:leading-snug leading-none bg-gradient-to-t from-gray-600 to-gray-300 bg-clip-text text-transparent"
           style={{ fontFamily: "poppins" }}
         >
           Halaman ini menyajikan informasi dalam bentuk visual infografis
         </h2>
 
         <p
-          className="text-gray-600 text-lg mt-4"
+          className="text-gray-600 text-md md:text-lg mt-4"
           style={{ fontFamily: "poppins" }}
         >
           Ketahui berbagai informasi tentang desa Bahontobungku dengan tampilan
