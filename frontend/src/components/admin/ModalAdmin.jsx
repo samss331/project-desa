@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import FormPenduduk from "../../pages/admin/components/FormPenduduk";
+import FormPenduduk from "../../pages/admin/components/TablePenduduk";
 import FormAPBDes from "../../pages/admin/components/FormAPBDes";
 import FormFasilitas from "../../pages/admin/components/FormFasilitas";
 
