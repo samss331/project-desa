@@ -1,12 +1,13 @@
 import express from "express";
 import beritaController from "../controllers/beritaController.js";
+import authAdmin from "../middleware/authAdmin.js";
 
 const router = express.Router();
 
-router.get("/", beritaController.getAllBerita);
+router.get("/",  beritaController.getAllBerita);
 router.get("/:id", beritaController.getBeritaById);
-router.post("/", beritaController.addBerita);
-router.put("/:id", beritaController.updateBerita);
-router.delete("/:id", beritaController.deleteBerita);
+router.post("/", authAdmin, beritaController.addBerita);
+router.put("/:id", authAdmin, beritaController.updateBerita);
+router.delete("/:id", authAdmin, beritaController.deleteBerita);
 
 export default router;

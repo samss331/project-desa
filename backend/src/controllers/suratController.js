@@ -73,7 +73,7 @@ const updateSuratMasuk = async (req, res) => {
             return res.status(404).json({ success: false, message: "Surat masuk tidak ditemukan" });
         }
 
-        res.json({ success: true, message: "Surat masuk berhasil diperbarui" });
+        res.json({ success: true, message: "Surat masuk berhasil diperbarui", data: updated });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -90,7 +90,7 @@ const updateSuratKeluar = async (req, res) => {
             return res.status(404).json({ success: false, message: "Surat keluar tidak ditemukan" });
         }
 
-        res.json({ success: true, message: "Surat keluar berhasil diperbarui" });
+        res.json({ success: true, message: "Surat keluar berhasil diperbarui", data: updated });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
