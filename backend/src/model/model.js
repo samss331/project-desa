@@ -62,4 +62,29 @@ class Berita {
     }
 }
 
-export default { User, Penduduk, SuratMasuk, SuratKeluar, Pengumuman, Berita };
+class DanaMasuk {
+    constructor(id, tahun, bulan, jumlah, sumber, keterangan, createdAt, updatedAt){
+        this.id = id
+        this.tahun = tahun
+        this.bulan = bulan
+        this.jumlah = jumlah
+        this.sumber = sumber
+        this.keterangan = keterangan
+        this.createdAt = createdAt
+        this.updatedAt = updatedAt
+    }
+}
+
+class DanaKeluar {
+    constructor(id, tahun, bulan, jumlah, kategori, keterangan, createdAt, updatedAt){
+        this.id = id
+        this.tahun = tahun
+        this.bulan = bulan
+        this.jumlah = jumlah
+        this.kategori = kategori
+        this.keterangan = keterangan
+        this.createdAt = createdAt
+        this.updatedAt = updatedAt
+    }
+}
+export default { User, Penduduk, SuratMasuk, SuratKeluar, Pengumuman, Berita, DanaMasuk, DanaKeluar };

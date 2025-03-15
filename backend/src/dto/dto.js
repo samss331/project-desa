@@ -60,4 +60,26 @@ class BeritaDTO {
     }
 }
 
-export { UserDTO, PendudukDTO, SuratMasukDTO, SuratKeluarDTO, PengumumanDTO, BeritaDTO };
+class DanaMasukDTO {
+    constructor(id, tahun, bulan, jumlah, sumber, keterangan){
+        this.id = id
+        this.tahun = tahun
+        this.bulan = bulan
+        this.jumlah = jumlah
+        this.sumber = sumber
+        this.keterangan = keterangan
+    }
+}
+
+class DanaKeluarDTO {
+    constructor(id, tahun, bulan, jumlah, kategori, keterangan){
+        this.id = id
+        this.tahun = tahun
+        this.bulan = bulan
+        this.jumlah = jumlah
+        this.kategori = kategori
+        this.keterangan = keterangan
+    }
+}
+
+export { UserDTO, PendudukDTO, SuratMasukDTO, SuratKeluarDTO, PengumumanDTO, BeritaDTO, DanaMasukDTO, DanaKeluarDTO };
