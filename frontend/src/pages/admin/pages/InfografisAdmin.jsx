@@ -8,25 +8,10 @@ import {
   FaChartPie,
 } from "react-icons/fa";
 import Penduduk from "../components/Penduduk/Penduduk";
+import APBDes from "../components/Penduduk/APBDes";
 
 export default function InfografisAdmin() {
   const [activeTab, setActiveTab] = useState("penduduk");
-
-  // Placeholder component for APBDes
-  const APBDes = () => (
-    <div className="bg-white rounded-2xl shadow-md p-8 text-center">
-      <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <FaMoneyBillWave className="text-yellow-500 text-3xl" />
-      </div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-2">Data APBDes</h2>
-      <p className="text-gray-600 mb-6">
-        Informasi mengenai Anggaran Pendapatan dan Belanja Desa
-      </p>
-      <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-        <p className="text-gray-500">Konten APBDes akan segera hadir</p>
-      </div>
-    </div>
-  );
 
   // Placeholder component for Fasilitas
   const Fasilitas = () => (

@@ -170,24 +170,6 @@ export default function Penduduk() {
         <p className="text-right italic text-gray-500 mt-2">Learn more</p>
       </div>
 
-      {/* Chart 2 - Penduduk Dusun */}
-      <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
-        <h3
-          className="font-bold text-xl bg-yellow-300 px-1 rounded mb-4"
-          style={{ fontFamily: "Poppins" }}
-        >
-          Berdasarkan Penduduk Dusun
-        </h3>
-        <div className="w-full max-w-3xl mx-auto">
-          <Pie
-            data={pendudukDusunData}
-            options={{ responsive: true, maintainAspectRatio: false }}
-            height={250}
-          />
-        </div>
-        <p className="text-right italic text-gray-500 mt-2">Learn more</p>
-      </div>
-
       {/* Chart 3 - Pekerjaan */}
       <div className="bg-white shadow-lg rounded-3xl p-5 border border-gray-300">
         <h3
