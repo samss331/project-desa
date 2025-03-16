@@ -16,333 +16,340 @@ import {
   FaExclamationTriangle,
   FaPhotoVideo, // Import FaPhotoVideo
 } from "react-icons/fa";
-// Sample data for the dashboard
-const dashboardData = {
-  surat: {
-    total: 5,
-    masuk: 2,
-    keluar: 3,
-    recent: [
-      {
-        id: 1,
-        jenis: "Surat Masuk",
-        nomor: "SM/2024/001",
-        perihal: "Undangan Rapat Koordinasi",
-        tanggal: "2024-02-01",
-        status: "Diterima",
-      },
-      {
-        id: 3,
-        jenis: "Surat Masuk",
-        nomor: "SM/2024/002",
-        perihal: "Pemberitahuan Kegiatan",
-        tanggal: "2024-02-10",
-        status: "Diproses",
-      },
-      {
-        id: 2,
-        jenis: "Surat Keluar",
-        nomor: "SK/2024/001",
-        perihal: "Permohonan Kerjasama",
-        tanggal: "2024-02-05",
-        status: "Terkirim",
-      },
-    ],
-    byMonth: [
-      { month: "Jan", count: 2 },
-      { month: "Feb", count: 3 },
-      { month: "Mar", count: 1 },
-      { month: "Apr", count: 4 },
-      { month: "Mei", count: 2 },
-      { month: "Jun", count: 0 },
-    ],
-  },
-  berita: {
-    total: 5,
-    published: 3,
-    draft: 2,
-    recent: [
-      {
-        id: 1,
-        judul: "Pembangunan Jalan Desa Telah Selesai",
-        kategori: "Infrastruktur",
-        tanggal: "2024-01-01",
-        status: "Dipublikasi",
-      },
-      {
-        id: 2,
-        judul: "Kegiatan Posyandu Bulan Januari",
-        kategori: "Kesehatan",
-        tanggal: "2024-01-02",
-        status: "Dipublikasi",
-      },
-      {
-        id: 4,
-        judul: "Jadwal Vaksinasi Covid-19 Tahap 3",
-        kategori: "Kesehatan",
-        tanggal: "2024-01-15",
-        status: "Draft",
-      },
-    ],
-    byCategory: [
-      { category: "Kesehatan", count: 2 },
-      { category: "Infrastruktur", count: 1 },
-      { category: "Pendidikan", count: 1 },
-      { category: "Pertanian", count: 1 },
-    ],
-  },
-  pengumuman: {
-    total: 5,
-    active: 4,
-    expired: 1,
-    recent: [
-      {
-        id: 1,
-        judul: "Jadwal Pemadaman Listrik",
-        kategori: "Informasi",
-        tanggal: "2024-01-05",
-        status: "Aktif",
-      },
-      {
-        id: 2,
-        judul: "Pengambilan Kartu Keluarga",
-        kategori: "Layanan",
-        tanggal: "2024-01-06",
-        status: "Aktif",
-      },
-      {
-        id: 5,
-        judul: "Pengumuman Pemenang Lomba Desa",
-        kategori: "Acara",
-        tanggal: "2023-12-20",
-        status: "Kadaluarsa",
-      },
-    ],
-    byPriority: [
-      { priority: "Tinggi", count: 2 },
-      { priority: "Sedang", count: 2 },
-      { priority: "Rendah", count: 1 },
-    ],
-  },
-  alerts: [
-    {
-      id: 1,
-      type: "warning",
-      message: "2 pengumuman akan kadaluarsa dalam 3 hari",
-      link: "/admin/pengumuman",
+import { Link } from "react-router-dom";
+
+const BerandaAdmin = () => {
+  // Sample data for the dashboard
+  const dashboardData = {
+    surat: {
+      total: 5,
+      masuk: 2,
+      keluar: 3,
+      recent: [
+        {
+          id: 1,
+          jenis: "Surat Masuk",
+          nomor: "SM/2024/001",
+          perihal: "Undangan Rapat Koordinasi",
+          tanggal: "2024-02-01",
+          status: "Diterima",
+        },
+        {
+          id: 3,
+          jenis: "Surat Masuk",
+          nomor: "SM/2024/002",
+          perihal: "Pemberitahuan Kegiatan",
+          tanggal: "2024-02-10",
+          status: "Diproses",
+        },
+        {
+          id: 2,
+          jenis: "Surat Keluar",
+          nomor: "SK/2024/001",
+          perihal: "Permohonan Kerjasama",
+          tanggal: "2024-02-05",
+          status: "Terkirim",
+        },
+      ],
+      byMonth: [
+        { month: "Jan", count: 2 },
+        { month: "Feb", count: 3 },
+        { month: "Mar", count: 1 },
+        { month: "Apr", count: 4 },
+        { month: "Mei", count: 2 },
+        { month: "Jun", count: 0 },
+      ],
     },
-    {
-      id: 2,
-      type: "info",
-      message: "5 berita baru ditambahkan bulan ini",
-      link: "/admin/berita",
+    berita: {
+      total: 5,
+      published: 3,
+      draft: 2,
+      recent: [
+        {
+          id: 1,
+          judul: "Pembangunan Jalan Desa Telah Selesai",
+          kategori: "Infrastruktur",
+          tanggal: "2024-01-01",
+          status: "Dipublikasi",
+        },
+        {
+          id: 2,
+          judul: "Kegiatan Posyandu Bulan Januari",
+          kategori: "Kesehatan",
+          tanggal: "2024-01-02",
+          status: "Dipublikasi",
+        },
+        {
+          id: 4,
+          judul: "Jadwal Vaksinasi Covid-19 Tahap 3",
+          kategori: "Kesehatan",
+          tanggal: "2024-01-15",
+          status: "Draft",
+        },
+      ],
+      byCategory: [
+        { category: "Kesehatan", count: 2 },
+        { category: "Infrastruktur", count: 1 },
+        { category: "Pendidikan", count: 1 },
+        { category: "Pertanian", count: 1 },
+      ],
     },
-  ],
-};
+    pengumuman: {
+      total: 5,
+      active: 4,
+      expired: 1,
+      recent: [
+        {
+          id: 1,
+          judul: "Jadwal Pemadaman Listrik",
+          kategori: "Informasi",
+          tanggal: "2024-01-05",
+          status: "Aktif",
+        },
+        {
+          id: 2,
+          judul: "Pengambilan Kartu Keluarga",
+          kategori: "Layanan",
+          tanggal: "2024-01-06",
+          status: "Aktif",
+        },
+        {
+          id: 5,
+          judul: "Pengumuman Pemenang Lomba Desa",
+          kategori: "Acara",
+          tanggal: "2023-12-20",
+          status: "Kadaluarsa",
+        },
+      ],
+      byPriority: [
+        { priority: "Tinggi", count: 2 },
+        { priority: "Sedang", count: 2 },
+        { priority: "Rendah", count: 1 },
+      ],
+    },
+    alerts: [
+      {
+        id: 1,
+        type: "warning",
+        message: "2 pengumuman akan kadaluarsa dalam 3 hari",
+        link: "/admin/pengumuman",
+      },
+      {
+        id: 2,
+        type: "info",
+        message: "5 berita baru ditambahkan bulan ini",
+        link: "/admin/berita",
+      },
+    ],
+  };
 
-// Simple Donut Chart Component
-const DonutChart = ({ data, colors }) => {
-  const total = data.reduce((sum, item) => sum + item.count, 0);
-  let startAngle = 0;
+  // Simple Donut Chart Component
+  const DonutChart = ({ data, colors }) => {
+    const total = data.reduce((sum, item) => sum + item.count, 0);
+    let startAngle = 0;
 
-  return (
-    <div className="relative w-32 h-32 mx-auto">
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        {data.map((item, index) => {
-          const percentage = item.count / total;
-          const angle = percentage * 360;
-          const endAngle = startAngle + angle;
+    return (
+      <div className="relative w-32 h-32 mx-auto">
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          {data.map((item, index) => {
+            const percentage = item.count / total;
+            const angle = percentage * 360;
+            const endAngle = startAngle + angle;
 
-          // Calculate SVG arc path
-          const x1 = 50 + 40 * Math.cos((startAngle * Math.PI) / 180);
-          const y1 = 50 + 40 * Math.sin((startAngle * Math.PI) / 180);
-          const x2 = 50 + 40 * Math.cos((endAngle * Math.PI) / 180);
-          const y2 = 50 + 40 * Math.sin((endAngle * Math.PI) / 180);
+            // Calculate SVG arc path
+            const x1 = 50 + 40 * Math.cos((startAngle * Math.PI) / 180);
+            const y1 = 50 + 40 * Math.sin((startAngle * Math.PI) / 180);
+            const x2 = 50 + 40 * Math.cos((endAngle * Math.PI) / 180);
+            const y2 = 50 + 40 * Math.sin((endAngle * Math.PI) / 180);
 
-          const largeArcFlag = angle > 180 ? 1 : 0;
+            const largeArcFlag = angle > 180 ? 1 : 0;
 
-          const pathData = `
+            const pathData = `
             M 50 50
             L ${x1} ${y1}
             A 40 40 0 ${largeArcFlag} 1 ${x2} ${y2}
             Z
           `;
 
-          const currentPath = (
-            <path
-              key={index}
-              d={pathData}
-              fill={colors[index % colors.length]}
-              stroke="#fff"
-              strokeWidth="1"
-            />
-          );
+            const currentPath = (
+              <path
+                key={index}
+                d={pathData}
+                fill={colors[index % colors.length]}
+                stroke="#fff"
+                strokeWidth="1"
+              />
+            );
 
-          startAngle = endAngle;
-          return currentPath;
-        })}
-        <circle cx="50" cy="50" r="25" fill="white" />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-lg font-bold">
-        {total}
+            startAngle = endAngle;
+            return currentPath;
+          })}
+          <circle cx="50" cy="50" r="25" fill="white" />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center text-lg font-bold">
+          {total}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-// Simple Bar Chart Component
-const BarChart = ({
-  data,
-  colors,
-  valueKey = "count",
-  labelKey = "category",
-}) => {
-  const maxValue = Math.max(...data.map((item) => item[valueKey]));
+  // Simple Bar Chart Component
+  const BarChart = ({
+    data,
+    colors,
+    valueKey = "count",
+    labelKey = "category",
+  }) => {
+    const maxValue = Math.max(...data.map((item) => item[valueKey]));
 
-  return (
-    <div className="w-full h-40">
-      <div className="flex h-full items-end justify-around">
-        {data.map((item, index) => {
-          const height = (item[valueKey] / maxValue) * 100;
-          return (
-            <div key={index} className="flex flex-col items-center">
-              <div
-                className="w-10 rounded-t-md transition-all duration-500 ease-in-out hover:opacity-80"
-                style={{
-                  height: `${height}%`,
-                  backgroundColor: colors[index % colors.length],
-                  minHeight: "10%",
-                }}
-              ></div>
-              <div className="text-xs mt-1 font-medium text-gray-600">
-                {item[labelKey]}
+    return (
+      <div className="w-full h-40">
+        <div className="flex h-full items-end justify-around">
+          {data.map((item, index) => {
+            const height = (item[valueKey] / maxValue) * 100;
+            return (
+              <div key={index} className="flex flex-col items-center">
+                <div
+                  className="w-10 rounded-t-md transition-all duration-500 ease-in-out hover:opacity-80"
+                  style={{
+                    height: `${height}%`,
+                    backgroundColor: colors[index % colors.length],
+                    minHeight: "10%",
+                  }}
+                ></div>
+                <div className="text-xs mt-1 font-medium text-gray-600">
+                  {item[labelKey]}
+                </div>
+                <div className="text-xs font-bold">{item[valueKey]}</div>
               </div>
-              <div className="text-xs font-bold">{item[valueKey]}</div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-// Simple Line Chart Component
-const LineChart = ({ data, color, valueKey = "count", labelKey = "month" }) => {
-  const maxValue = Math.max(...data.map((item) => item[valueKey]));
-  const points = data.map((item, index) => {
-    const x = (index / (data.length - 1)) * 100;
-    const y = 100 - (item[valueKey] / maxValue) * 100;
-    return { x, y, value: item[valueKey], label: item[labelKey] };
-  });
+  // Simple Line Chart Component
+  const LineChart = ({
+    data,
+    color,
+    valueKey = "count",
+    labelKey = "month",
+  }) => {
+    const maxValue = Math.max(...data.map((item) => item[valueKey]));
+    const points = data.map((item, index) => {
+      const x = (index / (data.length - 1)) * 100;
+      const y = 100 - (item[valueKey] / maxValue) * 100;
+      return { x, y, value: item[valueKey], label: item[labelKey] };
+    });
 
-  // Generate SVG path
-  const pathData = points
-    .map(
-      (point, index) => (index === 0 ? "M " : "L ") + point.x + " " + point.y
-    )
-    .join(" ");
+    // Generate SVG path
+    const pathData = points
+      .map(
+        (point, index) => (index === 0 ? "M " : "L ") + point.x + " " + point.y
+      )
+      .join(" ");
 
-  return (
-    <div className="w-full h-40 mt-4">
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full"
-        preserveAspectRatio="none"
-      >
-        {/* Grid lines */}
-        <line
-          x1="0"
-          y1="0"
-          x2="100"
-          y2="0"
-          stroke="#e5e7eb"
-          strokeWidth="0.5"
-        />
-        <line
-          x1="0"
-          y1="25"
-          x2="100"
-          y2="25"
-          stroke="#e5e7eb"
-          strokeWidth="0.5"
-        />
-        <line
-          x1="0"
-          y1="50"
-          x2="100"
-          y2="50"
-          stroke="#e5e7eb"
-          strokeWidth="0.5"
-        />
-        <line
-          x1="0"
-          y1="75"
-          x2="100"
-          y2="75"
-          stroke="#e5e7eb"
-          strokeWidth="0.5"
-        />
-        <line
-          x1="0"
-          y1="100"
-          x2="100"
-          y2="100"
-          stroke="#e5e7eb"
-          strokeWidth="0.5"
-        />
+    return (
+      <div className="w-full h-40 mt-4">
+        <svg
+          viewBox="0 0 100 100"
+          className="w-full h-full"
+          preserveAspectRatio="none"
+        >
+          {/* Grid lines */}
+          <line
+            x1="0"
+            y1="0"
+            x2="100"
+            y2="0"
+            stroke="#e5e7eb"
+            strokeWidth="0.5"
+          />
+          <line
+            x1="0"
+            y1="25"
+            x2="100"
+            y2="25"
+            stroke="#e5e7eb"
+            strokeWidth="0.5"
+          />
+          <line
+            x1="0"
+            y1="50"
+            x2="100"
+            y2="50"
+            stroke="#e5e7eb"
+            strokeWidth="0.5"
+          />
+          <line
+            x1="0"
+            y1="75"
+            x2="100"
+            y2="75"
+            stroke="#e5e7eb"
+            strokeWidth="0.5"
+          />
+          <line
+            x1="0"
+            y1="100"
+            x2="100"
+            y2="100"
+            stroke="#e5e7eb"
+            strokeWidth="0.5"
+          />
 
-        {/* Line path */}
-        <path d={pathData} fill="none" stroke={color} strokeWidth="2" />
+          {/* Line path */}
+          <path d={pathData} fill="none" stroke={color} strokeWidth="2" />
 
-        {/* Data points */}
-        {points.map((point, index) => (
-          <g key={index}>
-            <circle
-              cx={point.x}
-              cy={point.y}
-              r="2"
-              fill="white"
-              stroke={color}
-              strokeWidth="1.5"
-            />
-            <text
-              x={point.x}
-              y="100"
-              textAnchor="middle"
-              fontSize="8"
-              fill="#6b7280"
-              dy="10"
-            >
-              {point.label}
-            </text>
-          </g>
-        ))}
-      </svg>
-    </div>
-  );
-};
+          {/* Data points */}
+          {points.map((point, index) => (
+            <g key={index}>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="2"
+                fill="white"
+                stroke={color}
+                strokeWidth="1.5"
+              />
+              <text
+                x={point.x}
+                y="100"
+                textAnchor="middle"
+                fontSize="8"
+                fill="#6b7280"
+                dy="10"
+              >
+                {point.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    );
+  };
 
-// Get status badge color
-const getStatusColor = (status) => {
-  switch (status) {
-    case "Diterima":
-    case "Dipublikasi":
-    case "Aktif":
-      return "bg-green-100 text-green-800";
-    case "Terkirim":
-      return "bg-blue-100 text-blue-800";
-    case "Diproses":
-      return "bg-yellow-100 text-yellow-800";
-    case "Draft":
-      return "bg-yellow-100 text-yellow-800";
-    case "Kadaluarsa":
-      return "bg-gray-100 text-gray-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-};
+  // Get status badge color
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Diterima":
+      case "Dipublikasi":
+      case "Aktif":
+        return "bg-green-100 text-green-800";
+      case "Terkirim":
+        return "bg-blue-100 text-blue-800";
+      case "Diproses":
+        return "bg-yellow-100 text-yellow-800";
+      case "Draft":
+        return "bg-yellow-100 text-yellow-800";
+      case "Kadaluarsa":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
-export default function BerandaAdmin() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -471,7 +478,7 @@ export default function BerandaAdmin() {
               <span>Draft: {dashboardData.berita.draft}</span>
             </div>
             <Link
-              href="/admin/"
+              href="/admin/berita"
               className="mt-4 text-blue-600 text-sm font-medium flex items-center hover:underline"
             >
               Kelola Berita <FaArrowRight className="ml-1 text-xs" />
@@ -779,7 +786,7 @@ export default function BerandaAdmin() {
               </span>
             </Link>
             <Link
-              href="/admin/gallery"
+              href="/admin/media"
               className="flex flex-col items-center justify-center p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors"
             >
               <FaPhotoVideo className="text-amber-500 text-2xl mb-2" />
@@ -792,4 +799,6 @@ export default function BerandaAdmin() {
       </div>
     </div>
   );
-}
+};
+
+export default BerandaAdmin;
