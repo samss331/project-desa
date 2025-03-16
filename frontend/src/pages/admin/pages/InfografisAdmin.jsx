@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import Penduduk from "../components/Penduduk/Penduduk";
 import APBDes from "../components/Penduduk/APBDes";
-import FasilitasWrapper from "../components/Penduduk/Fasilitas";
+import Fasilitas from "../components/Penduduk/Fasilitas";
 
 export default function InfografisAdmin() {
   const [activeTab, setActiveTab] = useState("penduduk");
@@ -79,7 +79,7 @@ export default function InfografisAdmin() {
           {activeTab === "apbdes" && <APBDes />}
           {activeTab === "fasilitas" && (
             <div className="bg-white rounded-2xl shadow-md">
-              <FasilitasWrapper />
+              <Fasilitas />
             </div>
           )}
         </div>

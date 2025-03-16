@@ -1,95 +1,521 @@
-import React, { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react"; // Tambahkan impor ini
+"use client";
+
+import { useState } from "react";
+import {
+  FaImage,
+  FaVideo,
+  FaCalendarAlt,
+  FaSearch,
+  FaEye,
+  FaDownload,
+  FaPhotoVideo,
+  FaPlay,
+} from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import ImageCarousel from "../components/Media/ImageCarousel";
-import VideoCarousel from "../components/Media/VideoCarousel";
 
+// Updated media data with more details
 const mediaData = {
   2025: {
-    images: ["/assets/image1.jpg", "/assets/image2.jpg"],
-    videos: ["/assets/video1.mp4"],
+    images: [
+      {
+        id: 1,
+        title: "Kegiatan Gotong Royong",
+        type: "image",
+        url: "/assets/image1.jpg",
+        date: "2025-01-15",
+        description: "Kegiatan gotong royong membersihkan lingkungan desa",
+      },
+      {
+        id: 2,
+        title: "Rapat Desa",
+        type: "image",
+        url: "/assets/image2.jpg",
+        date: "2025-02-20",
+        description: "Rapat koordinasi pembangunan desa",
+      },
+    ],
+    videos: [
+      {
+        id: 3,
+        title: "Perayaan HUT Desa",
+        type: "video",
+        url: "/assets/video1.mp4",
+        date: "2025-03-10",
+        description: "Dokumentasi perayaan hari ulang tahun desa",
+        thumbnail: "/assets/thumbnail1.jpg",
+        duration: "05:32",
+      },
+    ],
   },
   2024: {
-    images: ["/assets/image3.jpg"],
+    images: [
+      {
+        id: 4,
+        title: "Panen Raya",
+        type: "image",
+        url: "/assets/image3.jpg",
+        date: "2024-11-05",
+        description: "Kegiatan panen raya bersama petani desa",
+      },
+    ],
     videos: [],
   },
   2023: {
-    images: [],
-    videos: [],
+    images: [
+      {
+        id: 5,
+        title: "Pembangunan Jembatan",
+        type: "image",
+        url: "/assets/image4.jpg",
+        date: "2023-08-12",
+        description: "Proses pembangunan jembatan penghubung antar dusun",
+      },
+      {
+        id: 6,
+        title: "Pelatihan Keterampilan",
+        type: "image",
+        url: "/assets/image5.jpg",
+        date: "2023-09-25",
+        description: "Pelatihan keterampilan untuk pemuda desa",
+      },
+    ],
+    videos: [
+      {
+        id: 7,
+        title: "Dokumentasi Wisata Desa",
+        type: "video",
+        url: "/assets/video2.mp4",
+        date: "2023-07-15",
+        description: "Video promosi wisata desa",
+        thumbnail: "/assets/thumbnail2.jpg",
+        duration: "03:45",
+      },
+    ],
   },
 };
 
-// ✅ Fungsi ExpandableSection yang sudah diperbaiki
-function ExpandableSection({ title, children }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="w-full max-w-4xl mt-6 border rounded-lg shadow-lg overflow-hidden">
-      {/* Header dengan tombol klik */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex justify-between items-center p-4 bg-white border-b text-xl font-semibold hover:bg-gray-100"
-      >
-        {title}
-        {isOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-      </button>
-
-      {/* Konten (Hanya muncul saat terbuka) */}
-      <div
-        className={`transition-all duration-300 overflow-hidden ${
-          isOpen ? "max-h-[500px] p-4" : "max-h-0"
-        }`}
-      >
-        {isOpen && children}
-      </div>
-    </div>
-  );
-}
-
 export default function Media() {
   const [selectedYear, setSelectedYear] = useState("2025");
-  const currentMedia = mediaData[selectedYear] || { images: [], videos: [] };
+  const [activeTab, setActiveTab] = useState("semua");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [currentItem, setCurrentItem] = useState(null);
+
+  // Get current year's data and combine images and videos
+  const currentYearData = mediaData[selectedYear] || { images: [], videos: [] };
+  const allMedia = [
+    ...(currentYearData.images || []),
+    ...(currentYearData.videos || []),
+  ];
+
+  // Filter data based on active tab and search query
+  const filteredData = allMedia.filter((item) => {
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesFilter =
+      activeTab === "semua" ||
+      (activeTab === "foto" && item.type === "image") ||
+      (activeTab === "video" && item.type === "video");
+
+    return matchesSearch && matchesFilter;
+  });
+
+  // Count by type
+  const countImages = currentYearData.images?.length || 0;
+  const countVideos = currentYearData.videos?.length || 0;
+
+  // Handle preview
+  const handlePreview = (item) => {
+    setCurrentItem(item);
+    setShowPreviewModal(true);
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
 
   return (
-    <div className="flex flex-col bg-white items-center" style={{ fontFamily: "poppins" }}>
+    <div className="flex flex-col bg-gray-50 min-h-screen pt-20">
       <Navbar />
-      <div className="min-h-screen w-full max-w-5xl flex flex-col items-center justify-center bg-white p-6 pt-16">
-        <h1 className="text-[2.8rem] md:text-[7rem] w-5/6 md:w-9/12 font-extrabold md:font-black bg-gradient-to-b from-black to-gray-200 bg-clip-text text-transparent leading-tight py-4">
-          Gallery <p>Digital Desa</p> 
-        </h1>
 
-        {/* Dropdown Pilihan Tahun */}
-        <select
-          className="mt-2 md:mt-6 border rounded-lg text-lg self-end md:mr-12"
-          onChange={(e) => setSelectedYear(e.target.value)}
-          value={selectedYear}
-        >
-          {Object.keys(mediaData).map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
-        </select>
+      <div className="container mx-auto px-4 py-8 flex-grow">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent mb-2">
+              Gallery Digital Desa
+            </h1>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Dokumentasi kegiatan dan momen penting desa dalam bentuk foto dan
+              video
+            </p>
+          </div>
 
-        {/* Foto (Expandable) */}
-        <ExpandableSection title="Foto">
-          {currentMedia.images.length > 0 ? (
-            <ImageCarousel images={currentMedia.images} />
-          ) : (
-            <p className="text-gray-500 text-center mt-2">Gambar tidak tersedia</p>
-          )}
-        </ExpandableSection>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-white rounded-2xl shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Total Media
+                </h3>
+                <div className="bg-purple-100 p-2 rounded-lg">
+                  <FaPhotoVideo className="text-purple-500 text-xl" />
+                </div>
+              </div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">
+                {allMedia.length}
+              </div>
+              <p className="text-sm text-gray-600">
+                Media tersedia tahun {selectedYear}
+              </p>
+            </div>
 
-        {/* Video (Expandable) */}
-        <ExpandableSection title="Video">
-          {currentMedia.videos.length > 0 ? (
-            <VideoCarousel videos={currentMedia.videos} autoplay={true} />
-          ) : (
-            <p className="text-gray-500 text-center mt-2">Video tidak tersedia</p>
-          )}
-        </ExpandableSection>
+            <div className="bg-white rounded-2xl shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Foto</h3>
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <FaImage className="text-blue-500 text-xl" />
+                </div>
+              </div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">
+                {countImages}
+              </div>
+              <p className="text-sm text-gray-600">Foto tersedia</p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Video</h3>
+                <div className="bg-green-100 p-2 rounded-lg">
+                  <FaVideo className="text-green-500 text-xl" />
+                </div>
+              </div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">
+                {countVideos}
+              </div>
+              <p className="text-sm text-gray-600">Video tersedia</p>
+            </div>
+          </div>
+
+          {/* Filter and Search */}
+          <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+              {/* Year Selection */}
+              <div className="flex items-center gap-2">
+                <FaCalendarAlt className="text-purple-500" />
+                <span className="text-gray-700 font-medium">Pilih Tahun:</span>
+                <select
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  value={selectedYear}
+                >
+                  {Object.keys(mediaData).map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Cari media..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full md:w-64"
+                />
+              </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                onClick={() => setActiveTab("semua")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                  activeTab === "semua"
+                    ? "bg-purple-500 text-white font-medium shadow-sm"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaPhotoVideo
+                  className={
+                    activeTab === "semua" ? "text-white" : "text-purple-500"
+                  }
+                />
+                <span>Semua Media</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("foto")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                  activeTab === "foto"
+                    ? "bg-blue-500 text-white font-medium shadow-sm"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaImage
+                  className={
+                    activeTab === "foto" ? "text-white" : "text-blue-500"
+                  }
+                />
+                <span>Foto</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("video")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                  activeTab === "video"
+                    ? "bg-green-500 text-white font-medium shadow-sm"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <FaVideo
+                  className={
+                    activeTab === "video" ? "text-white" : "text-green-500"
+                  }
+                />
+                <span>Video</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Gallery Grid */}
+          <div className="bg-white rounded-2xl shadow-md p-6">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Gallery Media Tahun {selectedYear}
+                </h2>
+                <p className="text-gray-600 text-sm">
+                  Dokumentasi kegiatan dan momen penting desa
+                </p>
+              </div>
+            </div>
+
+            {filteredData.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredData.map((media) => (
+                  <div
+                    key={media.id}
+                    className="group bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                  >
+                    {/* Media Title */}
+                    <div className="p-3 border-b">
+                      <h3 className="font-medium text-gray-800 truncate">
+                        {media.title}
+                      </h3>
+                      <div className="flex justify-between items-center mt-1">
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <FaCalendarAlt />
+                          <span>
+                            {new Date(media.date).toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs">
+                          {media.type === "image" ? (
+                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <FaImage /> Foto
+                            </span>
+                          ) : (
+                            <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <FaVideo /> Video
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Media Thumbnail */}
+                    <div className="relative aspect-[4/3] overflow-hidden">
+                      {media.type === "image" ? (
+                        <img
+                          src={media.url || "/placeholder.svg"}
+                          alt={media.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <>
+                          <img
+                            src={
+                              media.thumbnail || "/assets/video-placeholder.jpg"
+                            }
+                            alt={media.title}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="bg-black bg-opacity-50 rounded-full p-3 text-white">
+                              <FaPlay />
+                            </div>
+                          </div>
+                          {media.duration && (
+                            <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                              {media.duration}
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* Hover Overlay */}
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handlePreview(media)}
+                            className="bg-white p-2 rounded-full shadow-md hover:bg-blue-500 hover:text-white transition-colors"
+                            title="Lihat Detail"
+                          >
+                            <FaEye />
+                          </button>
+                          <a
+                            href={media.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-white p-2 rounded-full shadow-md hover:bg-purple-500 hover:text-white transition-colors"
+                            title="Unduh"
+                          >
+                            <FaDownload />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Media Description */}
+                    <div className="p-3">
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {media.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <FaPhotoVideo className="text-gray-300 text-5xl mx-auto mb-3" />
+                <p className="text-gray-500">Tidak ada media yang ditemukan</p>
+                <p className="text-gray-400 text-sm">
+                  Coba ubah filter atau kata kunci pencarian
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Preview Modal */}
+      {showPreviewModal && currentItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-800">
+                {currentItem.type === "image" ? (
+                  <>
+                    <FaImage className="inline-block mr-2 text-blue-500" /> Foto
+                  </>
+                ) : (
+                  <>
+                    <FaVideo className="inline-block mr-2 text-green-500" />{" "}
+                    Video
+                  </>
+                )}
+              </h3>
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                {currentItem.title}
+              </h2>
+
+              <div className="bg-black rounded-lg overflow-hidden mb-4 flex items-center justify-center">
+                {currentItem.type === "image" ? (
+                  <img
+                    src={currentItem.url || "/placeholder.svg"}
+                    alt={currentItem.title}
+                    className="max-w-full max-h-[70vh] object-contain"
+                  />
+                ) : (
+                  <video
+                    src={currentItem.url}
+                    controls
+                    autoPlay
+                    className="max-w-full max-h-[70vh]"
+                    poster={currentItem.thumbnail}
+                  >
+                    Browser Anda tidak mendukung pemutaran video.
+                  </video>
+                )}
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-700 mb-4">{currentItem.description}</p>
+
+                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                  <p className="flex items-center gap-1">
+                    <FaCalendarAlt className="text-gray-400" />
+                    <span className="font-medium">Tanggal:</span>{" "}
+                    {formatDate(currentItem.date)}
+                  </p>
+                  {currentItem.type === "video" && currentItem.duration && (
+                    <p className="flex items-center gap-1">
+                      <FaVideo className="text-gray-400" />
+                      <span className="font-medium">Durasi:</span>{" "}
+                      {currentItem.duration}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Tutup
+              </button>
+              <a
+                href={currentItem.url}
+                download
+                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
+              >
+                <FaDownload className="text-white" />
+                <span>Unduh</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
