@@ -9,25 +9,10 @@ import {
 } from "react-icons/fa";
 import Penduduk from "../components/Penduduk/Penduduk";
 import APBDes from "../components/Penduduk/APBDes";
+import FasilitasWrapper from "../components/Penduduk/Fasilitas";
 
 export default function InfografisAdmin() {
   const [activeTab, setActiveTab] = useState("penduduk");
-
-  // Placeholder component for Fasilitas
-  const Fasilitas = () => (
-    <div className="bg-white rounded-2xl shadow-md p-8 text-center">
-      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <FaBuilding className="text-green-500 text-3xl" />
-      </div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-2">Data Fasilitas</h2>
-      <p className="text-gray-600 mb-6">
-        Informasi mengenai fasilitas dan infrastruktur desa
-      </p>
-      <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-        <p className="text-gray-500">Konten Fasilitas akan segera hadir</p>
-      </div>
-    </div>
-  );
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -92,7 +77,11 @@ export default function InfografisAdmin() {
         <div className="transition-all duration-300">
           {activeTab === "penduduk" && <Penduduk />}
           {activeTab === "apbdes" && <APBDes />}
-          {activeTab === "fasilitas" && <Fasilitas />}
+          {activeTab === "fasilitas" && (
+            <div className="bg-white rounded-2xl shadow-md">
+              <FasilitasWrapper />
+            </div>
+          )}
         </div>
       </div>
     </div>
