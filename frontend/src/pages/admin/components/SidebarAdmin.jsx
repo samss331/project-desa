@@ -23,7 +23,7 @@ export default function SidebarAdmin() {
         </div>
         <nav className="flex-1 p-4 space-y-2">
           <NavLink
-            to="/admin/dashboard"
+            to="/admin/beranda"
             className={({ isActive }) =>
               `${linkClass} ${
                 isActive ? activeClass : "hover:bg-gray-200 hover:text-gray-800"
