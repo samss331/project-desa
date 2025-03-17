@@ -28,6 +28,7 @@ function Navbar() {
     { name: "Pelayanan", path: "/Pelayanan" },
     { name: "Media", path: "/Media" },
     { name: "Arsip", path: "/Arsip" },
+    { name: "Informasi", path: "/Information" },
   ];
 
   return (
