@@ -1,14 +1,19 @@
+"use client";
+
 import { useState } from "react";
-import {
-  FaBell,
-  FaSearch,
-  FaUserCircle,
-  FaCog,
-  FaSignOutAlt,
-} from "react-icons/fa";
+import { FaBell, FaSearch, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import LogoutAdminDialog from "./LogoutAdminDialog";
 
 export default function HeaderAdmin() {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const navigate = useNavigate();
+
+  const navigateToSettings = () => {
+    navigate("/admin/setting");
+    setShowDropdown(false);
+  };
 
   return (
     <header className="w-full bg-white rounded-2xl shadow-md px-6 py-4 mb-6 flex items-center justify-between">
@@ -55,32 +60,33 @@ export default function HeaderAdmin() {
 
           {showDropdown && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 z-10 border border-gray-100">
-              <a
-                href="#profile"
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                <FaUserCircle className="text-gray-500" />
-                <span>Profil</span>
-              </a>
-              <a
-                href="#settings"
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
+              <button
+                onClick={navigateToSettings}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
               >
                 <FaCog className="text-gray-500" />
                 <span>Pengaturan</span>
-              </a>
+              </button>
               <div className="border-t border-gray-100 my-1"></div>
-              <a
-                href="#logout"
-                className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-gray-100"
+              <button
+                onClick={() => {
+                  setShowLogoutDialog(true);
+                  setShowDropdown(false);
+                }}
+                className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-gray-100 w-full text-left"
               >
                 <FaSignOutAlt className="text-red-500" />
                 <span>Logout</span>
-              </a>
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Logout Dialog */}
+      {showLogoutDialog && (
+        <LogoutAdminDialog onClose={() => setShowLogoutDialog(false)} />
+      )}
     </header>
   );
 }

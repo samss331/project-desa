@@ -1,4 +1,3 @@
-// src/routes/AppRoutes.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Halaman Umum
@@ -23,6 +22,7 @@ import InfografisAdmin from "../pages/admin/pages/InfografisAdmin";
 import MediaAdmin from "../pages/admin/pages/MediaAdmin";
 import SuratAdmin from "../pages/admin/pages/SuratAdmin";
 import PelayananAdmin from "../pages/admin/pages/PelayananAdmin";
+import SettingAdmin from "../pages/admin/pages/SettingAdmin";
 
 const AppRoutes = () => {
   return (
@@ -48,6 +48,7 @@ const AppRoutes = () => {
           <Route path="media" element={<MediaAdmin />} />
           <Route path="surat" element={<SuratAdmin />} />
           <Route path="pelayanan" element={<PelayananAdmin />} />
+          <Route path="setting" element={<SettingAdmin />} />
         </Route>
 
         {/* ===================== HALAMAN NOT FOUND ===================== */}
