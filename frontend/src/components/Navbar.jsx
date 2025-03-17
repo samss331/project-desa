@@ -31,6 +31,22 @@ function Navbar() {
     { name: "Informasi", path: "/Information" },
   ];
 
+  // Function to get color based on path
+  const getPathColor = (path) => {
+    switch (path) {
+      case "/Pelayanan":
+        return "#6CABCA"; // coral/orange
+      case "/Media":
+        return "#5DE1C4"; // turquoise
+      case "/Arsip":
+        return "#6CABCA"; // blue
+      case "/":
+        return "#6CABCA"; // blue
+      default:
+        return "#B9FF66"; // lime green
+    }
+  };
+
   return (
     <header
       className={`w-full fixed top-0 z-50 transition-all duration-300 backdrop-blur-md ${
@@ -39,11 +55,15 @@ function Navbar() {
       style={{ fontFamily: "poppins" }}
     >
       <div className="container mx-auto px-4 md:px-6 py-4 md:py-3">
-        <div className={`flex items-center justify-between ${isMenuOpen ? "hidden" : "flex"}`}>
+        <div
+          className={`flex items-center justify-between ${
+            isMenuOpen ? "hidden" : "flex"
+          }`}
+        >
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img
-              src={logoPlaceholder || "/placeholder.svg"}
+              src={logoPlaceholder || "/placeholder.svg?height=48&width=48"}
               alt="Logo Desa"
               className="h-10 md:h-12 w-auto"
             />
@@ -61,26 +81,33 @@ function Navbar() {
               <Link
                 key={link.name}
                 to={link.path}
-                className={`relative pb-1 text-black hover:text-gray-300 font-medium text-sm transition-colors ${
+                className={`relative pb-1 hover:text-gray-600 font-medium text-sm transition-colors ${
                   location.pathname === link.path
                     ? "text-black"
                     : "text-gray-700"
                 }`}
               >
                 {link.name}
-                {/* Underline animation */}
+                {/* Underline animation with dynamic color */}
                 <span
-                  className={`absolute left-0 bottom-0 h-[2px] w-full bg-black rounded-full transition-transform duration-300 ${
+                  className={`absolute left-0 bottom-0 h-[2px] rounded-full transition-transform duration-300 ${
                     location.pathname === link.path
                       ? "scale-x-100"
                       : "scale-x-0"
                   }`}
+                  style={{
+                    backgroundColor:
+                      location.pathname === link.path
+                        ? getPathColor(link.path)
+                        : "transparent",
+                    width: "100%",
+                  }}
                 ></span>
               </Link>
             ))}
             <Link
               to="/login"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+              className="bg-[#B9FF66] hover:bg-opacity-90 text-gray-800 px-4 py-2 rounded-full text-sm font-bold transition-colors"
             >
               Login
             </Link>
@@ -107,7 +134,7 @@ function Navbar() {
           <div className="flex justify-between items-center mb-8">
             <Link to="/" className="flex items-center space-x-2">
               <img
-                src={logoPlaceholder || "/placeholder.svg"}
+                src={logoPlaceholder || "/placeholder.svg?height=40&width=40"}
                 alt="Logo"
                 className="h-10 w-auto"
               />
@@ -131,19 +158,30 @@ function Navbar() {
               <Link
                 key={link.name}
                 to={link.path}
-                className={`relative text-gray-800 hover:text-green-600 font-medium text-lg transition-colors ${
-                  location.pathname === link.path ? "text-green-600" : ""
-                }`}
+                className={`relative text-gray-800 font-medium text-lg transition-colors`}
                 onClick={toggleMenu}
+                style={{
+                  color:
+                    location.pathname === link.path
+                      ? getPathColor(link.path)
+                      : "rgb(31, 41, 55)",
+                }}
               >
                 {link.name}
-                {/* Underline for mobile */}
+                {/* Underline for mobile with dynamic color */}
                 <span
-                  className={`absolute left-0 bottom-0 h-[2px] w-full bg-green-600 rounded-full transition-transform duration-300 ${
+                  className={`absolute left-0 bottom-0 h-[2px] rounded-full transition-transform duration-300 ${
                     location.pathname === link.path
                       ? "scale-x-100"
                       : "scale-x-0"
                   }`}
+                  style={{
+                    backgroundColor:
+                      location.pathname === link.path
+                        ? getPathColor(link.path)
+                        : "transparent",
+                    width: "100%",
+                  }}
                 ></span>
               </Link>
             ))}
@@ -152,7 +190,7 @@ function Navbar() {
           <div className="mt-auto pt-6 border-t border-gray-100">
             <Link
               to="/login"
-              className="flex items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg text-base font-medium transition-colors"
+              className="flex items-center justify-center w-full bg-gradient-to-r from-[#6CABCA] to-[#5DE1C4] hover:opacity-90 text-white px-5 py-3 rounded-lg text-base font-medium transition-colors"
               onClick={toggleMenu}
             >
               Login

@@ -128,21 +128,24 @@ export default function ArsipSurat() {
   // Get icon and color based on surat type
   const getSuratIcon = (type) => {
     if (type === "Surat Masuk") {
-      return <FaEnvelopeOpen className="text-blue-500" />;
+      return <FaEnvelopeOpen className="text-[#FE7C66]" />;
     } else {
-      return <FaEnvelope className="text-green-500" />;
+      return <FaEnvelope className="text-[#5DE1C4]" />;
     }
   };
 
   return (
-    <div className="flex flex-col bg-gray-50 min-h-screen pt-20">
+    <div
+      className="flex flex-col bg-gray-50 min-h-screen pt-20"
+      style={{ fontFamily: "poppins" }}
+    >
       <Navbar />
 
       <div className="container mx-auto px-4 py-8 flex-grow">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl md:text-9xl font-bold bg-gradient-to-r from-[#6CABCA] to-[#315263] bg-clip-text text-transparent mb-2 py-5">
               Arsip Surat Desa
             </h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
@@ -158,8 +161,8 @@ export default function ArsipSurat() {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Total Surat
                 </h3>
-                <div className="bg-purple-100 p-2 rounded-lg">
-                  <FaFileAlt className="text-purple-500 text-xl" />
+                <div className="bg-gray-100 bg-opacity-20 p-2 rounded-lg">
+                  <FaFileAlt className="text-[#B9FF66] text-xl" />
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-1">
@@ -175,8 +178,8 @@ export default function ArsipSurat() {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Surat Masuk
                 </h3>
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <FaEnvelopeOpen className="text-blue-500 text-xl" />
+                <div className="bg-gray-100 bg-opacity-20 p-2 rounded-lg">
+                  <FaEnvelopeOpen className="text-[#FE7C66] text-xl" />
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-1">
@@ -190,8 +193,8 @@ export default function ArsipSurat() {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Surat Keluar
                 </h3>
-                <div className="bg-green-100 p-2 rounded-lg">
-                  <FaEnvelope className="text-green-500 text-xl" />
+                <div className="bg-gray-100 bg-opacity-20 p-2 rounded-lg">
+                  <FaEnvelope className="text-[#5DE1C4] text-xl" />
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-1">
@@ -206,10 +209,10 @@ export default function ArsipSurat() {
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
               {/* Year Selection */}
               <div className="flex items-center gap-2">
-                <FaCalendarAlt className="text-purple-500" />
+                <FaCalendarAlt className="text-[#6CABCA]" />
                 <span className="text-gray-700 font-medium">Pilih Tahun:</span>
                 <select
-                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#6CABCA] focus:border-[#6CABCA]"
                   onChange={(e) => setSelectedYear(e.target.value)}
                   value={selectedYear}
                 >
@@ -229,7 +232,7 @@ export default function ArsipSurat() {
                   placeholder="Cari surat..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full md:w-64"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6CABCA] focus:border-[#6CABCA] w-full md:w-64"
                 />
               </div>
             </div>
@@ -240,13 +243,13 @@ export default function ArsipSurat() {
                 onClick={() => setActiveTab("semua")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
                   activeTab === "semua"
-                    ? "bg-purple-500 text-white font-medium shadow-sm"
+                    ? "bg-[#B9FF66] text-gray-800 font-medium shadow-sm"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 <FaFileAlt
                   className={
-                    activeTab === "semua" ? "text-white" : "text-purple-500"
+                    activeTab === "semua" ? "text-gray-800" : "text-[#B9FF66]"
                   }
                 />
                 <span>Semua Surat</span>
@@ -255,13 +258,13 @@ export default function ArsipSurat() {
                 onClick={() => setActiveTab("masuk")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
                   activeTab === "masuk"
-                    ? "bg-blue-500 text-white font-medium shadow-sm"
+                    ? "bg-[#FE7C66] text-white font-medium shadow-sm"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 <FaEnvelopeOpen
                   className={
-                    activeTab === "masuk" ? "text-white" : "text-blue-500"
+                    activeTab === "masuk" ? "text-white" : "text-[#FE7C66]"
                   }
                 />
                 <span>Surat Masuk</span>
@@ -270,13 +273,13 @@ export default function ArsipSurat() {
                 onClick={() => setActiveTab("keluar")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
                   activeTab === "keluar"
-                    ? "bg-green-500 text-white font-medium shadow-sm"
+                    ? "bg-[#5DE1C4] text-white font-medium shadow-sm"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 <FaEnvelope
                   className={
-                    activeTab === "keluar" ? "text-white" : "text-green-500"
+                    activeTab === "keluar" ? "text-white" : "text-[#5DE1C4]"
                   }
                 />
                 <span>Surat Keluar</span>
@@ -351,19 +354,19 @@ export default function ArsipSurat() {
                           <div className="flex justify-end gap-2">
                             <button
                               onClick={() => handlePreview(surat)}
-                              className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                              className="p-1.5 bg-gray-100 bg-opacity-20 rounded-md hover:bg-gray-200 hover:bg-opacity-30 transition-colors"
                               title="Lihat Detail"
                             >
-                              <FaEye className="text-blue-600" />
+                              <FaEye className="text-[#6CABCA]" />
                             </button>
                             <a
                               href={surat.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-1.5 bg-purple-100 rounded-md hover:bg-purple-200 transition-colors"
+                              className="p-1.5 bg-gray-100 bg-opacity-20 rounded-md hover:bg-gray-200 hover:bg-opacity-30 transition-colors"
                               title="Unduh"
                             >
-                              <FaDownload className="text-purple-600" />
+                              <FaDownload className="text-[#6CABCA]" />
                             </a>
                           </div>
                         </td>
@@ -472,9 +475,9 @@ export default function ArsipSurat() {
                 href={currentItem.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-[#B9FF66] text-gray-800 rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
               >
-                <FaDownload className="text-white" />
+                <FaDownload />
                 <span>Unduh Dokumen</span>
               </a>
             </div>

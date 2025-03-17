@@ -143,17 +143,20 @@ export default function Media() {
   };
 
   return (
-    <div className="flex flex-col bg-gray-50 min-h-screen pt-20">
+    <div
+      className="flex flex-col bg-gray-50 min-h-screen mt-20"
+      style={{ fontFamily: "poppins" }}
+    >
       <Navbar />
 
       <div className="container mx-auto px-4 py-8 flex-grow">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent mb-2">
-              Gallery Digital Desa
+            <h1 className="text-4xl md:text-9xl font-bold bg-gradient-to-r from-[#6CABCA] to-[#315263] bg-clip-text text-transparent mb-2 py-5">
+              Media Digital Desa
             </h1>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto pt-5">
               Dokumentasi kegiatan dan momen penting desa dalam bentuk foto dan
               video
             </p>
@@ -166,8 +169,8 @@ export default function Media() {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Total Media
                 </h3>
-                <div className="bg-purple-100 p-2 rounded-lg">
-                  <FaPhotoVideo className="text-purple-500 text-xl" />
+                <div className="bg-gray-100 bg-opacity-20 p-2 rounded-lg">
+                  <FaPhotoVideo className="text-[#B9FF66] text-xl" />
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-1">
@@ -181,8 +184,8 @@ export default function Media() {
             <div className="bg-white rounded-2xl shadow-md p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Foto</h3>
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <FaImage className="text-blue-500 text-xl" />
+                <div className="bg-gray-100 bg-opacity-20 p-2 rounded-lg">
+                  <FaImage className="text-[#FE7C66] text-xl" />
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-1">
@@ -194,8 +197,8 @@ export default function Media() {
             <div className="bg-white rounded-2xl shadow-md p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Video</h3>
-                <div className="bg-green-100 p-2 rounded-lg">
-                  <FaVideo className="text-green-500 text-xl" />
+                <div className="bg-gray-100 bg-opacity-20 p-2 rounded-lg">
+                  <FaVideo className="text-[#5DE1C4] text-xl" />
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-1">
@@ -210,10 +213,10 @@ export default function Media() {
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
               {/* Year Selection */}
               <div className="flex items-center gap-2">
-                <FaCalendarAlt className="text-purple-500" />
+                <FaCalendarAlt className="text-[#6CABCA]" />
                 <span className="text-gray-700 font-medium">Pilih Tahun:</span>
                 <select
-                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#6CABCA] focus:border-[#6CABCA]"
                   onChange={(e) => setSelectedYear(e.target.value)}
                   value={selectedYear}
                 >
@@ -233,7 +236,7 @@ export default function Media() {
                   placeholder="Cari media..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full md:w-64"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6CABCA] focus:border-[#6CABCA] w-full md:w-64"
                 />
               </div>
             </div>
@@ -244,13 +247,13 @@ export default function Media() {
                 onClick={() => setActiveTab("semua")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
                   activeTab === "semua"
-                    ? "bg-purple-500 text-white font-medium shadow-sm"
+                    ? "bg-[#B9FF66] text-gray-800 font-medium shadow-sm"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 <FaPhotoVideo
                   className={
-                    activeTab === "semua" ? "text-white" : "text-purple-500"
+                    activeTab === "semua" ? "text-gray-800" : "text-[#B9FF66]"
                   }
                 />
                 <span>Semua Media</span>
@@ -259,13 +262,13 @@ export default function Media() {
                 onClick={() => setActiveTab("foto")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
                   activeTab === "foto"
-                    ? "bg-blue-500 text-white font-medium shadow-sm"
+                    ? "bg-[#FE7C66] text-white font-medium shadow-sm"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 <FaImage
                   className={
-                    activeTab === "foto" ? "text-white" : "text-blue-500"
+                    activeTab === "foto" ? "text-white" : "text-[#FE7C66]"
                   }
                 />
                 <span>Foto</span>
@@ -274,13 +277,13 @@ export default function Media() {
                 onClick={() => setActiveTab("video")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
                   activeTab === "video"
-                    ? "bg-green-500 text-white font-medium shadow-sm"
+                    ? "bg-[#5DE1C4] text-white font-medium shadow-sm"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 <FaVideo
                   className={
-                    activeTab === "video" ? "text-white" : "text-green-500"
+                    activeTab === "video" ? "text-white" : "text-[#5DE1C4]"
                   }
                 />
                 <span>Video</span>
@@ -326,11 +329,11 @@ export default function Media() {
                         </div>
                         <div className="flex items-center gap-1 text-xs">
                           {media.type === "image" ? (
-                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span className="bg-gray-100 bg-opacity-20 text-[#FE7C66] px-2 py-0.5 rounded-full flex items-center gap-1">
                               <FaImage /> Foto
                             </span>
                           ) : (
-                            <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span className="bg-gray-100 bg-opacity-20 text-[#5DE1C4] px-2 py-0.5 rounded-full flex items-center gap-1">
                               <FaVideo /> Video
                             </span>
                           )}
@@ -342,7 +345,9 @@ export default function Media() {
                     <div className="relative aspect-[4/3] overflow-hidden">
                       {media.type === "image" ? (
                         <img
-                          src={media.url || "/placeholder.svg"}
+                          src={
+                            media.url || "/placeholder.svg?height=300&width=400"
+                          }
                           alt={media.title}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
@@ -350,7 +355,8 @@ export default function Media() {
                         <>
                           <img
                             src={
-                              media.thumbnail || "/assets/video-placeholder.jpg"
+                              media.thumbnail ||
+                              "/placeholder.svg?height=300&width=400"
                             }
                             alt={media.title}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -373,7 +379,7 @@ export default function Media() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => handlePreview(media)}
-                            className="bg-white p-2 rounded-full shadow-md hover:bg-blue-500 hover:text-white transition-colors"
+                            className="bg-white p-2 rounded-full shadow-md hover:bg-[#6CABCA] hover:text-white transition-colors"
                             title="Lihat Detail"
                           >
                             <FaEye />
@@ -382,7 +388,7 @@ export default function Media() {
                             href={media.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-white p-2 rounded-full shadow-md hover:bg-purple-500 hover:text-white transition-colors"
+                            className="bg-white p-2 rounded-full shadow-md hover:bg-[#B9FF66] hover:text-gray-800 transition-colors"
                             title="Unduh"
                           >
                             <FaDownload />
@@ -421,11 +427,12 @@ export default function Media() {
               <h3 className="text-xl font-bold text-gray-800">
                 {currentItem.type === "image" ? (
                   <>
-                    <FaImage className="inline-block mr-2 text-blue-500" /> Foto
+                    <FaImage className="inline-block mr-2 text-[#FE7C66]" />{" "}
+                    Foto
                   </>
                 ) : (
                   <>
-                    <FaVideo className="inline-block mr-2 text-green-500" />{" "}
+                    <FaVideo className="inline-block mr-2 text-[#5DE1C4]" />{" "}
                     Video
                   </>
                 )}
@@ -459,7 +466,9 @@ export default function Media() {
               <div className="bg-black rounded-lg overflow-hidden mb-4 flex items-center justify-center">
                 {currentItem.type === "image" ? (
                   <img
-                    src={currentItem.url || "/placeholder.svg"}
+                    src={
+                      currentItem.url || "/placeholder.svg?height=600&width=800"
+                    }
                     alt={currentItem.title}
                     className="max-w-full max-h-[70vh] object-contain"
                   />
@@ -481,13 +490,13 @@ export default function Media() {
 
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <p className="flex items-center gap-1">
-                    <FaCalendarAlt className="text-gray-400" />
+                    <FaCalendarAlt className="text-[#6CABCA]" />
                     <span className="font-medium">Tanggal:</span>{" "}
                     {formatDate(currentItem.date)}
                   </p>
                   {currentItem.type === "video" && currentItem.duration && (
                     <p className="flex items-center gap-1">
-                      <FaVideo className="text-gray-400" />
+                      <FaVideo className="text-[#5DE1C4]" />
                       <span className="font-medium">Durasi:</span>{" "}
                       {currentItem.duration}
                     </p>
@@ -506,9 +515,9 @@ export default function Media() {
               <a
                 href={currentItem.url}
                 download
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-[#B9FF66] text-gray-800 rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
               >
-                <FaDownload className="text-white" />
+                <FaDownload />
                 <span>Unduh</span>
               </a>
             </div>

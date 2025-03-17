@@ -22,6 +22,7 @@ import PengumumanAdmin from "../pages/admin/pages/PengumumanAdmin";
 import InfografisAdmin from "../pages/admin/pages/InfografisAdmin";
 import MediaAdmin from "../pages/admin/pages/MediaAdmin";
 import SuratAdmin from "../pages/admin/pages/SuratAdmin";
+import PelayananAdmin from "../pages/admin/pages/PelayananAdmin";
 
 const AppRoutes = () => {
   return (
@@ -46,6 +47,7 @@ const AppRoutes = () => {
           <Route path="infografis" element={<InfografisAdmin />} />
           <Route path="media" element={<MediaAdmin />} />
           <Route path="surat" element={<SuratAdmin />} />
+          <Route path="pelayanan" element={<PelayananAdmin />} />
         </Route>
 
         {/* ===================== HALAMAN NOT FOUND ===================== */}
