@@ -166,7 +166,7 @@ const formatCurrency = (num) => {
 
 const PendapatanBelanjaDesaChart = ({ data }) => {
   const chartData = {
-    labels: ["PAD", "Dana Desa", "Alokasi Dana Desa"],
+    labels: ["Total Statistik Keuangan"],
     datasets: [
       {
         label: "Pendapatan",

@@ -10,18 +10,18 @@ import Reset from "../pages/ResetPassword";
 import Pelayanan from "../pages/Pelayanan";
 import Media from "../pages/Media";
 import Arsip from "../pages/Arsip";
-import information from "../pages/Information";
+import Information from "../pages/Information";
 
 // Admin Layout (Parent Admin)
 import DashboardAdmin from "../pages/admin/DashboardAdmin";
 
 // Halaman Admin (Children Pages)
+import BerandaAdmin from "../pages/admin/pages/BerandaAdmin";
 import BeritaAdmin from "../pages/admin/pages/BeritaAdmin";
 import PengumumanAdmin from "../pages/admin/pages/PengumumanAdmin";
 import InfografisAdmin from "../pages/admin/pages/InfografisAdmin";
 import MediaAdmin from "../pages/admin/pages/MediaAdmin";
 import SuratAdmin from "../pages/admin/pages/SuratAdmin";
-import Information from "../pages/Information";
 
 const AppRoutes = () => {
   return (
@@ -40,7 +40,7 @@ const AppRoutes = () => {
 
         {/* ===================== HALAMAN ADMIN DENGAN LAYOUT ===================== */}
         <Route path="/admin" element={<DashboardAdmin />}>
-          <Route path="dashboard" element={<BeritaAdmin />} />
+          <Route path="beranda" element={<BerandaAdmin />} />
           <Route path="berita" element={<BeritaAdmin />} />
           <Route path="pengumuman" element={<PengumumanAdmin />} />
           <Route path="infografis" element={<InfografisAdmin />} />
