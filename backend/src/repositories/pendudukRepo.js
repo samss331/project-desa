@@ -68,7 +68,7 @@ const getTotalKepalaKeluarga = async () => {
 
 const getTotalLakiLaki = async () => {
     try {
-        const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM PENDUDUK WHERE jenisKelamin = 'pria'");
+        const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM PENDUDUK WHERE jenisKelamin = 'laki-laki'");
         return results[0].total;
     } catch (error) {
         throw error;
@@ -77,7 +77,7 @@ const getTotalLakiLaki = async () => {
 
 const getTotalPerempuan = async () => {
     try {
-        const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM PENDUDUK WHERE jenisKelamin = 'wanita'");
+        const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM PENDUDUK WHERE jenisKelamin = 'perempuan'");
         return results[0].total;
     } catch (error) {
         throw error;
