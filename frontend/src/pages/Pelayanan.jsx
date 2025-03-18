@@ -161,10 +161,10 @@ export default function Pelayanan() {
                           className={`font-medium text-gray-800 
                           ${
                             idx === 0
-                              ? "group-hover:text-[#FE7C66]"
+                              ? "group-hover:text-white"
                               : idx === 1
-                              ? "group-hover:text-[#5DE1C4]"
-                              : "group-hover:text-[#6CABCA]"
+                              ? "group-hover:text-white"
+                              : "group-hover:text-white"
                           }`}
                         >
                           {service.name}
@@ -173,14 +173,14 @@ export default function Pelayanan() {
                           className={`text-gray-400 transform group-hover:translate-x-1 transition-transform
                           ${
                             idx === 0
-                              ? "group-hover:text-[#FE7C66]"
+                              ? "group-hover:text-white"
                               : idx === 1
-                              ? "group-hover:text-[#5DE1C4]"
-                              : "group-hover:text-[#6CABCA]"
+                              ? "group-hover:text-white"
+                              : "group-hover:text-white"
                           }`}
                         />
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-500 mt-1 transform group-hover:text-white">
                         {service.description}
                       </p>
                     </a>
@@ -207,7 +207,7 @@ export default function Pelayanan() {
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-2xl shadow-md">
-              <div className="w-12 h-12 bg-[#B9FF66] bg-opacity-30 rounded-full flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-gray-100 bg-opacity-30 rounded-full flex items-center justify-center mb-4">
                 <span className="text-[#B9FF66] font-bold text-xl">1</span>
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">
@@ -220,7 +220,7 @@ export default function Pelayanan() {
             </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-md">
-              <div className="w-12 h-12 bg-[#FE7C66] bg-opacity-30 rounded-full flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-gray-100 bg-opacity-30 rounded-full flex items-center justify-center mb-4">
                 <span className="text-[#FE7C66] font-bold text-xl">2</span>
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">
@@ -233,7 +233,7 @@ export default function Pelayanan() {
             </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-md">
-              <div className="w-12 h-12 bg-[#5DE1C4] bg-opacity-30 rounded-full flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-gray-100 bg-opacity-30 rounded-full flex items-center justify-center mb-4">
                 <span className="text-[#5DE1C4] font-bold text-xl">3</span>
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">

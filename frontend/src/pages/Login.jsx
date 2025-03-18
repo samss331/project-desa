@@ -2,39 +2,38 @@
 
 import { useState } from "react";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import axios from "axios";
 
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   // Check if form is valid to enable button
-  const isFormValid = username.trim() !== "" && password.trim() !== "";
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (!isFormValid) return;
-
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await axios.post(
+        "http://localhost:3000/auth/login",
+        { email, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-      console.log("Username:", username);
-      console.log("Password:", password);
+      console.log("Login berhasil:", response.data);
+      alert("Login berhasil!");
 
-      // Here you would normally handle the authentication logic
-      // For example: const response = await authService.login(username, password);
-
-      // Redirect after successful login
-      // window.location.href = "/admin/beranda";
+      // Redirect atau simpan token
+      localStorage.setItem("token", response.data.token);
+      window.location.href = "/admin/beranda";
     } catch (err) {
-      setError("Login failed. Please check your credentials and try again.");
+      setError("Login gagal. Cek kredensial dan coba lagi.");
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
@@ -63,7 +62,7 @@ const Login = () => {
         <form onSubmit={handleLogin}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-medium mb-1">
-              Username
+              Email
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -72,8 +71,8 @@ const Login = () => {
               <input
                 type="text"
                 className="w-full pl-10 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Masukkan username Anda"
                 required
               />

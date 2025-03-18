@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaImage,
   FaVideo,
@@ -10,40 +10,15 @@ import {
   FaTrash,
   FaEye,
   FaChartBar,
+  FaSpinner,
 } from "react-icons/fa";
+import MediaService from "../services/MediaServiceAdmin";
 
 const MediaAdmin = () => {
-  // Expanded dummy data with more details
-  const [mediaData, setMediaData] = useState([
-    {
-      id: 1,
-      nama: "Foto Kegiatan Gotong Royong",
-      tipe: "Foto",
-      tanggal: "2023-05-15",
-      url: "/placeholder.svg?height=200&width=300",
-    },
-    {
-      id: 2,
-      nama: "Video Peresmian Balai Desa",
-      tipe: "Video",
-      tanggal: "2023-06-22",
-      url: "/placeholder.svg?height=200&width=300",
-    },
-    {
-      id: 3,
-      nama: "Dokumen Anggaran Desa 2023",
-      tipe: "Dokumen",
-      tanggal: "2023-04-10",
-      url: "/placeholder.svg?height=200&width=300",
-    },
-    {
-      id: 4,
-      nama: "Foto Kegiatan Posyandu",
-      tipe: "Foto",
-      tanggal: "2023-07-05",
-      url: "/placeholder.svg?height=200&width=300",
-    },
-  ]);
+  // State untuk data
+  const [mediaData, setMediaData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // State for active tab/filter
   const [activeTab, setActiveTab] = useState("semua");
@@ -61,13 +36,36 @@ const MediaAdmin = () => {
     tipe: "Foto",
     tanggal: "",
     url: "",
+    file: null,
   });
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchMediaData();
+  }, []);
+
+  // Fetch media data
+  const fetchMediaData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await MediaService.getAllMedia();
+      setMediaData(data);
+    } catch (err) {
+      console.error("Error fetching media data:", err);
+      setError("Gagal memuat data media.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Filter data based on active tab
   const filteredData =
     activeTab === "semua"
       ? mediaData
-      : mediaData.filter((item) => item.tipe.toLowerCase() === activeTab);
+      : mediaData.filter(
+          (item) => item.tipe.toLowerCase() === activeTab.toLowerCase()
+        );
 
   // Count by type
   const countFoto = mediaData.filter((item) => item.tipe === "Foto").length;
@@ -83,6 +81,7 @@ const MediaAdmin = () => {
       tipe: "Foto",
       tanggal: new Date().toISOString().split("T")[0],
       url: "",
+      file: null,
     });
     setShowAddModal(true);
   };
@@ -94,8 +93,11 @@ const MediaAdmin = () => {
       setFormData({
         nama: item.nama,
         tipe: item.tipe,
-        tanggal: item.tanggal,
-        url: item.url,
+        tanggal: item.tanggal
+          ? new Date(item.tanggal).toISOString().split("T")[0]
+          : "",
+        url: item.url || "",
+        file: null,
       });
       setShowEditModal(true);
     }
@@ -117,27 +119,120 @@ const MediaAdmin = () => {
     }
   };
 
-  const saveNewItem = () => {
-    const newItem = {
-      id: Math.max(...mediaData.map((item) => item.id), 0) + 1,
-      ...formData,
-    };
-    setMediaData([...mediaData, newItem]);
-    setShowAddModal(false);
+  const saveNewItem = async () => {
+    try {
+      // Validasi form
+      if (!formData.nama || !formData.tipe || !formData.tanggal) {
+        alert("Nama, tipe, dan tanggal wajib diisi!");
+        return;
+      }
+
+      if (!formData.url && !formData.file) {
+        alert("URL atau file media wajib diisi!");
+        return;
+      }
+
+      // Buat FormData untuk upload file
+      const formDataObj = new FormData();
+      formDataObj.append("nama", formData.nama);
+      formDataObj.append("tipe", formData.tipe);
+      formDataObj.append("tanggal", formData.tanggal);
+
+      if (formData.url && !formData.file) {
+        formDataObj.append("url", formData.url);
+      }
+
+      if (formData.file) {
+        formDataObj.append("file_media", formData.file);
+      }
+
+      // Kirim ke API
+      await MediaService.addMedia(formDataObj);
+
+      // Refresh data
+      await fetchMediaData();
+
+      // Tutup modal
+      setShowAddModal(false);
+    } catch (err) {
+      console.error("Error saving media:", err);
+      alert("Terjadi kesalahan saat menyimpan media.");
+    }
   };
 
-  const saveEditedItem = () => {
-    const updatedData = mediaData.map((item) =>
-      item.id === currentItem.id ? { ...item, ...formData } : item
-    );
-    setMediaData(updatedData);
-    setShowEditModal(false);
+  const saveEditedItem = async () => {
+    try {
+      // Validasi form
+      if (!formData.nama || !formData.tipe || !formData.tanggal) {
+        alert("Nama, tipe, dan tanggal wajib diisi!");
+        return;
+      }
+
+      // Buat FormData untuk upload file
+      const formDataObj = new FormData();
+      formDataObj.append("nama", formData.nama);
+      formDataObj.append("tipe", formData.tipe);
+      formDataObj.append("tanggal", formData.tanggal);
+
+      if (formData.url && !formData.file) {
+        formDataObj.append("url", formData.url);
+      }
+
+      if (formData.file) {
+        formDataObj.append("file_media", formData.file);
+      }
+
+      // Kirim ke API
+      await MediaService.updateMedia(currentItem.id, formDataObj);
+
+      // Refresh data
+      await fetchMediaData();
+
+      // Tutup modal
+      setShowEditModal(false);
+    } catch (err) {
+      console.error("Error updating media:", err);
+      alert("Terjadi kesalahan saat memperbarui media.");
+    }
   };
 
-  const confirmDelete = () => {
-    const updatedData = mediaData.filter((item) => item.id !== currentItem.id);
-    setMediaData(updatedData);
-    setShowDeleteModal(false);
+  const confirmDelete = async () => {
+    try {
+      // Kirim ke API
+      await MediaService.deleteMedia(currentItem.id);
+
+      // Refresh data
+      await fetchMediaData();
+
+      // Tutup modal
+      setShowDeleteModal(false);
+    } catch (err) {
+      console.error("Error deleting media:", err);
+      alert("Terjadi kesalahan saat menghapus media.");
+    }
+  };
+
+  // Format tanggal
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+
+    try {
+      const date = new Date(dateString);
+
+      // Periksa apakah tanggal valid
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+
+      return date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch (err) {
+      console.error("Error formatting date:", dateString, err);
+      return dateString;
+    }
   };
 
   // Get icon based on media type
@@ -154,46 +249,10 @@ const MediaAdmin = () => {
     }
   };
 
-  // Table columns with actions
-  const columns = ["ID", "Nama", "Tipe", "Tanggal", "Aksi"];
-
-  // Prepare data for TableAdmin
-  const tableData = filteredData.map((item) => ({
-    ID: item.id,
-    Nama: (
-      <div className="flex items-center gap-2">
-        {getMediaIcon(item.tipe)}
-        <span>{item.nama}</span>
-      </div>
-    ),
-    Tipe: item.tipe,
-    Tanggal: item.tanggal,
-    Aksi: (
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={() => handlePreview(item.id)}
-          className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
-          title="Pratinjau"
-        >
-          <FaEye className="text-blue-600" />
-        </button>
-        <button
-          onClick={() => handleEdit(item.id)}
-          className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-          title="Edit"
-        >
-          <FaEdit className="text-gray-600" />
-        </button>
-        <button
-          onClick={() => handleDelete(item.id)}
-          className="p-1.5 bg-red-100 rounded-md hover:bg-red-200 transition-colors"
-          title="Hapus"
-        >
-          <FaTrash className="text-red-600" />
-        </button>
-      </div>
-    ),
-  }));
+  // Handle file change
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, file: e.target.files[0] || null });
+  };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -346,75 +405,107 @@ const MediaAdmin = () => {
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 rounded-tl-lg">
-                    ID
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Nama
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Tipe
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Tanggal
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 rounded-tr-lg">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredData.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      {item.id}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      <div className="flex items-center gap-2">
-                        {getMediaIcon(item.tipe)}
-                        <span>{item.nama}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      {item.tipe}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      {item.tanggal}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handlePreview(item.id)}
-                          className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
-                          title="Pratinjau"
-                        >
-                          <FaEye className="text-blue-600" />
-                        </button>
-                        <button
-                          onClick={() => handleEdit(item.id)}
-                          className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-                          title="Edit"
-                        >
-                          <FaEdit className="text-gray-600" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-1.5 bg-red-100 rounded-md hover:bg-red-200 transition-colors"
-                          title="Hapus"
-                        >
-                          <FaTrash className="text-red-600" />
-                        </button>
-                      </div>
-                    </td>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <FaSpinner className="animate-spin text-purple-500 text-4xl mx-auto mb-4" />
+              <p className="text-gray-600">Memuat data media...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">
+              <p>{error}</p>
+              <button
+                onClick={fetchMediaData}
+                className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 rounded-tl-lg">
+                      ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Nama
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Tipe
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Tanggal
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 rounded-tr-lg">
+                      Aksi
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredData.length > 0 ? (
+                    filteredData.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          {item.id}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          <div className="flex items-center gap-2">
+                            {getMediaIcon(item.tipe)}
+                            <span>{item.nama}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          {item.tipe}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          {formatDate(item.tanggal)}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handlePreview(item.id)}
+                              className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                              title="Pratinjau"
+                            >
+                              <FaEye className="text-blue-600" />
+                            </button>
+                            <button
+                              onClick={() => handleEdit(item.id)}
+                              className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                              title="Edit"
+                            >
+                              <FaEdit className="text-gray-600" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="p-1.5 bg-red-100 rounded-md hover:bg-red-200 transition-colors"
+                              title="Hapus"
+                            >
+                              <FaTrash className="text-red-600" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-4 py-8 text-center text-gray-500"
+                      >
+                        <FaFileAlt className="text-gray-300 text-5xl mx-auto mb-3" />
+                        <p>Tidak ada data media yang ditemukan.</p>
+                        <p className="text-gray-400 text-sm">
+                          Coba ubah filter atau tambahkan media baru.
+                        </p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -507,9 +598,7 @@ const MediaAdmin = () => {
                       ? "video/*"
                       : ".pdf,.doc,.docx"
                   }
-                  onChange={(e) =>
-                    setFormData({ ...formData, file: e.target.files[0] })
-                  }
+                  onChange={handleFileChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -639,13 +728,12 @@ const MediaAdmin = () => {
                   id="edit-url"
                   type="text"
                   value={formData.url}
-                  onChange={
-                    (e) =>
-                      setFormData({
-                        ...formData,
-                        url: e.target.value,
-                        file: null,
-                      }) // reset file jika isi URL
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      url: e.target.value,
+                      file: null,
+                    })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="https://example.com/media.jpg"
@@ -674,14 +762,7 @@ const MediaAdmin = () => {
                       ? "video/*"
                       : ".pdf,.doc,.docx"
                   }
-                  onChange={
-                    (e) =>
-                      setFormData({
-                        ...formData,
-                        file: e.target.files[0],
-                        url: "",
-                      }) // reset URL jika pilih file
-                  }
+                  onChange={handleFileChange}
                   className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -773,21 +854,49 @@ const MediaAdmin = () => {
             <div className="mb-4">
               {currentItem?.tipe === "Foto" && (
                 <img
-                  src={currentItem?.url || "/placeholder.svg"}
+                  src={
+                    MediaService.getFileUrl(currentItem?.url) ||
+                    "/placeholder.svg?height=300&width=500"
+                  }
                   alt={currentItem?.nama}
                   className="w-full h-auto rounded-lg"
                 />
               )}
               {currentItem?.tipe === "Video" && (
-                <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <FaVideo className="text-red-500 text-5xl" />
-                  <p className="text-gray-500 mt-4">Video Preview</p>
+                <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg">
+                  {currentItem?.url ? (
+                    <video
+                      src={MediaService.getFileUrl(currentItem?.url)}
+                      controls
+                      className="w-full h-full rounded-lg"
+                    >
+                      Browser Anda tidak mendukung pemutaran video.
+                    </video>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center">
+                      <FaVideo className="text-red-500 text-5xl" />
+                      <p className="text-gray-500 mt-4">Video tidak tersedia</p>
+                    </div>
+                  )}
                 </div>
               )}
               {currentItem?.tipe === "Dokumen" && (
                 <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
                   <FaFileAlt className="text-yellow-500 text-5xl" />
-                  <p className="text-gray-500 mt-4">Dokumen Preview</p>
+                  <p className="text-gray-500 mt-4">
+                    {currentItem?.url ? (
+                      <a
+                        href={MediaService.getFileUrl(currentItem?.url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        Lihat Dokumen
+                      </a>
+                    ) : (
+                      "Dokumen tidak tersedia"
+                    )}
+                  </p>
                 </div>
               )}
             </div>
@@ -799,7 +908,9 @@ const MediaAdmin = () => {
               </div>
               <div>
                 <p className="text-gray-500">Tanggal</p>
-                <p className="font-medium">{currentItem?.tanggal}</p>
+                <p className="font-medium">
+                  {formatDate(currentItem?.tanggal)}
+                </p>
               </div>
             </div>
 

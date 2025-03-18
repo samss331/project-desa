@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaImage,
   FaVideo,
@@ -10,97 +10,84 @@ import {
   FaDownload,
   FaPhotoVideo,
   FaPlay,
+  FaSpinner,
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
-// Updated media data with more details
-const mediaData = {
-  2025: {
-    images: [
-      {
-        id: 1,
-        title: "Kegiatan Gotong Royong",
-        type: "image",
-        url: "/assets/image1.jpg",
-        date: "2025-01-15",
-        description: "Kegiatan gotong royong membersihkan lingkungan desa",
-      },
-      {
-        id: 2,
-        title: "Rapat Desa",
-        type: "image",
-        url: "/assets/image2.jpg",
-        date: "2025-02-20",
-        description: "Rapat koordinasi pembangunan desa",
-      },
-    ],
-    videos: [
-      {
-        id: 3,
-        title: "Perayaan HUT Desa",
-        type: "video",
-        url: "/assets/video1.mp4",
-        date: "2025-03-10",
-        description: "Dokumentasi perayaan hari ulang tahun desa",
-        thumbnail: "/assets/thumbnail1.jpg",
-        duration: "05:32",
-      },
-    ],
-  },
-  2024: {
-    images: [
-      {
-        id: 4,
-        title: "Panen Raya",
-        type: "image",
-        url: "/assets/image3.jpg",
-        date: "2024-11-05",
-        description: "Kegiatan panen raya bersama petani desa",
-      },
-    ],
-    videos: [],
-  },
-  2023: {
-    images: [
-      {
-        id: 5,
-        title: "Pembangunan Jembatan",
-        type: "image",
-        url: "/assets/image4.jpg",
-        date: "2023-08-12",
-        description: "Proses pembangunan jembatan penghubung antar dusun",
-      },
-      {
-        id: 6,
-        title: "Pelatihan Keterampilan",
-        type: "image",
-        url: "/assets/image5.jpg",
-        date: "2023-09-25",
-        description: "Pelatihan keterampilan untuk pemuda desa",
-      },
-    ],
-    videos: [
-      {
-        id: 7,
-        title: "Dokumentasi Wisata Desa",
-        type: "video",
-        url: "/assets/video2.mp4",
-        date: "2023-07-15",
-        description: "Video promosi wisata desa",
-        thumbnail: "/assets/thumbnail2.jpg",
-        duration: "03:45",
-      },
-    ],
-  },
-};
+import MediaServiceClient from "../pages/admin/services/MediaServiceAdmin";
 
 export default function Media() {
-  const [selectedYear, setSelectedYear] = useState("2025");
+  // State untuk data
+  const [mediaData, setMediaData] = useState({});
+  const [availableYears, setAvailableYears] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // State untuk filter dan tampilan
+  const [selectedYear, setSelectedYear] = useState("");
   const [activeTab, setActiveTab] = useState("semua");
   const [searchQuery, setSearchQuery] = useState("");
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
+
+  // Fetch available years on component mount
+  useEffect(() => {
+    const fetchYears = async () => {
+      try {
+        const years = await MediaServiceClient.getAvailableYears();
+        setAvailableYears(years);
+
+        // Set selected year to the most recent year
+        if (years.length > 0) {
+          setSelectedYear(years[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching years:", err);
+        setError("Gagal memuat data tahun.");
+      }
+    };
+
+    fetchYears();
+  }, []);
+
+  // Fetch data for selected year
+  useEffect(() => {
+    if (!selectedYear) return;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await MediaServiceClient.getMediaByYear(selectedYear);
+
+        // Organize data by type
+        const organizedData = {
+          images: data.filter((item) => item.tipe === "Foto"),
+          videos: data.filter((item) => item.tipe === "Video"),
+          documents: data.filter((item) => item.tipe === "Dokumen"),
+        };
+
+        // Update mediaData state with the fetched data
+        setMediaData((prevData) => ({
+          ...prevData,
+          [selectedYear]: organizedData,
+        }));
+      } catch (err) {
+        console.error(`Error fetching data for year ${selectedYear}:`, err);
+        setError(`Gagal memuat data untuk tahun ${selectedYear}.`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Check if we already have data for this year
+    if (!mediaData[selectedYear]) {
+      fetchData();
+    } else {
+      setIsLoading(false);
+    }
+  }, [selectedYear]);
 
   // Get current year's data and combine images and videos
   const currentYearData = mediaData[selectedYear] || { images: [], videos: [] };
@@ -112,13 +99,13 @@ export default function Media() {
   // Filter data based on active tab and search query
   const filteredData = allMedia.filter((item) => {
     const matchesSearch =
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+      (item.nama?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (item.deskripsi?.toLowerCase() || "").includes(searchQuery.toLowerCase());
 
     const matchesFilter =
       activeTab === "semua" ||
-      (activeTab === "foto" && item.type === "image") ||
-      (activeTab === "video" && item.type === "video");
+      (activeTab === "foto" && item.tipe === "Foto") ||
+      (activeTab === "video" && item.tipe === "Video");
 
     return matchesSearch && matchesFilter;
   });
@@ -135,16 +122,41 @@ export default function Media() {
 
   // Format date
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    if (!dateString) return "-";
+
+    try {
+      const date = new Date(dateString);
+
+      // Periksa apakah tanggal valid
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+
+      return date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    } catch (err) {
+      console.error("Error formatting date:", dateString, err);
+      return dateString;
+    }
+  };
+
+  // Get thumbnail for video
+  const getVideoThumbnail = (item) => {
+    // Jika ada thumbnail khusus, gunakan itu
+    if (item.thumbnail) {
+      return MediaServiceClient.getFileUrl(item.thumbnail);
+    }
+
+    // Jika tidak, gunakan placeholder
+    return "/placeholder.svg?height=300&width=400";
   };
 
   return (
     <div
-      className="flex flex-col bg-gray-50 min-h-screen mt-20"
+      className="flex flex-col bg-gray-50 min-h-screen pt-20"
       style={{ fontFamily: "poppins" }}
     >
       <Navbar />
@@ -219,8 +231,9 @@ export default function Media() {
                   className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#6CABCA] focus:border-[#6CABCA]"
                   onChange={(e) => setSelectedYear(e.target.value)}
                   value={selectedYear}
+                  disabled={isLoading || availableYears.length === 0}
                 >
-                  {Object.keys(mediaData).map((year) => (
+                  {availableYears.map((year) => (
                     <option key={year} value={year}>
                       {year}
                     </option>
@@ -237,6 +250,7 @@ export default function Media() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6CABCA] focus:border-[#6CABCA] w-full md:w-64"
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -250,6 +264,7 @@ export default function Media() {
                     ? "bg-[#B9FF66] text-gray-800 font-medium shadow-sm"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
+                disabled={isLoading}
               >
                 <FaPhotoVideo
                   className={
@@ -265,6 +280,7 @@ export default function Media() {
                     ? "bg-[#FE7C66] text-white font-medium shadow-sm"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
+                disabled={isLoading}
               >
                 <FaImage
                   className={
@@ -280,6 +296,7 @@ export default function Media() {
                     ? "bg-[#5DE1C4] text-white font-medium shadow-sm"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
+                disabled={isLoading}
               >
                 <FaVideo
                   className={
@@ -304,7 +321,29 @@ export default function Media() {
               </div>
             </div>
 
-            {filteredData.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-12">
+                <FaSpinner className="animate-spin text-[#6CABCA] text-4xl mx-auto mb-4" />
+                <p className="text-gray-600">Memuat data media...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12 text-red-500">
+                <p>{error}</p>
+                <button
+                  onClick={() => {
+                    // Refetch data for the selected year
+                    setMediaData((prevData) => {
+                      const newData = { ...prevData };
+                      delete newData[selectedYear];
+                      return newData;
+                    });
+                  }}
+                  className="mt-4 px-4 py-2 bg-[#6CABCA] text-white rounded-lg hover:bg-opacity-90 transition-colors"
+                >
+                  Coba Lagi
+                </button>
+              </div>
+            ) : filteredData.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredData.map((media) => (
                   <div
@@ -314,21 +353,15 @@ export default function Media() {
                     {/* Media Title */}
                     <div className="p-3 border-b">
                       <h3 className="font-medium text-gray-800 truncate">
-                        {media.title}
+                        {media.nama}
                       </h3>
                       <div className="flex justify-between items-center mt-1">
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           <FaCalendarAlt />
-                          <span>
-                            {new Date(media.date).toLocaleDateString("id-ID", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </span>
+                          <span>{formatDate(media.tanggal)}</span>
                         </div>
                         <div className="flex items-center gap-1 text-xs">
-                          {media.type === "image" ? (
+                          {media.tipe === "Foto" ? (
                             <span className="bg-gray-100 bg-opacity-20 text-[#FE7C66] px-2 py-0.5 rounded-full flex items-center gap-1">
                               <FaImage /> Foto
                             </span>
@@ -343,22 +376,21 @@ export default function Media() {
 
                     {/* Media Thumbnail */}
                     <div className="relative aspect-[4/3] overflow-hidden">
-                      {media.type === "image" ? (
+                      {media.tipe === "Foto" ? (
                         <img
                           src={
-                            media.url || "/placeholder.svg?height=300&width=400"
+                            MediaServiceClient.getFileUrl(media.url) ||
+                            "/placeholder.svg?height=300&width=400" ||
+                            "/placeholder.svg"
                           }
-                          alt={media.title}
+                          alt={media.nama}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (
                         <>
                           <img
-                            src={
-                              media.thumbnail ||
-                              "/placeholder.svg?height=300&width=400"
-                            }
-                            alt={media.title}
+                            src={getVideoThumbnail(media) || "/placeholder.svg"}
+                            alt={media.nama}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 flex items-center justify-center">
@@ -366,9 +398,9 @@ export default function Media() {
                               <FaPlay />
                             </div>
                           </div>
-                          {media.duration && (
+                          {media.durasi && (
                             <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                              {media.duration}
+                              {media.durasi}
                             </div>
                           )}
                         </>
@@ -385,7 +417,7 @@ export default function Media() {
                             <FaEye />
                           </button>
                           <a
-                            href={media.url}
+                            href={MediaServiceClient.getFileUrl(media.url)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bg-white p-2 rounded-full shadow-md hover:bg-[#B9FF66] hover:text-gray-800 transition-colors"
@@ -400,7 +432,7 @@ export default function Media() {
                     {/* Media Description */}
                     <div className="p-3">
                       <p className="text-sm text-gray-600 line-clamp-2">
-                        {media.description}
+                        {media.deskripsi || "Tidak ada deskripsi"}
                       </p>
                     </div>
                   </div>
@@ -425,7 +457,7 @@ export default function Media() {
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-gray-800">
-                {currentItem.type === "image" ? (
+                {currentItem.tipe === "Foto" ? (
                   <>
                     <FaImage className="inline-block mr-2 text-[#FE7C66]" />{" "}
                     Foto
@@ -460,25 +492,27 @@ export default function Media() {
 
             <div className="mb-4">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                {currentItem.title}
+                {currentItem.nama}
               </h2>
 
               <div className="bg-black rounded-lg overflow-hidden mb-4 flex items-center justify-center">
-                {currentItem.type === "image" ? (
+                {currentItem.tipe === "Foto" ? (
                   <img
                     src={
-                      currentItem.url || "/placeholder.svg?height=600&width=800"
+                      MediaServiceClient.getFileUrl(currentItem.url) ||
+                      "/placeholder.svg?height=600&width=800" ||
+                      "/placeholder.svg"
                     }
-                    alt={currentItem.title}
+                    alt={currentItem.nama}
                     className="max-w-full max-h-[70vh] object-contain"
                   />
                 ) : (
                   <video
-                    src={currentItem.url}
+                    src={MediaServiceClient.getFileUrl(currentItem.url)}
                     controls
                     autoPlay
                     className="max-w-full max-h-[70vh]"
-                    poster={currentItem.thumbnail}
+                    poster={getVideoThumbnail(currentItem)}
                   >
                     Browser Anda tidak mendukung pemutaran video.
                   </video>
@@ -486,19 +520,21 @@ export default function Media() {
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 mb-4">{currentItem.description}</p>
+                <p className="text-gray-700 mb-4">
+                  {currentItem.deskripsi || "Tidak ada deskripsi"}
+                </p>
 
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <p className="flex items-center gap-1">
                     <FaCalendarAlt className="text-[#6CABCA]" />
                     <span className="font-medium">Tanggal:</span>{" "}
-                    {formatDate(currentItem.date)}
+                    {formatDate(currentItem.tanggal)}
                   </p>
-                  {currentItem.type === "video" && currentItem.duration && (
+                  {currentItem.tipe === "Video" && currentItem.durasi && (
                     <p className="flex items-center gap-1">
                       <FaVideo className="text-[#5DE1C4]" />
                       <span className="font-medium">Durasi:</span>{" "}
-                      {currentItem.duration}
+                      {currentItem.durasi}
                     </p>
                   )}
                 </div>
@@ -513,7 +549,7 @@ export default function Media() {
                 Tutup
               </button>
               <a
-                href={currentItem.url}
+                href={MediaServiceClient.getFileUrl(currentItem.url)}
                 download
                 className="px-4 py-2 bg-[#B9FF66] text-gray-800 rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
               >
