@@ -87,4 +87,27 @@ class DanaKeluar {
         this.updatedAt = updatedAt
     }
 }
-export default { User, Penduduk, SuratMasuk, SuratKeluar, Pengumuman, Berita, DanaMasuk, DanaKeluar };
+
+class Media{
+    constructor(id, nama ,tipe, url, deskripsi, createdAt, updatedAt){    
+        this.id = id
+        this.nama = nama
+        this.tipe = tipe
+        this.url = url
+        this.deskripsi = deskripsi 
+        this.createdAt = createdAt
+        this.updatedAt = updatedAt
+    }
+}
+
+class Pelayanan{
+    constructor(nama_layanan, kategori, deskripsi, link_google_form, createdAt, updatedAt){    
+        this.nama_layanan = nama_layanan
+        this.kategori = kategori
+        this.deskripsi = deskripsi
+        this.link_google_form = link_google_form 
+        this.createdAt = createdAt
+        this.updatedAt = updatedAt
+    }
+}
+export default { User, Penduduk, SuratMasuk, SuratKeluar, Pengumuman, Berita, DanaMasuk, DanaKeluar, Media, Pelayanan };
