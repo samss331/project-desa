@@ -10,18 +10,6 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to include auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
 // Add response interceptor to handle common response issues
 api.interceptors.response.use(
   (response) => {
@@ -44,7 +32,7 @@ api.interceptors.response.use(
   }
 );
 
-const SuratService = {
+const SuratServiceAdmin = {
   // GET methods
   getAllSurat: async () => {
     try {
@@ -59,34 +47,36 @@ const SuratService = {
         ? resKeluar.data
         : [];
 
-      console.log("Surat Masuk Data:", suratMasukData);
-      console.log("Surat Keluar Data:", suratKeluarData);
-
       // Transform data for display
       const transformedMasuk = suratMasukData.map((item) => ({
         id: item.id,
         jenis: "Surat Masuk",
         nomor: item.nomorSurat || "",
+        judul: item.perihal || "",
         perihal: item.perihal || "",
         pengirim: item.pengirim || "",
         tanggal: item.tanggalTerima || new Date().toISOString(),
-        status: "Diterima",
         file_surat: item.file_surat || null,
+        status: "Diterima",
+        // Store original data for reference
+        originalData: item,
       }));
 
       const transformedKeluar = suratKeluarData.map((item) => ({
         id: item.id,
         jenis: "Surat Keluar",
         nomor: item.nomorSurat || "",
+        judul: item.perihal || "",
         perihal: item.perihal || "",
         pengirim: item.penerima || "", // penerima disimpan di field pengirim untuk UI
         tanggal: item.tanggalKirim || new Date().toISOString(),
-        status: "Terkirim",
         file_surat: item.file_surat || null,
+        status: "Terkirim",
+        // Store original data for reference
+        originalData: item,
       }));
 
       const combinedData = [...transformedMasuk, ...transformedKeluar];
-      console.log("Combined Data:", combinedData);
       return combinedData;
     } catch (error) {
       console.error("Error fetching all surat:", error);
@@ -97,20 +87,18 @@ const SuratService = {
   getSuratMasuk: async () => {
     try {
       const response = await api.get("/surat/suratMasuk");
-      const suratMasukData = Array.isArray(response.data) ? response.data : [];
+      const data = Array.isArray(response.data) ? response.data : [];
 
-      console.log("Surat Masuk Data:", suratMasukData);
-
-      // Transform data for display
-      return suratMasukData.map((item) => ({
+      return data.map((item) => ({
         id: item.id,
         jenis: "Surat Masuk",
         nomor: item.nomorSurat || "",
         perihal: item.perihal || "",
         pengirim: item.pengirim || "",
         tanggal: item.tanggalTerima || new Date().toISOString(),
-        status: "Diterima",
         file_surat: item.file_surat || null,
+        status: "Diterima",
+        originalData: item,
       }));
     } catch (error) {
       console.error("Error fetching surat masuk:", error);
@@ -121,20 +109,18 @@ const SuratService = {
   getSuratKeluar: async () => {
     try {
       const response = await api.get("/surat/suratKeluar");
-      const suratKeluarData = Array.isArray(response.data) ? response.data : [];
+      const data = Array.isArray(response.data) ? response.data : [];
 
-      console.log("Surat Keluar Data:", suratKeluarData);
-
-      // Transform data for display
-      return suratKeluarData.map((item) => ({
+      return data.map((item) => ({
         id: item.id,
         jenis: "Surat Keluar",
         nomor: item.nomorSurat || "",
         perihal: item.perihal || "",
         pengirim: item.penerima || "", // penerima disimpan di field pengirim untuk UI
         tanggal: item.tanggalKirim || new Date().toISOString(),
-        status: "Terkirim",
         file_surat: item.file_surat || null,
+        status: "Terkirim",
+        originalData: item,
       }));
     } catch (error) {
       console.error("Error fetching surat keluar:", error);
@@ -145,7 +131,7 @@ const SuratService = {
   // POST methods
   addSuratMasuk: async (formData) => {
     try {
-      const response = await api.post("/surat/addSuratMasuk", formData, {
+      const response = await api.post("/surat/suratMasuk", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -159,7 +145,7 @@ const SuratService = {
 
   addSuratKeluar: async (formData) => {
     try {
-      const response = await api.post("/surat/addSuratKeluar", formData, {
+      const response = await api.post("/surat/suratKeluar", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -174,15 +160,11 @@ const SuratService = {
   // PUT methods
   updateSuratMasuk: async (id, formData) => {
     try {
-      const response = await api.put(
-        `/surat/update-surat-masuk/${id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await api.put(`/surat/suratMasuk/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Error updating surat masuk:", error);
@@ -192,15 +174,11 @@ const SuratService = {
 
   updateSuratKeluar: async (id, formData) => {
     try {
-      const response = await api.put(
-        `/surat/update-surat-keluar/${id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await api.put(`/surat/suratKeluar/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Error updating surat keluar:", error);
@@ -211,7 +189,7 @@ const SuratService = {
   // DELETE methods
   deleteSuratMasuk: async (id) => {
     try {
-      const response = await api.delete(`/surat/delete-surat-masuk/${id}`);
+      const response = await api.delete(`/surat/suratMasuk/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error deleting surat masuk:", error);
@@ -221,7 +199,7 @@ const SuratService = {
 
   deleteSuratKeluar: async (id) => {
     try {
-      const response = await api.delete(`/surat/delete-surat-keluar/${id}`);
+      const response = await api.delete(`/surat/suratKeluar/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error deleting surat keluar:", error);
@@ -231,8 +209,9 @@ const SuratService = {
 
   // File methods
   getFileUrl: (fileName) => {
+    if (!fileName) return null;
     return `${API_URL}/surat/file/${fileName}`;
   },
 };
 
-export default SuratService;
+export default SuratServiceAdmin;

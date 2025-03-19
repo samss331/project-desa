@@ -11,10 +11,11 @@ import {
   FaEye,
   FaSearch,
   FaDownload,
+  FaSpinner,
 } from "react-icons/fa";
 import SuratService from "../services/SuratServiceAdmin";
+import SuratForm from "../components/SuratForm";
 
-// Pastikan komponen dideklarasikan sebagai function
 function SuratAdmin() {
   const [suratData, setSuratData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,24 +45,30 @@ function SuratAdmin() {
   });
 
   // Definisi animasi CSS
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes modalFadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+      
+      .animate-modalFadeIn {
+        animation: modalFadeIn 0.3s ease-out forwards;
       }
-    }
-    
-    .animate-modalFadeIn {
-      animation: modalFadeIn 0.3s ease-out forwards;
-    }
-  `;
-  document.head.appendChild(style);
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // Get token from localStorage on component mount
   useEffect(() => {
@@ -175,8 +182,12 @@ function SuratAdmin() {
         nomor: item.nomor,
         perihal: item.perihal,
         pengirim: item.pengirim,
-        tanggal: item.tanggal,
-        status: item.status,
+        tanggal: item.tanggal
+          ? new Date(item.tanggal).toISOString().split("T")[0]
+          : "",
+        status:
+          item.status ||
+          (item.jenis === "Surat Masuk" ? "Diterima" : "Terkirim"),
         file: null,
       });
       setShowEditModal(true);
@@ -199,10 +210,6 @@ function SuratAdmin() {
     }
   };
 
-  const handleFileChange = (e) => {
-    setFormData({ ...formData, file: e.target.files[0] || null });
-  };
-
   // API calls for CRUD operations
   const saveNewItem = async () => {
     if (!token) {
@@ -219,14 +226,15 @@ function SuratAdmin() {
         formDataObj.append("file_surat", formData.file);
       }
 
+      let result;
       if (formData.jenis === "Surat Masuk") {
         formDataObj.append("pengirim", formData.pengirim);
         formDataObj.append("tanggalTerima", formData.tanggal);
-        await SuratService.addSuratMasuk(formDataObj);
+        result = await SuratService.addSuratMasuk(formDataObj);
       } else {
         formDataObj.append("penerima", formData.pengirim); // UI field pengirim digunakan untuk penerima
         formDataObj.append("tanggalKirim", formData.tanggal);
-        await SuratService.addSuratKeluar(formDataObj);
+        result = await SuratService.addSuratKeluar(formDataObj);
       }
 
       // Refresh data based on current active tab
@@ -488,7 +496,7 @@ function SuratAdmin() {
 
           {isLoading ? (
             <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+              <FaSpinner className="animate-spin text-4xl text-purple-500 mx-auto mb-4" />
               <p className="mt-2 text-gray-600">Memuat data...</p>
             </div>
           ) : error ? (
@@ -621,139 +629,13 @@ function SuratAdmin() {
               </p>
             </div>
 
-            <div className="space-y-4 mb-6">
-              <div>
-                <label
-                  htmlFor="jenis"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Jenis Surat
-                </label>
-                <select
-                  id="jenis"
-                  value={formData.jenis}
-                  onChange={(e) =>
-                    setFormData({ ...formData, jenis: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                >
-                  <option value="Surat Masuk">Surat Masuk</option>
-                  <option value="Surat Keluar">Surat Keluar</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="nomor"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Nomor Surat
-                </label>
-                <input
-                  id="nomor"
-                  type="text"
-                  value={formData.nomor}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nomor: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="Contoh: SM/2024/001"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="perihal"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Perihal
-                </label>
-                <input
-                  id="perihal"
-                  type="text"
-                  value={formData.perihal}
-                  onChange={(e) =>
-                    setFormData({ ...formData, perihal: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="Perihal surat"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="pengirim"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  {formData.jenis === "Surat Masuk" ? "Pengirim" : "Penerima"}
-                </label>
-                <input
-                  id="pengirim"
-                  type="text"
-                  value={formData.pengirim}
-                  onChange={(e) =>
-                    setFormData({ ...formData, pengirim: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  placeholder={
-                    formData.jenis === "Surat Masuk"
-                      ? "Nama pengirim"
-                      : "Nama penerima"
-                  }
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="tanggal"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  {formData.jenis === "Surat Masuk"
-                    ? "Tanggal Terima"
-                    : "Tanggal Kirim"}
-                </label>
-                <input
-                  id="tanggal"
-                  type="date"
-                  value={formData.tanggal}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tanggal: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="upload-file"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Upload Dokumen (Opsional)
-                </label>
-                <input
-                  id="upload-file"
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileChange}
-                  className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                onClick={saveNewItem}
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-              >
-                Simpan
-              </button>
-            </div>
+            <SuratForm
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={saveNewItem}
+              onCancel={() => setShowAddModal(false)}
+              isEdit={false}
+            />
           </div>
         </div>
       )}
@@ -767,133 +649,14 @@ function SuratAdmin() {
               <p className="text-gray-600 text-sm">Ubah informasi surat</p>
             </div>
 
-            <div className="space-y-4 mb-6">
-              <div>
-                <label
-                  htmlFor="edit-jenis"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Jenis Surat
-                </label>
-                <select
-                  id="edit-jenis"
-                  value={formData.jenis}
-                  onChange={(e) =>
-                    setFormData({ ...formData, jenis: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  disabled={currentItem?.id > 0} // Disable changing type for existing items
-                >
-                  <option value="Surat Masuk">Surat Masuk</option>
-                  <option value="Surat Keluar">Surat Keluar</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="edit-nomor"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Nomor Surat
-                </label>
-                <input
-                  id="edit-nomor"
-                  type="text"
-                  value={formData.nomor}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nomor: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="edit-perihal"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Perihal
-                </label>
-                <input
-                  id="edit-perihal"
-                  type="text"
-                  value={formData.perihal}
-                  onChange={(e) =>
-                    setFormData({ ...formData, perihal: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="edit-pengirim"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  {formData.jenis === "Surat Masuk" ? "Pengirim" : "Penerima"}
-                </label>
-                <input
-                  id="edit-pengirim"
-                  type="text"
-                  value={formData.pengirim}
-                  onChange={(e) =>
-                    setFormData({ ...formData, pengirim: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="edit-tanggal"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  {formData.jenis === "Surat Masuk"
-                    ? "Tanggal Terima"
-                    : "Tanggal Kirim"}
-                </label>
-                <input
-                  id="edit-tanggal"
-                  type="date"
-                  value={formData.tanggal}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tanggal: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="edit-upload-file"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Upload Dokumen Baru (Opsional)
-                </label>
-                <input
-                  id="edit-upload-file"
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileChange}
-                  className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                onClick={saveEditedItem}
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-              >
-                Simpan Perubahan
-              </button>
-            </div>
+            <SuratForm
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={saveEditedItem}
+              onCancel={() => setShowEditModal(false)}
+              isEdit={true}
+              currentItem={currentItem}
+            />
           </div>
         </div>
       )}
@@ -935,8 +698,9 @@ function SuratAdmin() {
         <div className="fixed inset-0 backdrop-blur-sm bg-gray-800/40 flex items-center justify-center z-50 transition-all duration-300">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl border border-gray-200 animate-modalFadeIn">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800">
-                {getSuratIcon(currentItem?.jenis)} {currentItem?.perihal}
+              <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                {getSuratIcon(currentItem?.jenis)}
+                <span>{currentItem?.perihal}</span>
               </h3>
               <button
                 onClick={() => setShowPreviewModal(false)}
@@ -1054,5 +818,4 @@ function SuratAdmin() {
   );
 }
 
-// Pastikan menggunakan export default function
 export default SuratAdmin;

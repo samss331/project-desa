@@ -55,7 +55,7 @@ const BeritaAdmin = () => {
       to {
         opacity: 1;
         transform: translateY(0);
-      }
+        }
     }
     
     .animate-modalFadeIn {
@@ -248,16 +248,26 @@ const BeritaAdmin = () => {
         return;
       }
 
+      // Validasi currentItem
+      if (!currentItem || !currentItem.id) {
+        alert("Data berita yang akan diedit tidak ditemukan!");
+        return;
+      }
+
       // Prepare data for API
-      const beritaData = {
+      const editBeritaData = {
         judul: formData.judul,
         isi: formData.isi,
         tanggalTerbit: formData.tanggalTerbit,
         penulis: formData.penulis,
+        // Additional fields not in the API but we'll keep them in our transformed data
+        kategori: formData.kategori,
+        status: formData.status,
+        ringkasan: formData.ringkasan,
       };
 
       // Send to API
-      await BeritaServiceAdmin.updateBerita(currentItem.id, beritaData);
+      await BeritaServiceAdmin.updateBerita(currentItem.id, editBeritaData);
 
       // Update our state with transformed data
       const updatedData = beritaData.map((item) =>
@@ -269,7 +279,7 @@ const BeritaAdmin = () => {
               tanggalTerbit: formData.tanggalTerbit,
               penulis: formData.penulis,
               status: formData.status,
-              ringkasan: formData.ringkasan,
+              ringkasan: formData.ringkasan || formData.isi.substring(0, 150),
               isi: formData.isi,
             }
           : item
@@ -290,6 +300,12 @@ const BeritaAdmin = () => {
     }
 
     try {
+      // Validasi currentItem
+      if (!currentItem || !currentItem.id) {
+        alert("Tidak ada berita yang dipilih untuk dihapus!");
+        return;
+      }
+
       // Send to API
       await BeritaServiceAdmin.deleteBerita(currentItem.id);
 
@@ -312,12 +328,32 @@ const BeritaAdmin = () => {
     }
 
     try {
+      // Validasi item
       const item = beritaData.find((item) => item.id === id);
-      if (!item) return;
+      if (!item) {
+        alert("Berita tidak ditemukan!");
+        return;
+      }
+
+      // Prepare data for API
+      const publishData = {
+        judul: item.judul,
+        isi: item.isi,
+        tanggalTerbit: item.tanggalTerbit,
+        penulis: item.penulis,
+        kategori: item.kategori,
+        status: "Dipublikasi",
+        ringkasan: item.ringkasan,
+      };
+
+      // Send to API
+      await BeritaServiceAdmin.updateBerita(id, publishData);
 
       // Update status in our state
-      const updatedData = beritaData.map((item) =>
-        item.id === id ? { ...item, status: "Dipublikasi" } : item
+      const updatedData = beritaData.map((beritaItem) =>
+        beritaItem.id === id
+          ? { ...beritaItem, status: "Dipublikasi" }
+          : beritaItem
       );
 
       setBeritaData(updatedData);
