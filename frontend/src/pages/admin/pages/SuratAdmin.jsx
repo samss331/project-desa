@@ -218,6 +218,20 @@ function SuratAdmin() {
     }
 
     try {
+      // Validasi form
+      if (
+        !formData.nomor ||
+        !formData.perihal ||
+        !formData.tanggal ||
+        !formData.pengirim ||
+        !formData.jenis
+      ) {
+        alert(
+          "Nomor surat, perihal, tanggal, pengirim/penerima, dan jenis surat wajib diisi!"
+        );
+        return;
+      }
+
       const formDataObj = new FormData();
       formDataObj.append("nomorSurat", formData.nomor);
       formDataObj.append("perihal", formData.perihal);
@@ -251,7 +265,9 @@ function SuratAdmin() {
       setShowAddModal(false);
     } catch (err) {
       console.error("Error saving data:", err);
-      alert("Terjadi kesalahan saat menyimpan");
+      alert(
+        "Terjadi kesalahan saat menyimpan surat. Pastikan API endpoint tersedia."
+      );
     }
   };
 

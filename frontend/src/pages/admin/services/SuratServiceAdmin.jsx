@@ -10,6 +10,18 @@ const api = axios.create({
   },
 });
 
+// Add request interceptor to include auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Add response interceptor to handle common response issues
 api.interceptors.response.use(
   (response) => {
@@ -32,7 +44,7 @@ api.interceptors.response.use(
   }
 );
 
-const SuratServiceAdmin = {
+const SuratService = {
   // GET methods
   getAllSurat: async () => {
     try {
@@ -47,36 +59,34 @@ const SuratServiceAdmin = {
         ? resKeluar.data
         : [];
 
+      console.log("Surat Masuk Data:", suratMasukData);
+      console.log("Surat Keluar Data:", suratKeluarData);
+
       // Transform data for display
       const transformedMasuk = suratMasukData.map((item) => ({
         id: item.id,
         jenis: "Surat Masuk",
         nomor: item.nomorSurat || "",
-        judul: item.perihal || "",
         perihal: item.perihal || "",
         pengirim: item.pengirim || "",
         tanggal: item.tanggalTerima || new Date().toISOString(),
-        file_surat: item.file_surat || null,
         status: "Diterima",
-        // Store original data for reference
-        originalData: item,
+        file_surat: item.file_surat || null,
       }));
 
       const transformedKeluar = suratKeluarData.map((item) => ({
         id: item.id,
         jenis: "Surat Keluar",
         nomor: item.nomorSurat || "",
-        judul: item.perihal || "",
         perihal: item.perihal || "",
         pengirim: item.penerima || "", // penerima disimpan di field pengirim untuk UI
         tanggal: item.tanggalKirim || new Date().toISOString(),
-        file_surat: item.file_surat || null,
         status: "Terkirim",
-        // Store original data for reference
-        originalData: item,
+        file_surat: item.file_surat || null,
       }));
 
       const combinedData = [...transformedMasuk, ...transformedKeluar];
+      console.log("Combined Data:", combinedData);
       return combinedData;
     } catch (error) {
       console.error("Error fetching all surat:", error);
@@ -87,18 +97,20 @@ const SuratServiceAdmin = {
   getSuratMasuk: async () => {
     try {
       const response = await api.get("/surat/suratMasuk");
-      const data = Array.isArray(response.data) ? response.data : [];
+      const suratMasukData = Array.isArray(response.data) ? response.data : [];
 
-      return data.map((item) => ({
+      console.log("Surat Masuk Data:", suratMasukData);
+
+      // Transform data for display
+      return suratMasukData.map((item) => ({
         id: item.id,
         jenis: "Surat Masuk",
         nomor: item.nomorSurat || "",
         perihal: item.perihal || "",
         pengirim: item.pengirim || "",
         tanggal: item.tanggalTerima || new Date().toISOString(),
-        file_surat: item.file_surat || null,
         status: "Diterima",
-        originalData: item,
+        file_surat: item.file_surat || null,
       }));
     } catch (error) {
       console.error("Error fetching surat masuk:", error);
@@ -109,18 +121,20 @@ const SuratServiceAdmin = {
   getSuratKeluar: async () => {
     try {
       const response = await api.get("/surat/suratKeluar");
-      const data = Array.isArray(response.data) ? response.data : [];
+      const suratKeluarData = Array.isArray(response.data) ? response.data : [];
 
-      return data.map((item) => ({
+      console.log("Surat Keluar Data:", suratKeluarData);
+
+      // Transform data for display
+      return suratKeluarData.map((item) => ({
         id: item.id,
         jenis: "Surat Keluar",
         nomor: item.nomorSurat || "",
         perihal: item.perihal || "",
         pengirim: item.penerima || "", // penerima disimpan di field pengirim untuk UI
         tanggal: item.tanggalKirim || new Date().toISOString(),
-        file_surat: item.file_surat || null,
         status: "Terkirim",
-        originalData: item,
+        file_surat: item.file_surat || null,
       }));
     } catch (error) {
       console.error("Error fetching surat keluar:", error);
@@ -131,28 +145,74 @@ const SuratServiceAdmin = {
   // POST methods
   addSuratMasuk: async (formData) => {
     try {
-      const response = await api.post("/surat/suratMasuk", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const token = localStorage.getItem("token");
+
+      // Debug: Log what we're sending to the server
+      console.log("FormData fields being sent:");
+      for (const pair of formData.entries()) {
+        console.log(
+          `${pair[0]}: ${typeof pair[1] === "object" ? "File object" : pair[1]}`
+        );
+      }
+
+      // Use axios directly with the token in headers
+      const response = await axios.post(
+        `${API_URL}/surat/addSuratMasuk`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       return response.data;
     } catch (error) {
       console.error("Error adding surat masuk:", error);
+      // More detailed error logging
+      if (error.response) {
+        console.error("Server response data:", error.response.data);
+        console.error("Server response status:", error.response.status);
+        console.error("Server response headers:", error.response.headers);
+      }
       throw error;
     }
   },
 
   addSuratKeluar: async (formData) => {
     try {
-      const response = await api.post("/surat/suratKeluar", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const token = localStorage.getItem("token");
+
+      // Debug: Log what we're sending to the server
+      console.log("FormData fields being sent:");
+      for (const pair of formData.entries()) {
+        console.log(
+          `${pair[0]}: ${typeof pair[1] === "object" ? "File object" : pair[1]}`
+        );
+      }
+
+      // Use axios directly with the token in headers
+      const response = await axios.post(
+        `${API_URL}/surat/addSuratKeluar`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       return response.data;
     } catch (error) {
       console.error("Error adding surat keluar:", error);
+      // More detailed error logging
+      if (error.response) {
+        console.error("Server response data:", error.response.data);
+        console.error("Server response status:", error.response.status);
+        console.error("Server response headers:", error.response.headers);
+      }
       throw error;
     }
   },
@@ -160,11 +220,19 @@ const SuratServiceAdmin = {
   // PUT methods
   updateSuratMasuk: async (id, formData) => {
     try {
-      const response = await api.put(`/surat/suratMasuk/${id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const token = localStorage.getItem("token");
+
+      const response = await axios.put(
+        `${API_URL}/surat/update-surat-masuk/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       return response.data;
     } catch (error) {
       console.error("Error updating surat masuk:", error);
@@ -174,11 +242,19 @@ const SuratServiceAdmin = {
 
   updateSuratKeluar: async (id, formData) => {
     try {
-      const response = await api.put(`/surat/suratKeluar/${id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const token = localStorage.getItem("token");
+
+      const response = await axios.put(
+        `${API_URL}/surat/update-surat-keluar/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       return response.data;
     } catch (error) {
       console.error("Error updating surat keluar:", error);
@@ -189,7 +265,17 @@ const SuratServiceAdmin = {
   // DELETE methods
   deleteSuratMasuk: async (id) => {
     try {
-      const response = await api.delete(`/surat/suratMasuk/${id}`);
+      const token = localStorage.getItem("token");
+
+      const response = await axios.delete(
+        `${API_URL}/surat/delete-surat-masuk/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       return response.data;
     } catch (error) {
       console.error("Error deleting surat masuk:", error);
@@ -199,7 +285,17 @@ const SuratServiceAdmin = {
 
   deleteSuratKeluar: async (id) => {
     try {
-      const response = await api.delete(`/surat/suratKeluar/${id}`);
+      const token = localStorage.getItem("token");
+
+      const response = await axios.delete(
+        `${API_URL}/surat/delete-surat-keluar/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       return response.data;
     } catch (error) {
       console.error("Error deleting surat keluar:", error);
@@ -209,9 +305,8 @@ const SuratServiceAdmin = {
 
   // File methods
   getFileUrl: (fileName) => {
-    if (!fileName) return null;
     return `${API_URL}/surat/file/${fileName}`;
   },
 };
 
-export default SuratServiceAdmin;
+export default SuratService;
