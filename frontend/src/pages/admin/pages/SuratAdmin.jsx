@@ -791,17 +791,41 @@ function SuratAdmin() {
               </h4>
               <div className="bg-gray-50 p-4 rounded-lg text-gray-700 text-sm">
                 {currentItem?.file_surat ? (
-                  <div className="flex items-center justify-between">
-                    <p>Dokumen tersedia untuk diunduh.</p>
-                    <a
-                      href={SuratService.getFileUrl(currentItem.file_surat)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
-                    >
-                      <FaEye className="text-white" />
-                      <span>Lihat</span>
-                    </a>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">
+                        Dokumen tersedia untuk diunduh.
+                      </p>
+                      <div className="flex gap-2">
+                        <a
+                          href={SuratService.getFileUrl(currentItem.file_surat)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
+                        >
+                          <FaEye className="text-white" />
+                          <span>Lihat</span>
+                        </a>
+                        <a
+                          href={SuratService.getFileUrl(currentItem.file_surat)}
+                          download
+                          className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1"
+                        >
+                          <FaDownload className="text-white" />
+                          <span>Unduh</span>
+                        </a>
+                      </div>
+                    </div>
+                    {/* PDF Viewer */}
+                    <div className="w-full h-96 border border-gray-200 rounded-lg overflow-hidden">
+                      <iframe
+                        src={`${SuratService.getFileUrl(
+                          currentItem.file_surat
+                        )}#toolbar=0`}
+                        className="w-full h-full"
+                        title={`Preview ${currentItem.nomor}`}
+                      ></iframe>
+                    </div>
                   </div>
                 ) : (
                   <p>Dokumen surat belum tersedia untuk ditampilkan.</p>
@@ -816,16 +840,6 @@ function SuratAdmin() {
               >
                 Tutup
               </button>
-              {currentItem?.file_surat && (
-                <a
-                  href={SuratService.getFileUrl(currentItem.file_surat)}
-                  download
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-                >
-                  <FaDownload className="text-white" />
-                  <span>Unduh Surat</span>
-                </a>
-              )}
             </div>
           </div>
         </div>
