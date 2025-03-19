@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaNewspaper,
   FaPlus,
@@ -11,62 +11,16 @@ import {
   FaCalendarAlt,
   FaUser,
   FaTags,
+  FaSpinner,
 } from "react-icons/fa";
+import BeritaServiceAdmin from "../services/BeritaServiceAdmin";
 
 const BeritaAdmin = () => {
-  // Sample data with more details
-  const [beritaData, setBeritaData] = useState([
-    {
-      id: 1,
-      judul: "Pembangunan Jalan Desa Telah Selesai",
-      kategori: "Infrastruktur",
-      tanggal: "2024-01-01",
-      penulis: "Admin",
-      status: "Dipublikasi",
-      ringkasan:
-        "Pembangunan jalan desa yang telah dimulai sejak bulan lalu akhirnya selesai dan siap digunakan oleh warga.",
-    },
-    {
-      id: 2,
-      judul: "Kegiatan Posyandu Bulan Januari",
-      kategori: "Kesehatan",
-      tanggal: "2024-01-02",
-      penulis: "Admin",
-      status: "Dipublikasi",
-      ringkasan:
-        "Posyandu bulan Januari akan dilaksanakan pada tanggal 15 Januari 2024 di Balai Desa.",
-    },
-    {
-      id: 3,
-      judul: "Hasil Panen Padi Meningkat",
-      kategori: "Pertanian",
-      tanggal: "2024-01-10",
-      penulis: "Sekretaris",
-      status: "Dipublikasi",
-      ringkasan:
-        "Hasil panen padi di desa kita mengalami peningkatan sebesar 15% dibandingkan tahun lalu.",
-    },
-    {
-      id: 4,
-      judul: "Jadwal Vaksinasi Covid-19 Tahap 3",
-      kategori: "Kesehatan",
-      tanggal: "2024-01-15",
-      penulis: "Admin",
-      status: "Draft",
-      ringkasan:
-        "Vaksinasi Covid-19 tahap 3 akan dilaksanakan pada tanggal 25 Januari 2024 di Puskesmas Desa.",
-    },
-    {
-      id: 5,
-      judul: "Pelatihan Keterampilan Digital untuk Pemuda",
-      kategori: "Pendidikan",
-      tanggal: "2024-01-20",
-      penulis: "Sekretaris",
-      status: "Draft",
-      ringkasan:
-        "Pelatihan keterampilan digital untuk pemuda desa akan diadakan selama 3 hari mulai tanggal 1 Februari 2024.",
-    },
-  ]);
+  // State untuk data
+  const [beritaData, setBeritaData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [token, setToken] = useState(null);
 
   // State for search and filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,19 +37,62 @@ const BeritaAdmin = () => {
   const [formData, setFormData] = useState({
     judul: "",
     kategori: "Umum",
-    tanggal: "",
+    tanggalTerbit: "",
     penulis: "",
     status: "Draft",
     ringkasan: "",
-    konten: "",
+    isi: "",
   });
+
+  // Get token from localStorage on component mount
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+    }
+  }, []);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchBeritaData();
+  }, []);
+
+  // Fetch berita data
+  const fetchBeritaData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await BeritaServiceAdmin.getAllBerita();
+
+      // Transform data to match our UI needs
+      const transformedData = data.map((item) => ({
+        id: item.id,
+        judul: item.judul,
+        kategori: item.kategori || "Umum", // Default to "Umum" if not provided
+        tanggalTerbit: item.tanggalTerbit,
+        penulis: item.penulis,
+        status: item.status || "Dipublikasi", // Default to "Dipublikasi" if not provided
+        ringkasan: item.ringkasan || item.isi?.substring(0, 150) || "", // Use first 150 chars of isi as ringkasan if not provided
+        isi: item.isi,
+      }));
+
+      setBeritaData(transformedData);
+    } catch (err) {
+      console.error("Error fetching berita data:", err);
+      setError("Gagal memuat data berita.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Filter data based on active tab and search query
   const filteredData = beritaData.filter((item) => {
     const matchesSearch =
-      item.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.kategori.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.penulis.toLowerCase().includes(searchQuery.toLowerCase());
+      (item.judul?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (item.kategori?.toLowerCase() || "").includes(
+        searchQuery.toLowerCase()
+      ) ||
+      (item.penulis?.toLowerCase() || "").includes(searchQuery.toLowerCase());
 
     const matchesFilter =
       activeTab === "semua" ||
@@ -118,11 +115,11 @@ const BeritaAdmin = () => {
     setFormData({
       judul: "",
       kategori: "Umum",
-      tanggal: new Date().toISOString().split("T")[0],
+      tanggalTerbit: new Date().toISOString().split("T")[0],
       penulis: "Admin",
       status: "Draft",
       ringkasan: "",
-      konten: "",
+      isi: "",
     });
     setShowAddModal(true);
   };
@@ -133,12 +130,12 @@ const BeritaAdmin = () => {
       setCurrentItem(item);
       setFormData({
         judul: item.judul,
-        kategori: item.kategori,
-        tanggal: item.tanggal,
+        kategori: item.kategori || "Umum",
+        tanggalTerbit: item.tanggalTerbit,
         penulis: item.penulis,
-        status: item.status,
-        ringkasan: item.ringkasan,
-        konten: item.konten || "",
+        status: item.status || "Draft",
+        ringkasan: item.ringkasan || "",
+        isi: item.isi || "",
       });
       setShowEditModal(true);
     }
@@ -160,27 +157,155 @@ const BeritaAdmin = () => {
     }
   };
 
-  const saveNewItem = () => {
-    const newItem = {
-      id: Math.max(...beritaData.map((item) => item.id), 0) + 1,
-      ...formData,
-    };
-    setBeritaData([...beritaData, newItem]);
-    setShowAddModal(false);
+  const saveNewItem = async () => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk menambahkan berita");
+      return;
+    }
+
+    try {
+      // Validasi form
+      if (
+        !formData.judul ||
+        !formData.isi ||
+        !formData.tanggalTerbit ||
+        !formData.penulis
+      ) {
+        alert("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
+        return;
+      }
+
+      // Prepare data for API
+      const beritaData = {
+        judul: formData.judul,
+        isi: formData.isi,
+        tanggalTerbit: formData.tanggalTerbit,
+        penulis: formData.penulis,
+        // Additional fields not in the API but we'll keep them in our transformed data
+        kategori: formData.kategori,
+        status: formData.status,
+        ringkasan: formData.ringkasan,
+      };
+
+      // Send to API
+      const result = await BeritaServiceAdmin.addBerita(beritaData);
+
+      // Add the new item to our state with transformed data
+      const newItem = {
+        id: result.id,
+        judul: result.judul,
+        kategori: formData.kategori,
+        tanggalTerbit: result.tanggalTerbit,
+        penulis: result.penulis,
+        status: formData.status,
+        ringkasan: formData.ringkasan || formData.isi.substring(0, 150),
+        isi: result.isi,
+      };
+
+      setBeritaData([...beritaData, newItem]);
+      setShowAddModal(false);
+    } catch (err) {
+      console.error("Error saving berita:", err);
+      alert("Terjadi kesalahan saat menyimpan berita.");
+    }
   };
 
-  const saveEditedItem = () => {
-    const updatedData = beritaData.map((item) =>
-      item.id === currentItem.id ? { ...item, ...formData } : item
-    );
-    setBeritaData(updatedData);
-    setShowEditModal(false);
+  const saveEditedItem = async () => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk mengedit berita");
+      return;
+    }
+
+    try {
+      // Validasi form
+      if (
+        !formData.judul ||
+        !formData.isi ||
+        !formData.tanggalTerbit ||
+        !formData.penulis
+      ) {
+        alert("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
+        return;
+      }
+
+      // Prepare data for API
+      const beritaData = {
+        judul: formData.judul,
+        isi: formData.isi,
+        tanggalTerbit: formData.tanggalTerbit,
+        penulis: formData.penulis,
+      };
+
+      // Send to API
+      await BeritaServiceAdmin.updateBerita(currentItem.id, beritaData);
+
+      // Update our state with transformed data
+      const updatedData = beritaData.map((item) =>
+        item.id === currentItem.id
+          ? {
+              ...item,
+              judul: formData.judul,
+              kategori: formData.kategori,
+              tanggalTerbit: formData.tanggalTerbit,
+              penulis: formData.penulis,
+              status: formData.status,
+              ringkasan: formData.ringkasan,
+              isi: formData.isi,
+            }
+          : item
+      );
+
+      setBeritaData(updatedData);
+      setShowEditModal(false);
+    } catch (err) {
+      console.error("Error updating berita:", err);
+      alert("Terjadi kesalahan saat memperbarui berita.");
+    }
   };
 
-  const confirmDelete = () => {
-    const updatedData = beritaData.filter((item) => item.id !== currentItem.id);
-    setBeritaData(updatedData);
-    setShowDeleteModal(false);
+  const confirmDelete = async () => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk menghapus berita");
+      return;
+    }
+
+    try {
+      // Send to API
+      await BeritaServiceAdmin.deleteBerita(currentItem.id);
+
+      // Update our state
+      const updatedData = beritaData.filter(
+        (item) => item.id !== currentItem.id
+      );
+      setBeritaData(updatedData);
+      setShowDeleteModal(false);
+    } catch (err) {
+      console.error("Error deleting berita:", err);
+      alert("Terjadi kesalahan saat menghapus berita.");
+    }
+  };
+
+  const publishBerita = async (id) => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk mempublikasikan berita");
+      return;
+    }
+
+    try {
+      const item = beritaData.find((item) => item.id === id);
+      if (!item) return;
+
+      // Update status in our state
+      const updatedData = beritaData.map((item) =>
+        item.id === id ? { ...item, status: "Dipublikasi" } : item
+      );
+
+      setBeritaData(updatedData);
+      setShowPreviewModal(false);
+    } catch (err) {
+      console.error("Error publishing berita:", err);
+      alert("Terjadi kesalahan saat mempublikasikan berita.");
+    }
   };
 
   // Get status badge color
@@ -197,7 +322,7 @@ const BeritaAdmin = () => {
 
   // Get category badge color
   const getCategoryColor = (category) => {
-    switch (category.toLowerCase()) {
+    switch (category?.toLowerCase()) {
       case "kesehatan":
         return "bg-red-100 text-red-800";
       case "pendidikan":
@@ -208,6 +333,29 @@ const BeritaAdmin = () => {
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+
+    try {
+      const date = new Date(dateString);
+
+      // Periksa apakah tanggal valid
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+
+      return date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch (err) {
+      console.error("Error formatting date:", dateString, err);
+      return dateString;
     }
   };
 
@@ -348,114 +496,124 @@ const BeritaAdmin = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 rounded-tl-lg">
-                    Judul
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Kategori
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Tanggal
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Penulis
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 rounded-tr-lg">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredData.length > 0 ? (
-                  filteredData.map((berita) => (
-                    <tr key={berita.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-800 font-medium">
-                        {berita.judul}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                            berita.kategori
-                          )}`}
-                        >
-                          {berita.kategori}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-800">
-                        <div className="flex items-center gap-2">
-                          <FaCalendarAlt className="text-gray-400" />
-                          {new Date(berita.tanggal).toLocaleDateString(
-                            "id-ID",
-                            {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            }
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-800">
-                        <div className="flex items-center gap-2">
-                          <FaUser className="text-gray-400" />
-                          {berita.penulis}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            berita.status
-                          )}`}
-                        >
-                          {berita.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => handlePreview(berita.id)}
-                            className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
-                            title="Lihat Detail"
+          {isLoading ? (
+            <div className="text-center py-8">
+              <FaSpinner className="animate-spin text-purple-500 text-4xl mx-auto mb-4" />
+              <p className="text-gray-600">Memuat data berita...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">
+              <p>{error}</p>
+              <button
+                onClick={fetchBeritaData}
+                className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 rounded-tl-lg">
+                      Judul
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Kategori
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Tanggal
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Penulis
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 rounded-tr-lg">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredData.length > 0 ? (
+                    filteredData.map((berita) => (
+                      <tr key={berita.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-800 font-medium">
+                          {berita.judul}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                              berita.kategori
+                            )}`}
                           >
-                            <FaEye className="text-blue-600" />
-                          </button>
-                          <button
-                            onClick={() => handleEdit(berita.id)}
-                            className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-                            title="Edit"
+                            {berita.kategori || "Umum"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          <div className="flex items-center gap-2">
+                            <FaCalendarAlt className="text-gray-400" />
+                            {formatDate(berita.tanggalTerbit)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          <div className="flex items-center gap-2">
+                            <FaUser className="text-gray-400" />
+                            {berita.penulis}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              berita.status
+                            )}`}
                           >
-                            <FaEdit className="text-gray-600" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(berita.id)}
-                            className="p-1.5 bg-red-100 rounded-md hover:bg-red-200 transition-colors"
-                            title="Hapus"
-                          >
-                            <FaTrash className="text-red-600" />
-                          </button>
-                        </div>
+                            {berita.status || "Dipublikasi"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handlePreview(berita.id)}
+                              className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                              title="Lihat Detail"
+                            >
+                              <FaEye className="text-blue-600" />
+                            </button>
+                            <button
+                              onClick={() => handleEdit(berita.id)}
+                              className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                              title="Edit"
+                            >
+                              <FaEdit className="text-gray-600" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(berita.id)}
+                              className="p-1.5 bg-red-100 rounded-md hover:bg-red-200 transition-colors"
+                              title="Hapus"
+                            >
+                              <FaTrash className="text-red-600" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="px-4 py-8 text-center text-gray-500"
+                      >
+                        Tidak ada data berita yang ditemukan.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-4 py-8 text-center text-gray-500"
-                    >
-                      Tidak ada data berita yang ditemukan.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -518,17 +676,20 @@ const BeritaAdmin = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label
-                    htmlFor="tanggal"
+                    htmlFor="tanggalTerbit"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Tanggal
                   </label>
                   <input
-                    id="tanggal"
+                    id="tanggalTerbit"
                     type="date"
-                    value={formData.tanggal}
+                    value={formData.tanggalTerbit}
                     onChange={(e) =>
-                      setFormData({ ...formData, tanggal: e.target.value })
+                      setFormData({
+                        ...formData,
+                        tanggalTerbit: e.target.value,
+                      })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
@@ -594,35 +755,20 @@ const BeritaAdmin = () => {
 
               <div>
                 <label
-                  htmlFor="konten"
+                  htmlFor="isi"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
                   Konten Berita
                 </label>
                 <textarea
-                  id="konten"
-                  value={formData.konten}
+                  id="isi"
+                  value={formData.isi}
                   onChange={(e) =>
-                    setFormData({ ...formData, konten: e.target.value })
+                    setFormData({ ...formData, isi: e.target.value })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-h-[200px]"
                   placeholder="Isi konten berita lengkap"
                 ></textarea>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="upload-gambar"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Upload Gambar (Opsional)
-                </label>
-                <input
-                  id="upload-gambar"
-                  type="file"
-                  accept="image/*"
-                  className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                />
               </div>
             </div>
 
@@ -698,17 +844,20 @@ const BeritaAdmin = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label
-                    htmlFor="edit-tanggal"
+                    htmlFor="edit-tanggalTerbit"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Tanggal
                   </label>
                   <input
-                    id="edit-tanggal"
+                    id="edit-tanggalTerbit"
                     type="date"
-                    value={formData.tanggal}
+                    value={formData.tanggalTerbit}
                     onChange={(e) =>
-                      setFormData({ ...formData, tanggal: e.target.value })
+                      setFormData({
+                        ...formData,
+                        tanggalTerbit: e.target.value,
+                      })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
@@ -772,34 +921,19 @@ const BeritaAdmin = () => {
 
               <div>
                 <label
-                  htmlFor="edit-konten"
+                  htmlFor="edit-isi"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
                   Konten Berita
                 </label>
                 <textarea
-                  id="edit-konten"
-                  value={formData.konten}
+                  id="edit-isi"
+                  value={formData.isi}
                   onChange={(e) =>
-                    setFormData({ ...formData, konten: e.target.value })
+                    setFormData({ ...formData, isi: e.target.value })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-h-[200px]"
                 ></textarea>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="edit-upload-gambar"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Upload Gambar Baru (Opsional)
-                </label>
-                <input
-                  id="edit-upload-gambar"
-                  type="file"
-                  accept="image/*"
-                  className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                />
               </div>
             </div>
 
@@ -899,16 +1033,12 @@ const BeritaAdmin = () => {
                   )}`}
                 >
                   <FaTags className="inline-block mr-1" />
-                  {currentItem?.kategori}
+                  {currentItem?.kategori || "Umum"}
                 </span>
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                   <FaCalendarAlt className="inline-block mr-1" />
-                  {currentItem?.tanggal &&
-                    new Date(currentItem.tanggal).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                  {currentItem?.tanggalTerbit &&
+                    formatDate(currentItem.tanggalTerbit)}
                 </span>
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                   <FaUser className="inline-block mr-1" />
@@ -919,19 +1049,19 @@ const BeritaAdmin = () => {
                     currentItem?.status
                   )}`}
                 >
-                  {currentItem?.status}
+                  {currentItem?.status || "Dipublikasi"}
                 </span>
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg text-gray-700 mb-4">
                 <p className="font-medium">Ringkasan:</p>
-                <p>{currentItem?.ringkasan}</p>
+                <p>{currentItem?.ringkasan || "Tidak ada ringkasan"}</p>
               </div>
 
               <div className="text-gray-700">
                 <p className="font-medium mb-2">Konten Lengkap:</p>
-                {currentItem?.konten ? (
-                  <div className="prose max-w-none">{currentItem.konten}</div>
+                {currentItem?.isi ? (
+                  <div className="prose max-w-none">{currentItem.isi}</div>
                 ) : (
                   <p className="text-gray-500 italic">Konten belum tersedia.</p>
                 )}
@@ -947,15 +1077,7 @@ const BeritaAdmin = () => {
               </button>
               {currentItem?.status === "Draft" && (
                 <button
-                  onClick={() => {
-                    const updatedData = beritaData.map((item) =>
-                      item.id === currentItem.id
-                        ? { ...item, status: "Dipublikasi" }
-                        : item
-                    );
-                    setBeritaData(updatedData);
-                    setShowPreviewModal(false);
-                  }}
+                  onClick={() => publishBerita(currentItem.id)}
                   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
                 >
                   <FaNewspaper className="text-white" />
