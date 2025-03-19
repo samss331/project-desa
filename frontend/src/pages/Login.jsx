@@ -26,15 +26,19 @@ const Login = () => {
         { headers: { "Content-Type": "application/json" } }
       );
 
-      console.log("Login berhasil:", response.data);
-      alert("Login berhasil!");
+      console.log("Response Data:", response.data); // Debugging response
 
-      // Redirect atau simpan token
-      localStorage.setItem("token", response.data.token);
-      window.location.href = "/admin/beranda";
+      if (response.data.success && response.data.data.token) {
+        localStorage.setItem("token", response.data.data.token);
+        console.log("Token disimpan:", response.data.data.token);
+        alert("Login berhasil!");
+        window.location.href = "/admin/beranda"; // Redirect setelah login sukses
+      } else {
+        setError("Token tidak ditemukan dalam response!");
+      }
     } catch (err) {
+      console.error("Login error:", err.response?.data?.message || err.message);
       setError("Login gagal. Cek kredensial dan coba lagi.");
-      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }
