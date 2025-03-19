@@ -196,7 +196,7 @@ const BeritaAdmin = () => {
       }
 
       // Prepare data for API
-      const beritaData = {
+      const newBeritaData = {
         judul: formData.judul,
         isi: formData.isi,
         tanggalTerbit: formData.tanggalTerbit,
@@ -208,7 +208,7 @@ const BeritaAdmin = () => {
       };
 
       // Send to API
-      const result = await BeritaServiceAdmin.addBerita(beritaData);
+      const result = await BeritaServiceAdmin.addBerita(newBeritaData);
 
       // Add the new item to our state with transformed data
       const newItem = {
