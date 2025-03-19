@@ -2,8 +2,6 @@ import mediaService from "../services/mediaServices.js";
 
 const addMedia = async (req, res) => {
     try {
-        console.log("Body dari request:", req.body);
-        console.log("Tipe dari request:", req.body.tipe);        
         const { nama, tipe, deskripsi } = req.body;
         const file = req.file ? req.file : null;
 

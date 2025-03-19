@@ -18,11 +18,11 @@ const getBeritaById = async (id) => {
     }
 };
 
-const addBerita = async (judul, isi, tanggalTerbit, penulis) => {
+const addBerita = async (judul, foto, isi, tanggalTerbit, penulis) => {
     try {
         const [result] = await db.promise().query(
-            "INSERT INTO berita (judul, isi, tanggalTerbit, penulis) VALUES (?, ?, ?, ?)",
-            [judul, isi, tanggalTerbit, penulis]
+            "INSERT INTO berita (judul, foto, isi, tanggalTerbit, penulis) VALUES (?, ?, ?, ?)",
+            [judul, foto, isi, tanggalTerbit, penulis]
         );
         return result;
     } catch (error) {
@@ -30,11 +30,11 @@ const addBerita = async (judul, isi, tanggalTerbit, penulis) => {
     }
 };
 
-const updateBerita = async (id, judul, isi, tanggalTerbit, penulis) => {
+const updateBerita = async (id, judul, foto, isi, tanggalTerbit, penulis) => {
     try {
         const [result] = await db.promise().query(
             "UPDATE berita SET judul = ?, isi = ?, tanggalTerbit = ?, penulis = ? WHERE id = ?",
-            [judul, isi, tanggalTerbit, penulis, id]
+            [judul, foto, isi, tanggalTerbit, penulis, id]
         );
         return result.affectedRows > 0;
     } catch (error) {

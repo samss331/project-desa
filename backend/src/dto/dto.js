@@ -51,9 +51,10 @@ class PengumumanDTO {
 }
 
 class BeritaDTO {
-    constructor(id, judul, isi, tanggalTerbit, penulis) {
+    constructor(id, judul, foto, isi, tanggalTerbit, penulis) {
         this.id = id;
         this.judul = judul;
+        this.foto = foto;
         this.isi = isi;
         this.tanggalTerbit = tanggalTerbit;
         this.penulis = penulis;
