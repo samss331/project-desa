@@ -43,6 +43,26 @@ function SuratAdmin() {
     file: null,
   });
 
+  // Definisi animasi CSS
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .animate-modalFadeIn {
+      animation: modalFadeIn 0.3s ease-out forwards;
+    }
+  `;
+  document.head.appendChild(style);
+
   // Get token from localStorage on component mount
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -590,8 +610,8 @@ function SuratAdmin() {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-700/30 flex items-center justify-center z-50 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md border border-gray-200 animate-modalFadeIn">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
                 Tambah Surat Baru
@@ -740,8 +760,8 @@ function SuratAdmin() {
 
       {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-700/30 flex items-center justify-center z-50 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md border border-gray-200 animate-modalFadeIn">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">Edit Surat</h3>
               <p className="text-gray-600 text-sm">Ubah informasi surat</p>
@@ -880,8 +900,8 @@ function SuratAdmin() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-700/30 flex items-center justify-center z-50 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md border border-gray-200 animate-modalFadeIn">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
                 Konfirmasi Hapus
@@ -912,8 +932,8 @@ function SuratAdmin() {
 
       {/* Preview Modal */}
       {showPreviewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl">
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-800/40 flex items-center justify-center z-50 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl border border-gray-200 animate-modalFadeIn">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-gray-800">
                 {getSuratIcon(currentItem?.jenis)} {currentItem?.perihal}
