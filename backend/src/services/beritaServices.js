@@ -1,43 +1,163 @@
 import beritaRepository from "../repositories/beritaRepo.js";
 import { BeritaDTO } from "../dto/dto.js";
+import fs from "fs";
+import path from "path";
 
-const addBerita = async (judul, foto, isi, tanggalTerbit, penulis) => {
-    if (!judul || !foto || !isi || !tanggalTerbit || !penulis) {
-        throw new Error("Semua data wajib diisi!");
-    }
+const addBerita = async (
+  judul,
+  foto,
+  isi,
+  tanggalTerbit,
+  penulis,
+  status = "Draft"
+) => {
+  if (!judul || !isi || !tanggalTerbit || !penulis) {
+    throw new Error("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
+  }
 
-    const result = await beritaRepository.addBerita(judul, foto, isi, tanggalTerbit, penulis);
-    return new BeritaDTO(result.id, judul, foto, isi, tanggalTerbit, penulis);
+  // Foto bisa null/undefined
+  const fotoPath = foto ? `/uploads/berita/${foto.filename}` : null;
+
+  const result = await beritaRepository.addBerita(
+    judul,
+    fotoPath,
+    isi,
+    tanggalTerbit,
+    penulis,
+    status
+  );
+  return new BeritaDTO(
+    result.id,
+    result.judul,
+    result.foto,
+    result.isi,
+    result.tanggalTerbit,
+    result.penulis,
+    result.status
+  );
 };
 
 const getAllBerita = async () => {
-    const result = await beritaRepository.getAllBerita();
-    return result.map((b) => new BeritaDTO(b.id, b.judul, b.foto, b.isi, b.tanggalTerbit, b.penulis));
+  const result = await beritaRepository.getAllBerita();
+  return result.map(
+    (b) =>
+      new BeritaDTO(
+        b.id,
+        b.judul,
+        b.foto,
+        b.isi,
+        b.tanggalTerbit,
+        b.penulis,
+        b.status,
+        b.kategori
+      )
+  );
+};
+
+const getBeritaByStatus = async (status) => {
+  const result = await beritaRepository.getBeritaByStatus(status);
+  return result.map(
+    (b) =>
+      new BeritaDTO(
+        b.id,
+        b.judul,
+        b.foto,
+        b.isi,
+        b.tanggalTerbit,
+        b.penulis,
+        b.status,
+        b.kategori
+      )
+  );
 };
 
 const getBeritaById = async (id) => {
-    const result = await beritaRepository.getBeritaById(id);
-    if (!result) {
-        throw new Error("Berita tidak ditemukan");
-    }
-    return new BeritaDTO(result.id, result.judul, result.foto, result.isi, result.tanggalTerbit, result.penulis);
+  const result = await beritaRepository.getBeritaById(id);
+  if (!result) {
+    throw new Error("Berita tidak ditemukan");
+  }
+  return new BeritaDTO(
+    result.id,
+    result.judul,
+    result.foto,
+    result.isi,
+    result.tanggalTerbit,
+    result.penulis,
+    result.status,
+    result.kategori
+  );
 };
 
-const updateBerita = async (id, judul, foto, isi, tanggalTerbit, penulis) => {
-    const existing = await beritaRepository.getBeritaById(id);
-    if (!existing) {
-        return false;
+const updateBerita = async (
+  id,
+  judul,
+  foto,
+  isi,
+  tanggalTerbit,
+  penulis,
+  status
+) => {
+  const existing = await beritaRepository.getBeritaById(id);
+  if (!existing) {
+    return false;
+  }
+
+  // Jika ada foto baru, hapus foto lama jika ada
+  let fotoPath = existing.foto;
+  if (foto) {
+    // Hapus foto lama jika ada
+    if (existing.foto) {
+      try {
+        const oldFilePath = path.join("public", existing.foto);
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      } catch (error) {
+        console.error("Error deleting old file:", error);
+      }
     }
 
-    return await beritaRepository.updateBerita(id, judul, foto, isi, tanggalTerbit, penulis);
+    // Set path foto baru
+    fotoPath = `/uploads/berita/${foto.filename}`;
+  }
+
+  return await beritaRepository.updateBerita(
+    id,
+    judul,
+    fotoPath,
+    isi,
+    tanggalTerbit,
+    penulis,
+    status
+  );
 };
 
 const deleteBerita = async (id) => {
-    const existing = await beritaRepository.getBeritaById(id);
-    if (!existing) {
-        return false;
+  const existing = await beritaRepository.getBeritaById(id);
+  if (!existing) {
+    return false;
+  }
+
+  // Hapus file foto jika ada
+  if (existing.foto) {
+    try {
+      const filePath = path.join("public", existing.foto);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
     }
-    return await beritaRepository.deleteBerita(id);
+  }
+
+  return await beritaRepository.deleteBerita(id);
 };
 
-export default { addBerita, getAllBerita, getBeritaById, updateBerita, deleteBerita };
+export default {
+  addBerita,
+  getAllBerita,
+  getBeritaById,
+  getBeritaByStatus,
+  updateBerita,
+  deleteBerita,
+};
