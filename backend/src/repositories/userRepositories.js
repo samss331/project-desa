@@ -1,5 +1,4 @@
 import db from "../config/database.js";
-import model from "../model/model.js";
 
 const getUserByEmail = async (email) => {
     const [rows] = await db.promise().query(
@@ -8,7 +7,7 @@ const getUserByEmail = async (email) => {
     if(rows.length === 0) return null;
 
     const {id, nama, password} = rows[0];
-    return new model.User (id, nama, email, password);
+    return {id: id, nama: nama, email: email, password: password};
 }
 
 const updateUserByEmail = async (nama, email, password) => {

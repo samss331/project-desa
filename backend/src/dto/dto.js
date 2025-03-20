@@ -21,22 +21,24 @@ class PendudukDTO {
 }
 
 class SuratMasukDTO {
-    constructor(id, nomorSurat, pengirim, perihal, tanggalTerima) {
+    constructor(id, nomorSurat, pengirim, perihal, tanggalTerima, file) {
         this.id = id;
         this.nomorSurat = nomorSurat;
         this.pengirim = pengirim;
         this.perihal = perihal;
         this.tanggalTerima = tanggalTerima;
+        this.file = file;
     }
 }
 
 class SuratKeluarDTO {
-    constructor(id, nomorSurat, penerima, perihal, tanggalKirim) {
+    constructor(id, nomorSurat, penerima, perihal, tanggalKirim, file) {
         this.id = id;
         this.nomorSurat = nomorSurat;
         this.penerima = penerima;
         this.perihal = perihal;
         this.tanggalKirim = tanggalKirim;
+        this.file = file;
     }
 }
 
@@ -84,11 +86,11 @@ class DanaKeluarDTO {
 }
 
 class MediaDTO{
-    constructor(id, nama, tipe, url, deskripsi){
+    constructor(id, nama, tipe, file, deskripsi){
         this.id = id
         this.nama = nama
         this.tipe = tipe
-        this.url = url
+        this.file = file
         this.deskripsi = deskripsi 
     }
 }
