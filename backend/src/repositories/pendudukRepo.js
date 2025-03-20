@@ -1,5 +1,4 @@
 import db from "../config/database.js";
-import Penduduk from "../model/model.js"
 
 const getAllPenduduk = async () => {
     try {
@@ -24,7 +23,7 @@ const addPenduduk = async (nama, nik, alamat, tanggalLahir, jenisKelamin, agama,
         const [results] = await db.
         promise().
         query("INSERT INTO PENDUDUK (nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga) VALUES (?, ?, ?, ?, ?, ?, ?)", [nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga]);
-        return new Penduduk(results.insertId, nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga);
+        return (results.insertId, nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga);
     } catch (error) {   
         throw error;   
     } 
