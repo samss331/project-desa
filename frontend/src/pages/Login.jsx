@@ -30,7 +30,7 @@ const Login = () => {
 
       if (response.data.success && response.data.data.token) {
         localStorage.setItem("token", response.data.data.token);
-        console.log("Token disimpan:", response.data.data.token);
+        // console.log("Token disimpan:", response.data.data.token);
         alert("Login berhasil!");
         window.location.href = "/admin/beranda"; // Redirect setelah login sukses
       } else {
