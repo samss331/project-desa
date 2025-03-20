@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import {
   FaEnvelope,
   FaEnvelopeOpen,
@@ -12,45 +11,144 @@ import {
   FaEye,
   FaSearch,
   FaDownload,
+  FaSpinner,
 } from "react-icons/fa";
+import SuratService from "../services/SuratServiceAdmin";
+import SuratForm from "../components/SuratForm";
 
-const SuratAdmin = () => {
+function SuratAdmin() {
   const [suratData, setSuratData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [token, setToken] = useState(null);
+
+  // State for search and filter
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("semua");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Fetch data from API
+  // State for modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [currentItem, setCurrentItem] = useState(null);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    jenis: "Surat Masuk",
+    nomor: "",
+    perihal: "",
+    pengirim: "",
+    tanggal: "",
+    status: "Diterima",
+    file: null,
+  });
+
+  // Definisi animasi CSS
   useEffect(() => {
-    const fetchSuratMasuk = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/surat/suratMasuk");
-        console.log("Data surat masuk:", response.data);
-        setSuratData(response.data.data || []); // Pastikan mengambil hanya array data
-      } catch (error) {
-        console.error("Gagal mengambil data:", error);
-        setError("Gagal memuat data surat masuk.");
-      } finally {
-        setLoading(false);
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
-    };
+      
+      .animate-modalFadeIn {
+        animation: modalFadeIn 0.3s ease-out forwards;
+      }
+    `;
+    document.head.appendChild(style);
 
-    fetchSuratMasuk();
+    return () => {
+      document.head.removeChild(style);
+    };
   }, []);
 
-  // Filter data based on search query and active tab
+  // Get token from localStorage on component mount
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+    }
+  }, []);
+
+  // Fetch data methods
+  const fetchAllSurat = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      console.log("Fetching all surat...");
+      const data = await SuratService.getAllSurat();
+      console.log("Fetched data:", data);
+      setSuratData(data);
+    } catch (err) {
+      console.error("Error in fetchAllSurat:", err);
+      setError("Gagal memuat data surat.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchSuratMasuk = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await SuratService.getSuratMasuk();
+      setSuratData(data);
+    } catch (err) {
+      setError("Gagal memuat data surat masuk.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchSuratKeluar = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await SuratService.getSuratKeluar();
+      setSuratData(data);
+    } catch (err) {
+      setError("Gagal memuat data surat keluar.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle tab changes and fetch appropriate data
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+
+    if (tab === "semua") {
+      fetchAllSurat();
+    } else if (tab === "masuk") {
+      fetchSuratMasuk();
+    } else if (tab === "keluar") {
+      fetchSuratKeluar();
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    fetchAllSurat();
+  }, []);
+
+  // Filter data based on search query
   const filteredData = suratData.filter((item) => {
     const matchesSearch =
-      item.perihal?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.nomorSurat?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.pengirim?.toLowerCase().includes(searchQuery.toLowerCase());
+      (item.perihal?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (item.nomor?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (item.pengirim?.toLowerCase() || "").includes(searchQuery.toLowerCase());
 
-    const matchesFilter =
-      activeTab === "semua" ||
-      item.jenis?.toLowerCase().includes(activeTab.toLowerCase());
-
-    return matchesSearch && matchesFilter;
+    return matchesSearch;
   });
 
   // Count by type
@@ -61,13 +159,202 @@ const SuratAdmin = () => {
     (item) => item.jenis === "Surat Keluar"
   ).length;
 
-  // Get icon based on surat type
+  // Handle actions
+  const handleAdd = () => {
+    setFormData({
+      jenis: "Surat Masuk",
+      nomor: "",
+      perihal: "",
+      pengirim: "",
+      tanggal: new Date().toISOString().split("T")[0],
+      status: "Diterima",
+      file: null,
+    });
+    setShowAddModal(true);
+  };
+
+  const handleEdit = (id) => {
+    const item = suratData.find((item) => item.id === id);
+    if (item) {
+      setCurrentItem(item);
+      setFormData({
+        jenis: item.jenis,
+        nomor: item.nomor,
+        perihal: item.perihal,
+        pengirim: item.pengirim,
+        tanggal: item.tanggal
+          ? new Date(item.tanggal).toISOString().split("T")[0]
+          : "",
+        status:
+          item.status ||
+          (item.jenis === "Surat Masuk" ? "Diterima" : "Terkirim"),
+        file: null,
+      });
+      setShowEditModal(true);
+    }
+  };
+
+  const handleDelete = (id) => {
+    const item = suratData.find((item) => item.id === id);
+    if (item) {
+      setCurrentItem(item);
+      setShowDeleteModal(true);
+    }
+  };
+
+  const handlePreview = (id) => {
+    const item = suratData.find((item) => item.id === id);
+    if (item) {
+      setCurrentItem(item);
+      setShowPreviewModal(true);
+    }
+  };
+
+  // API calls for CRUD operations
+  const saveNewItem = async () => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk menambahkan surat");
+      return;
+    }
+
+    try {
+      // Validasi form
+      if (
+        !formData.nomor ||
+        !formData.perihal ||
+        !formData.tanggal ||
+        !formData.pengirim ||
+        !formData.jenis
+      ) {
+        alert(
+          "Nomor surat, perihal, tanggal, pengirim/penerima, dan jenis surat wajib diisi!"
+        );
+        return;
+      }
+
+      const formDataObj = new FormData();
+      formDataObj.append("nomorSurat", formData.nomor);
+      formDataObj.append("perihal", formData.perihal);
+
+      if (formData.file) {
+        formDataObj.append("file_surat", formData.file);
+      }
+
+      let result;
+      if (formData.jenis === "Surat Masuk") {
+        formDataObj.append("pengirim", formData.pengirim);
+        formDataObj.append("tanggalTerima", formData.tanggal);
+        result = await SuratService.addSuratMasuk(formDataObj);
+      } else {
+        formDataObj.append("penerima", formData.pengirim); // UI field pengirim digunakan untuk penerima
+        formDataObj.append("tanggalKirim", formData.tanggal);
+        result = await SuratService.addSuratKeluar(formDataObj);
+      }
+
+      // Refresh data based on current active tab
+      if (activeTab === "semua") {
+        await fetchAllSurat();
+      } else if (activeTab === "masuk" && formData.jenis === "Surat Masuk") {
+        await fetchSuratMasuk();
+      } else if (activeTab === "keluar" && formData.jenis === "Surat Keluar") {
+        await fetchSuratKeluar();
+      } else {
+        await fetchAllSurat();
+      }
+
+      setShowAddModal(false);
+    } catch (err) {
+      console.error("Error saving data:", err);
+      alert(
+        "Terjadi kesalahan saat menyimpan surat. Pastikan API endpoint tersedia."
+      );
+    }
+  };
+
+  const saveEditedItem = async () => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk mengedit surat");
+      return;
+    }
+
+    try {
+      const formDataObj = new FormData();
+      formDataObj.append("nomorSurat", formData.nomor);
+      formDataObj.append("perihal", formData.perihal);
+
+      if (formData.file) {
+        formDataObj.append("file_surat", formData.file);
+      }
+
+      if (formData.jenis === "Surat Masuk") {
+        formDataObj.append("pengirim", formData.pengirim);
+        formDataObj.append("tanggalTerima", formData.tanggal);
+        await SuratService.updateSuratMasuk(currentItem.id, formDataObj);
+      } else {
+        formDataObj.append("penerima", formData.pengirim);
+        formDataObj.append("tanggalKirim", formData.tanggal);
+        await SuratService.updateSuratKeluar(currentItem.id, formDataObj);
+      }
+
+      // Refresh data based on current active tab
+      if (activeTab === "semua") {
+        await fetchAllSurat();
+      } else if (activeTab === "masuk" && formData.jenis === "Surat Masuk") {
+        await fetchSuratMasuk();
+      } else if (activeTab === "keluar" && formData.jenis === "Surat Keluar") {
+        await fetchSuratKeluar();
+      } else {
+        await fetchAllSurat();
+      }
+
+      setShowEditModal(false);
+    } catch (err) {
+      console.error("Error updating data:", err);
+      alert("Terjadi kesalahan saat memperbarui");
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk menghapus surat");
+      return;
+    }
+
+    try {
+      if (currentItem.jenis === "Surat Masuk") {
+        await SuratService.deleteSuratMasuk(currentItem.id);
+      } else {
+        await SuratService.deleteSuratKeluar(currentItem.id);
+      }
+
+      // Refresh data based on current active tab
+      if (activeTab === "semua") {
+        await fetchAllSurat();
+      } else if (activeTab === "masuk" && currentItem.jenis === "Surat Masuk") {
+        await fetchSuratMasuk();
+      } else if (
+        activeTab === "keluar" &&
+        currentItem.jenis === "Surat Keluar"
+      ) {
+        await fetchSuratKeluar();
+      } else {
+        await fetchAllSurat();
+      }
+
+      setShowDeleteModal(false);
+    } catch (err) {
+      console.error("Error deleting data:", err);
+      alert("Terjadi kesalahan saat menghapus");
+    }
+  };
+
+  // Get icon and color based on surat type
   const getSuratIcon = (type) => {
-    return type === "Surat Masuk" ? (
-      <FaEnvelopeOpen className="text-blue-500" />
-    ) : (
-      <FaEnvelope className="text-green-500" />
-    );
+    if (type === "Surat Masuk") {
+      return <FaEnvelopeOpen className="text-blue-500" />;
+    } else {
+      return <FaEnvelope className="text-green-500" />;
+    }
   };
 
   // Get status badge color
@@ -85,102 +372,480 @@ const SuratAdmin = () => {
   };
 
   return (
-    <div>
-      <h1 className="text-xl font-bold mb-4">Daftar Surat Masuk</h1>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="bg-purple-100 p-2 rounded-lg">
+            <FaFileAlt className="text-purple-500 text-xl" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800">Manajemen Surat</h1>
+        </div>
 
-      {/* Search Input */}
-      <div className="flex mb-4">
-        <input
-          type="text"
-          placeholder="Cari surat..."
-          className="border p-2 w-full"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <FaSearch className="text-gray-500 ml-2 mt-2" />
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-white rounded-2xl shadow-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Total Surat
+              </h3>
+              <div className="bg-purple-100 p-2 rounded-lg">
+                <FaFileAlt className="text-purple-500 text-xl" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              {suratData.length}
+            </div>
+            <p className="text-sm text-gray-600">Surat tersimpan</p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Surat Masuk
+              </h3>
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <FaEnvelopeOpen className="text-blue-500 text-xl" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              {countMasuk}
+            </div>
+            <p className="text-sm text-gray-600">Surat masuk tersimpan</p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Surat Keluar
+              </h3>
+              <div className="bg-green-100 p-2 rounded-lg">
+                <FaEnvelope className="text-green-500 text-xl" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              {countKeluar}
+            </div>
+            <p className="text-sm text-gray-600">Surat keluar tersimpan</p>
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="bg-white rounded-2xl shadow-md p-4 mb-6">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => handleTabChange("semua")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                activeTab === "semua"
+                  ? "bg-purple-500 text-white font-medium shadow-sm"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <FaFileAlt
+                className={
+                  activeTab === "semua" ? "text-white" : "text-purple-500"
+                }
+              />
+              <span>Semua Surat</span>
+            </button>
+            <button
+              onClick={() => handleTabChange("masuk")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                activeTab === "masuk"
+                  ? "bg-blue-500 text-white font-medium shadow-sm"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <FaEnvelopeOpen
+                className={
+                  activeTab === "masuk" ? "text-white" : "text-blue-500"
+                }
+              />
+              <span>Surat Masuk</span>
+            </button>
+            <button
+              onClick={() => handleTabChange("keluar")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                activeTab === "keluar"
+                  ? "bg-green-500 text-white font-medium shadow-sm"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <FaEnvelope
+                className={
+                  activeTab === "keluar" ? "text-white" : "text-green-500"
+                }
+              />
+              <span>Surat Keluar</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Surat Table */}
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Daftar Surat</h2>
+              <p className="text-gray-600 text-sm">
+                Kelola surat masuk dan keluar di sistem
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <div className="relative">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Cari surat..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-64"
+                />
+              </div>
+              <button
+                onClick={handleAdd}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                <FaPlus className="text-white" />
+                <span>Tambah Surat</span>
+              </button>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-8">
+              <FaSpinner className="animate-spin text-4xl text-purple-500 mx-auto mb-4" />
+              <p className="mt-2 text-gray-600">Memuat data...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">
+              <p>{error}</p>
+              <button
+                onClick={() => handleTabChange(activeTab)}
+                className="mt-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 rounded-tl-lg">
+                      No. Surat
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Jenis
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Perihal
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Pengirim/Penerima
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Tanggal
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 rounded-tr-lg">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredData.length > 0 ? (
+                    filteredData.map((surat, index) => (
+                      <tr key={surat.id || index} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-800 font-medium">
+                          {surat.nomor}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          <div className="flex items-center gap-2">
+                            {getSuratIcon(surat.jenis)}
+                            <span>{surat.jenis}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          {surat.perihal}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          {surat.pengirim}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          {new Date(surat.tanggal).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              surat.status
+                            )}`}
+                          >
+                            {surat.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handlePreview(surat.id)}
+                              className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                              title="Lihat Detail"
+                            >
+                              <FaEye className="text-blue-600" />
+                            </button>
+                            <button
+                              onClick={() => handleEdit(surat.id)}
+                              className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                              title="Edit"
+                            >
+                              <FaEdit className="text-gray-600" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(surat.id)}
+                              className="p-1.5 bg-red-100 rounded-md hover:bg-red-200 transition-colors"
+                              title="Hapus"
+                            >
+                              <FaTrash className="text-red-600" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-4 py-8 text-center text-gray-500"
+                      >
+                        Tidak ada data surat yang ditemukan.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex space-x-4 mb-4">
-        <button
-          className={`p-2 ${activeTab === "semua" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => setActiveTab("semua")}
-        >
-          Semua ({suratData.length})
-        </button>
-        <button
-          className={`p-2 ${activeTab === "Surat Masuk" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => setActiveTab("Surat Masuk")}
-        >
-          Surat Masuk ({countMasuk})
-        </button>
-        <button
-          className={`p-2 ${activeTab === "Surat Keluar" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => setActiveTab("Surat Keluar")}
-        >
-          Surat Keluar ({countKeluar})
-        </button>
-      </div>
+      {/* Add Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-700/30 flex items-center justify-center z-50 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md border border-gray-200 animate-modalFadeIn">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800">
+                Tambah Surat Baru
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Masukkan informasi surat yang akan ditambahkan
+              </p>
+            </div>
 
-      {/* Tampilkan Loading/Error */}
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+            <SuratForm
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={saveNewItem}
+              onCancel={() => setShowAddModal(false)}
+              isEdit={false}
+            />
+          </div>
+        </div>
+      )}
 
-      {/* Daftar Surat */}
-      {!loading && !error && (
-        <table className="w-full border-collapse border">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">#</th>
-              <th className="border p-2">Jenis</th>
-              <th className="border p-2">Nomor</th>
-              <th className="border p-2">Perihal</th>
-              <th className="border p-2">Pengirim</th>
-              <th className="border p-2">Tanggal</th>
-              <th className="border p-2">Status</th>
-              <th className="border p-2">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((surat, index) => (
-                <tr key={surat.id} className="border">
-                  <td className="border p-2">{index + 1}</td>
-                  <td className="border p-2 flex items-center">
-                    {getSuratIcon(surat.jenis)} {surat.jenis}
-                  </td>
-                  <td className="border p-2">{surat.nomorSurat}</td>
-                  <td className="border p-2">{surat.perihal}</td>
-                  <td className="border p-2">{surat.pengirim}</td>
-                  <td className="border p-2">{surat.tanggalTerima}</td>
-                  <td className={`border p-2 ${getStatusColor(surat.status)}`}>
-                    {surat.status}
-                  </td>
-                  <td className="border p-2 flex space-x-2">
-                    <button className="bg-yellow-500 text-white p-1 rounded">
-                      <FaEye />
-                    </button>
-                    <button className="bg-blue-500 text-white p-1 rounded">
-                      <FaEdit />
-                    </button>
-                    <button className="bg-red-500 text-white p-1 rounded">
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="8" className="border p-2 text-center">
-                  Tidak ada surat masuk.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-700/30 flex items-center justify-center z-50 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md border border-gray-200 animate-modalFadeIn">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Edit Surat</h3>
+              <p className="text-gray-600 text-sm">Ubah informasi surat</p>
+            </div>
+
+            <SuratForm
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={saveEditedItem}
+              onCancel={() => setShowEditModal(false)}
+              isEdit={true}
+              currentItem={currentItem}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-700/30 flex items-center justify-center z-50 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md border border-gray-200 animate-modalFadeIn">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-800">
+                Konfirmasi Hapus
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Apakah Anda yakin ingin menghapus surat "{currentItem?.nomor}"?
+                Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {showPreviewModal && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-800/40 flex items-center justify-center z-50 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl border border-gray-200 animate-modalFadeIn">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                {getSuratIcon(currentItem?.jenis)}
+                <span>{currentItem?.perihal}</span>
+              </h3>
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="border-t border-b border-gray-200 py-4 mb-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500">Nomor Surat</p>
+                  <p className="font-medium">{currentItem?.nomor}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Jenis</p>
+                  <p className="font-medium">{currentItem?.jenis}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">
+                    {currentItem?.jenis === "Surat Masuk"
+                      ? "Pengirim"
+                      : "Penerima"}
+                  </p>
+                  <p className="font-medium">{currentItem?.pengirim}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Tanggal</p>
+                  <p className="font-medium">
+                    {new Date(currentItem?.tanggal).toLocaleDateString(
+                      "id-ID",
+                      {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      }
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Status</p>
+                  <p className="font-medium">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        currentItem?.status
+                      )}`}
+                    >
+                      {currentItem?.status}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">
+                Isi Surat
+              </h4>
+              <div className="bg-gray-50 p-4 rounded-lg text-gray-700 text-sm">
+                {currentItem?.file_surat ? (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">
+                        Dokumen tersedia untuk diunduh.
+                      </p>
+                      <div className="flex gap-2">
+                        <a
+                          href={SuratService.getFileUrl(currentItem.file_surat)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
+                        >
+                          <FaEye className="text-white" />
+                          <span>Lihat</span>
+                        </a>
+                        <a
+                          href={SuratService.getFileUrl(currentItem.file_surat)}
+                          download
+                          className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1"
+                        >
+                          <FaDownload className="text-white" />
+                          <span>Unduh</span>
+                        </a>
+                      </div>
+                    </div>
+                    {/* PDF Viewer */}
+                    <div className="w-full h-96 border border-gray-200 rounded-lg overflow-hidden">
+                      <iframe
+                        src={`${SuratService.getFileUrl(
+                          currentItem.file_surat
+                        )}#toolbar=0`}
+                        className="w-full h-full"
+                        title={`Preview ${currentItem.nomor}`}
+                      ></iframe>
+                    </div>
+                  </div>
+                ) : (
+                  <p>Dokumen surat belum tersedia untuk ditampilkan.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
-};
+}
 
 export default SuratAdmin;

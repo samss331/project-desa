@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaBullhorn,
   FaPlus,
@@ -13,67 +13,16 @@ import {
   FaTag,
   FaCheck,
   FaClock,
+  FaSpinner,
 } from "react-icons/fa";
+import PengumumanServiceAdmin from "../services/PengumumanServiceAdmin";
 
 const PengumumanAdmin = () => {
-  // Sample data with more details
-  const [pengumumanData, setPengumumanData] = useState([
-    {
-      id: 1,
-      judul: "Jadwal Pemadaman Listrik",
-      kategori: "Informasi",
-      tanggal: "2024-01-05",
-      tanggalBerakhir: "2024-01-10",
-      penulis: "Admin",
-      status: "Aktif",
-      isi: "Akan dilakukan pemadaman listrik pada tanggal 10 Januari 2024 pukul 09.00-12.00 WIB untuk perbaikan jaringan.",
-      prioritas: "Tinggi",
-    },
-    {
-      id: 2,
-      judul: "Pengambilan Kartu Keluarga",
-      kategori: "Layanan",
-      tanggal: "2024-01-06",
-      tanggalBerakhir: "2024-01-20",
-      penulis: "Sekretaris",
-      status: "Aktif",
-      isi: "Pengambilan Kartu Keluarga dapat dilakukan pada jam kerja di kantor desa dengan membawa bukti pengajuan.",
-      prioritas: "Sedang",
-    },
-    {
-      id: 3,
-      judul: "Jadwal Posyandu Bulan Januari",
-      kategori: "Kesehatan",
-      tanggal: "2024-01-10",
-      tanggalBerakhir: "2024-01-31",
-      penulis: "Admin",
-      status: "Aktif",
-      isi: "Posyandu akan dilaksanakan pada tanggal 15 Januari 2024 di Balai Desa mulai pukul 08.00 WIB.",
-      prioritas: "Sedang",
-    },
-    {
-      id: 4,
-      judul: "Penutupan Jalan Desa",
-      kategori: "Informasi",
-      tanggal: "2024-01-15",
-      tanggalBerakhir: "2024-01-18",
-      penulis: "Admin",
-      status: "Aktif",
-      isi: "Jalan desa akan ditutup sementara untuk perbaikan jembatan pada tanggal 17-18 Januari 2024.",
-      prioritas: "Tinggi",
-    },
-    {
-      id: 5,
-      judul: "Pengumuman Pemenang Lomba Desa",
-      kategori: "Acara",
-      tanggal: "2023-12-20",
-      tanggalBerakhir: "2024-01-05",
-      penulis: "Sekretaris",
-      status: "Kadaluarsa",
-      isi: "Pengumuman pemenang lomba desa telah diumumkan. Selamat kepada para pemenang!",
-      prioritas: "Rendah",
-    },
-  ]);
+  // State for data
+  const [pengumumanData, setPengumumanData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [token, setToken] = useState(null);
 
   // State for search and filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,20 +38,62 @@ const PengumumanAdmin = () => {
   // Form state
   const [formData, setFormData] = useState({
     judul: "",
-    kategori: "Informasi",
-    tanggal: "",
-    tanggalBerakhir: "",
-    penulis: "",
-    status: "Aktif",
     isi: "",
-    prioritas: "Sedang",
+    tanggalMulai: "",
+    tanggalSelesai: "",
   });
+
+  // Get token from localStorage on component mount
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+    }
+  }, []);
+
+  // Fetch data methods
+  const fetchAllPengumuman = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await PengumumanServiceAdmin.getAllPengumuman();
+
+      // Transform data to match our component's expected format
+      const transformedData = data.map((item) => ({
+        id: item.id,
+        judul: item.judul,
+        isi: item.isi,
+        tanggal: item.tanggalMulai,
+        tanggalBerakhir: item.tanggalSelesai,
+        status:
+          new Date(item.tanggalSelesai) < new Date() ? "Kadaluarsa" : "Aktif",
+        // Default values for fields not in the API
+        kategori: "Informasi",
+        penulis: "Admin",
+        prioritas: "Sedang",
+      }));
+
+      setPengumumanData(transformedData);
+    } catch (err) {
+      console.error("Error in fetchAllPengumuman:", err);
+      setError("Gagal memuat data pengumuman.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    fetchAllPengumuman();
+  }, []);
 
   // Filter data based on active tab and search query
   const filteredData = pengumumanData.filter((item) => {
     const matchesSearch =
       item.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.kategori.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.kategori?.toLowerCase() || "").includes(
+        searchQuery.toLowerCase()
+      ) ||
       item.isi.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesFilter =
@@ -125,15 +116,16 @@ const PengumumanAdmin = () => {
   const handleAdd = () => {
     setFormData({
       judul: "",
-      kategori: "Informasi",
-      tanggal: new Date().toISOString().split("T")[0],
-      tanggalBerakhir: new Date(new Date().setDate(new Date().getDate() + 7))
+      isi: "",
+      tanggalMulai: new Date().toISOString().split("T")[0],
+      tanggalSelesai: new Date(new Date().setDate(new Date().getDate() + 7))
         .toISOString()
         .split("T")[0],
+      // Default values for UI
+      kategori: "Informasi",
       penulis: "Admin",
-      status: "Aktif",
-      isi: "",
       prioritas: "Sedang",
+      status: "Aktif",
     });
     setShowAddModal(true);
   };
@@ -144,13 +136,14 @@ const PengumumanAdmin = () => {
       setCurrentItem(item);
       setFormData({
         judul: item.judul,
-        kategori: item.kategori,
-        tanggal: item.tanggal,
-        tanggalBerakhir: item.tanggalBerakhir,
-        penulis: item.penulis,
-        status: item.status,
         isi: item.isi,
-        prioritas: item.prioritas,
+        tanggalMulai: item.tanggal,
+        tanggalSelesai: item.tanggalBerakhir,
+        // Include UI fields
+        kategori: item.kategori || "Informasi",
+        penulis: item.penulis || "Admin",
+        prioritas: item.prioritas || "Sedang",
+        status: item.status,
       });
       setShowEditModal(true);
     }
@@ -172,29 +165,100 @@ const PengumumanAdmin = () => {
     }
   };
 
-  const saveNewItem = () => {
-    const newItem = {
-      id: Math.max(...pengumumanData.map((item) => item.id), 0) + 1,
-      ...formData,
-    };
-    setPengumumanData([...pengumumanData, newItem]);
-    setShowAddModal(false);
+  const saveNewItem = async () => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk menambahkan pengumuman");
+      return;
+    }
+
+    try {
+      // Validasi form
+      if (
+        !formData.judul ||
+        !formData.isi ||
+        !formData.tanggalMulai ||
+        !formData.tanggalSelesai
+      ) {
+        alert("Semua data wajib diisi!");
+        return;
+      }
+
+      // Prepare data for API
+      const pengumumanData = {
+        judul: formData.judul,
+        isi: formData.isi,
+        tanggalMulai: formData.tanggalMulai,
+        tanggalSelesai: formData.tanggalSelesai,
+      };
+
+      // Call API
+      const result = await PengumumanServiceAdmin.addPengumuman(pengumumanData);
+
+      // Refresh data
+      await fetchAllPengumuman();
+      setShowAddModal(false);
+    } catch (err) {
+      console.error("Error saving data:", err);
+      alert(
+        err.response?.data?.message ||
+          "Terjadi kesalahan saat menyimpan pengumuman."
+      );
+    }
   };
 
-  const saveEditedItem = () => {
-    const updatedData = pengumumanData.map((item) =>
-      item.id === currentItem.id ? { ...item, ...formData } : item
-    );
-    setPengumumanData(updatedData);
-    setShowEditModal(false);
+  const saveEditedItem = async () => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk mengedit pengumuman");
+      return;
+    }
+
+    try {
+      // Prepare data for API
+      const pengumumanData = {
+        judul: formData.judul,
+        isi: formData.isi,
+        tanggalMulai: formData.tanggalMulai,
+        tanggalSelesai: formData.tanggalSelesai,
+      };
+
+      // Call API
+      await PengumumanServiceAdmin.updatePengumuman(
+        currentItem.id,
+        pengumumanData
+      );
+
+      // Refresh data
+      await fetchAllPengumuman();
+      setShowEditModal(false);
+    } catch (err) {
+      console.error("Error updating data:", err);
+      alert(
+        err.response?.data?.message ||
+          "Terjadi kesalahan saat memperbarui pengumuman."
+      );
+    }
   };
 
-  const confirmDelete = () => {
-    const updatedData = pengumumanData.filter(
-      (item) => item.id !== currentItem.id
-    );
-    setPengumumanData(updatedData);
-    setShowDeleteModal(false);
+  const confirmDelete = async () => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk menghapus pengumuman");
+      return;
+    }
+
+    try {
+      // Call API
+      await PengumumanServiceAdmin.deletePengumuman(currentItem.id);
+
+      // Refresh data
+      await fetchAllPengumuman();
+      setShowDeleteModal(false);
+    } catch (err) {
+      console.error("Error deleting data:", err);
+      alert(
+        err.response?.data?.message ||
+          "Terjadi kesalahan saat menghapus pengumuman."
+      );
+    }
   };
 
   // Get status badge color
@@ -236,6 +300,37 @@ const PengumumanAdmin = () => {
         return "bg-orange-100 text-orange-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // Handle reactivating an expired announcement
+  const handleReactivate = async (id) => {
+    if (!token) {
+      alert("Anda harus login sebagai admin untuk mengaktifkan pengumuman");
+      return;
+    }
+
+    try {
+      const item = pengumumanData.find((item) => item.id === id);
+      if (!item) return;
+
+      // Set new end date to 7 days from now
+      const newEndDate = new Date();
+      newEndDate.setDate(newEndDate.getDate() + 7);
+
+      const updateData = {
+        judul: item.judul,
+        isi: item.isi,
+        tanggalMulai: new Date().toISOString().split("T")[0],
+        tanggalSelesai: newEndDate.toISOString().split("T")[0],
+      };
+
+      await PengumumanServiceAdmin.updatePengumuman(id, updateData);
+      await fetchAllPengumuman();
+      setShowPreviewModal(false);
+    } catch (err) {
+      console.error("Error reactivating announcement:", err);
+      alert("Terjadi kesalahan saat mengaktifkan kembali pengumuman.");
     }
   };
 
@@ -382,123 +477,140 @@ const PengumumanAdmin = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 rounded-tl-lg">
-                    ID
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Judul
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Kategori
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Tanggal
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Prioritas
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 rounded-tr-lg">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredData.length > 0 ? (
-                  filteredData.map((pengumuman) => (
-                    <tr key={pengumuman.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-800">
-                        {pengumuman.id}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-800 font-medium">
-                        {pengumuman.judul}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                            pengumuman.kategori
-                          )}`}
-                        >
-                          {pengumuman.kategori}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-800">
-                        <div className="flex items-center gap-2">
-                          <FaCalendarAlt className="text-gray-400" />
-                          {new Date(pengumuman.tanggal).toLocaleDateString(
-                            "id-ID",
-                            {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            }
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            pengumuman.status
-                          )}`}
-                        >
-                          {pengumuman.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                            pengumuman.prioritas
-                          )}`}
-                        >
-                          {pengumuman.prioritas}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => handlePreview(pengumuman.id)}
-                            className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
-                            title="Lihat Detail"
+          {isLoading ? (
+            <div className="text-center py-8">
+              <FaSpinner className="animate-spin text-4xl text-purple-500 mx-auto mb-4" />
+              <p className="mt-2 text-gray-600">Memuat data...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">
+              <p>{error}</p>
+              <button
+                onClick={fetchAllPengumuman}
+                className="mt-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 rounded-tl-lg">
+                      ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Judul
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Kategori
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Tanggal
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Prioritas
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 rounded-tr-lg">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredData.length > 0 ? (
+                    filteredData.map((pengumuman) => (
+                      <tr key={pengumuman.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          {pengumuman.id}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800 font-medium">
+                          {pengumuman.judul}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                              pengumuman.kategori
+                            )}`}
                           >
-                            <FaEye className="text-blue-600" />
-                          </button>
-                          <button
-                            onClick={() => handleEdit(pengumuman.id)}
-                            className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-                            title="Edit"
+                            {pengumuman.kategori}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          <div className="flex items-center gap-2">
+                            <FaCalendarAlt className="text-gray-400" />
+                            {new Date(pengumuman.tanggal).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              pengumuman.status
+                            )}`}
                           >
-                            <FaEdit className="text-gray-600" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(pengumuman.id)}
-                            className="p-1.5 bg-red-100 rounded-md hover:bg-red-200 transition-colors"
-                            title="Hapus"
+                            {pengumuman.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                              pengumuman.prioritas
+                            )}`}
                           >
-                            <FaTrash className="text-red-600" />
-                          </button>
-                        </div>
+                            {pengumuman.prioritas}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handlePreview(pengumuman.id)}
+                              className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                              title="Lihat Detail"
+                            >
+                              <FaEye className="text-blue-600" />
+                            </button>
+                            <button
+                              onClick={() => handleEdit(pengumuman.id)}
+                              className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                              title="Edit"
+                            >
+                              <FaEdit className="text-gray-600" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(pengumuman.id)}
+                              className="p-1.5 bg-red-100 rounded-md hover:bg-red-200 transition-colors"
+                              title="Hapus"
+                            >
+                              <FaTrash className="text-red-600" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-4 py-8 text-center text-gray-500"
+                      >
+                        Tidak ada data pengumuman yang ditemukan.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-8 text-center text-gray-500"
-                    >
-                      Tidak ada data pengumuman yang ditemukan.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -560,17 +672,17 @@ const PengumumanAdmin = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label
-                    htmlFor="tanggal"
+                    htmlFor="tanggalMulai"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Tanggal Mulai
                   </label>
                   <input
-                    id="tanggal"
+                    id="tanggalMulai"
                     type="date"
-                    value={formData.tanggal}
+                    value={formData.tanggalMulai}
                     onChange={(e) =>
-                      setFormData({ ...formData, tanggal: e.target.value })
+                      setFormData({ ...formData, tanggalMulai: e.target.value })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
@@ -578,19 +690,19 @@ const PengumumanAdmin = () => {
 
                 <div>
                   <label
-                    htmlFor="tanggalBerakhir"
+                    htmlFor="tanggalSelesai"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Tanggal Berakhir
                   </label>
                   <input
-                    id="tanggalBerakhir"
+                    id="tanggalSelesai"
                     type="date"
-                    value={formData.tanggalBerakhir}
+                    value={formData.tanggalSelesai}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        tanggalBerakhir: e.target.value,
+                        tanggalSelesai: e.target.value,
                       })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
@@ -642,26 +754,6 @@ const PengumumanAdmin = () => {
 
               <div>
                 <label
-                  htmlFor="status"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Status
-                </label>
-                <select
-                  id="status"
-                  value={formData.status}
-                  onChange={(e) =>
-                    setFormData({ ...formData, status: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                >
-                  <option value="Aktif">Aktif</option>
-                  <option value="Kadaluarsa">Kadaluarsa</option>
-                </select>
-              </div>
-
-              <div>
-                <label
                   htmlFor="isi"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
@@ -676,20 +768,6 @@ const PengumumanAdmin = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-h-[150px]"
                   placeholder="Isi pengumuman lengkap"
                 ></textarea>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="upload-lampiran"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Upload Lampiran (Opsional)
-                </label>
-                <input
-                  id="upload-lampiran"
-                  type="file"
-                  className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                />
               </div>
             </div>
 
@@ -766,17 +844,17 @@ const PengumumanAdmin = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label
-                    htmlFor="edit-tanggal"
+                    htmlFor="edit-tanggalMulai"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Tanggal Mulai
                   </label>
                   <input
-                    id="edit-tanggal"
+                    id="edit-tanggalMulai"
                     type="date"
-                    value={formData.tanggal}
+                    value={formData.tanggalMulai}
                     onChange={(e) =>
-                      setFormData({ ...formData, tanggal: e.target.value })
+                      setFormData({ ...formData, tanggalMulai: e.target.value })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
@@ -784,85 +862,24 @@ const PengumumanAdmin = () => {
 
                 <div>
                   <label
-                    htmlFor="edit-tanggalBerakhir"
+                    htmlFor="edit-tanggalSelesai"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Tanggal Berakhir
                   </label>
                   <input
-                    id="edit-tanggalBerakhir"
+                    id="edit-tanggalSelesai"
                     type="date"
-                    value={formData.tanggalBerakhir}
+                    value={formData.tanggalSelesai}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        tanggalBerakhir: e.target.value,
+                        tanggalSelesai: e.target.value,
                       })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label
-                    htmlFor="edit-penulis"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Penulis
-                  </label>
-                  <input
-                    id="edit-penulis"
-                    type="text"
-                    value={formData.penulis}
-                    onChange={(e) =>
-                      setFormData({ ...formData, penulis: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="edit-prioritas"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Prioritas
-                  </label>
-                  <select
-                    id="edit-prioritas"
-                    value={formData.prioritas}
-                    onChange={(e) =>
-                      setFormData({ ...formData, prioritas: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  >
-                    <option value="Rendah">Rendah</option>
-                    <option value="Sedang">Sedang</option>
-                    <option value="Tinggi">Tinggi</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="edit-status"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Status
-                </label>
-                <select
-                  id="edit-status"
-                  value={formData.status}
-                  onChange={(e) =>
-                    setFormData({ ...formData, status: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                >
-                  <option value="Aktif">Aktif</option>
-                  <option value="Kadaluarsa">Kadaluarsa</option>
-                </select>
               </div>
 
               <div>
@@ -880,20 +897,6 @@ const PengumumanAdmin = () => {
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-h-[150px]"
                 ></textarea>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="edit-upload-lampiran"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Upload Lampiran Baru (Opsional)
-                </label>
-                <input
-                  id="edit-upload-lampiran"
-                  type="file"
-                  className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                />
               </div>
             </div>
 
@@ -1067,15 +1070,7 @@ const PengumumanAdmin = () => {
               </button>
               {currentItem?.status === "Kadaluarsa" && (
                 <button
-                  onClick={() => {
-                    const updatedData = pengumumanData.map((item) =>
-                      item.id === currentItem.id
-                        ? { ...item, status: "Aktif" }
-                        : item
-                    );
-                    setPengumumanData(updatedData);
-                    setShowPreviewModal(false);
-                  }}
+                  onClick={() => handleReactivate(currentItem.id)}
                   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
                 >
                   <FaCheck className="text-white" />

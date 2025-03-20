@@ -6,6 +6,7 @@ import {
   FaChartPie,
   FaPhotoVideo,
   FaEnvelope,
+  FaLink,
 } from "react-icons/fa";
 
 export default function SidebarAdmin() {
@@ -33,26 +34,6 @@ export default function SidebarAdmin() {
             <FaHome className="text-lg" /> <span>Dashboard</span>
           </NavLink>
           <NavLink
-            to="/admin/berita"
-            className={({ isActive }) =>
-              `${linkClass} ${
-                isActive ? activeClass : "hover:bg-gray-200 hover:text-gray-800"
-              }`
-            }
-          >
-            <FaNewspaper className="text-lg" /> <span>Berita</span>
-          </NavLink>
-          <NavLink
-            to="/admin/pengumuman"
-            className={({ isActive }) =>
-              `${linkClass} ${
-                isActive ? activeClass : "hover:bg-gray-200 hover:text-gray-800"
-              }`
-            }
-          >
-            <FaBullhorn className="text-lg" /> <span>Pengumuman</span>
-          </NavLink>
-          <NavLink
             to="/admin/infografis"
             className={({ isActive }) =>
               `${linkClass} ${
@@ -61,6 +42,16 @@ export default function SidebarAdmin() {
             }
           >
             <FaChartPie className="text-lg" /> <span>Infografis</span>
+          </NavLink>
+          <NavLink
+            to="/admin/pelayanan"
+            className={({ isActive }) =>
+              `${linkClass} ${
+                isActive ? activeClass : "hover:bg-gray-200 hover:text-gray-800"
+              }`
+            }
+          >
+            <FaLink className="text-lg" /> <span>Pelayanan</span>
           </NavLink>
           <NavLink
             to="/admin/media"
@@ -81,6 +72,26 @@ export default function SidebarAdmin() {
             }
           >
             <FaEnvelope className="text-lg" /> <span>Surat</span>
+          </NavLink>
+          <NavLink
+            to="/admin/berita"
+            className={({ isActive }) =>
+              `${linkClass} ${
+                isActive ? activeClass : "hover:bg-gray-200 hover:text-gray-800"
+              }`
+            }
+          >
+            <FaNewspaper className="text-lg" /> <span>Berita</span>
+          </NavLink>
+          <NavLink
+            to="/admin/pengumuman"
+            className={({ isActive }) =>
+              `${linkClass} ${
+                isActive ? activeClass : "hover:bg-gray-200 hover:text-gray-800"
+              }`
+            }
+          >
+            <FaBullhorn className="text-lg" /> <span>Pengumuman</span>
           </NavLink>
         </nav>
       </aside>
