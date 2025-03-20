@@ -6,7 +6,7 @@ console.log("File upload middleware dijalankan");
 // Konfigurasi penyimpanan file
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "D:/PROJECT/TIGAEMPAT/backend/uploads");
+    cb(null, "D:/PROJECT/TIGAEMPAT/backend/public/uploads");
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
