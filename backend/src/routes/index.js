@@ -5,12 +5,10 @@ import authRoutes from "./userRoutes.js";
 import pengumumanRoutes from "./pengumumanRoute.js"
 import beritaRoutes from "./beritaRoute.js"
 import danaRoute from "./danaRoute.js"
+import mediaRoute from "./mediaRoute.js"
+import pelayananRoute from "./pelayananRoute.js"
 
 const router = express.Router();
-
-router.get("/", (req, res) => {
-    res.send("Selamat Datang di WebDesa API");
-});
 
 // Gunakan semua route yang ada
 router.use("/auth", authRoutes)
@@ -19,5 +17,7 @@ router.use("/surat", suratRoutes);
 router.use("/pengumuman", pengumumanRoutes)
 router.use("/berita", beritaRoutes)
 router.use("/dana", danaRoute)
+router.use("/media", mediaRoute)
+router.use("/pelayanan", pelayananRoute)
 
 export default router;

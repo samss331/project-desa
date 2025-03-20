@@ -1,6 +1,7 @@
 import tokenHelpers from "../helpers/token.js";
 import passHelpers from "../helpers/pass.js";
 import userRepositories from "../repositories/userRepositories.js";
+import bcrypt from "bcrypt";
 import { UserDTO } from "../dto/dto.js";
 
 const loginAdmin = async (email, password) => {
@@ -36,4 +37,14 @@ const updateAdmin = async (nama, email, password) => {
   return new UserDTO(user.id, user.nama, user.email, null);
 };
 
-export default { loginAdmin, updateAdmin };
+const resetPassword = async (email) => {
+    const newPassword = "Bahontobungku123"; 
+    const hashedPassword = await passHelpers.hashPw(newPassword)
+
+    const success = await repo.resetPasswordByEmail(email, hashedPassword);
+    if (!success) throw new Error("Gagal mereset password!");
+
+    return { message: "Password berhasil direset ke default." };
+};
+
+export default { loginAdmin, updateAdmin , resetPassword };

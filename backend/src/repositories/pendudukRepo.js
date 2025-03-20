@@ -1,4 +1,5 @@
 import db from "../config/database.js";
+import Penduduk from "../model/model.js"
 
 const getAllPenduduk = async () => {
     try {
@@ -23,10 +24,10 @@ const addPenduduk = async (nama, nik, alamat, tanggalLahir, jenisKelamin, agama,
         const [results] = await db.
         promise().
         query("INSERT INTO PENDUDUK (nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga) VALUES (?, ?, ?, ?, ?, ?, ?)", [nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga]);
-        return {id: results.insertId, nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga};
+        return new Penduduk(results.insertId, nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga);
     } catch (error) {   
         throw error;   
-    }
+    } 
 };
 
 const updateDataPenduduk = async (oldNik, nama, newNik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga) => {
@@ -68,7 +69,7 @@ const getTotalKepalaKeluarga = async () => {
 
 const getTotalLakiLaki = async () => {
     try {
-        const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM PENDUDUK WHERE jenisKelamin = 'pria'");
+        const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM PENDUDUK WHERE jenisKelamin = 'laki-laki'");
         return results[0].total;
     } catch (error) {
         throw error;
@@ -77,7 +78,7 @@ const getTotalLakiLaki = async () => {
 
 const getTotalPerempuan = async () => {
     try {
-        const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM PENDUDUK WHERE jenisKelamin = 'wanita'");
+        const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM PENDUDUK WHERE jenisKelamin = 'perempuan'");
         return results[0].total;
     } catch (error) {
         throw error;

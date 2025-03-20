@@ -22,4 +22,15 @@ const updateUserByEmail = async (nama, email, password) => {
     return result.affectedRows > 0;
 }
 
-export default {getUserByEmail, updateUserByEmail};
+const resetPasswordByEmail = async (email, newPassword) => {
+    const user = await getUserByEmail(email);
+    if (!user) throw new Error("User dengan email tersebut tidak ditemukan!");
+
+    const [result] = await db.promise().query(
+        "UPDATE user SET password = ? WHERE email = ?", 
+        [newPassword, email]
+    );
+    return result.affectedRows > 0;
+};
+
+export default { getUserByEmail, updateUserByEmail, resetPasswordByEmail };

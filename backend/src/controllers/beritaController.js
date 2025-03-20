@@ -3,7 +3,8 @@ import beritaService from "../services/beritaServices.js";
 const addBerita = async (req, res) => {
     try {
         const { judul, isi, tanggalTerbit, penulis } = req.body;
-        const result = await beritaService.addBerita(judul, isi, tanggalTerbit, penulis);
+        const foto = req.file ? req.foto : null;
+        const result = await beritaService.addBerita(judul, foto, isi, tanggalTerbit, penulis);
         res.status(201).json({ success: true, message: "Berita berhasil ditambahkan", data: result });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -36,7 +37,8 @@ const updateBerita = async (req, res) => {
     try {
         const { id } = req.params;
         const { judul, isi, tanggalTerbit, penulis } = req.body;
-        const result = await beritaService.updateBerita(id, judul, isi, tanggalTerbit, penulis);
+        const foto = req.file ? req.foto : null;
+        const result = await beritaService.updateBerita(id, judul, foto, isi, tanggalTerbit, penulis);
         if (!result) {
             return res.status(404).json({ success: false, message: "Data tidak ditemukan" });
         }

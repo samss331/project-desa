@@ -11,8 +11,8 @@ router.delete("/delete/:nik", authAdmin, pendudukController.deleteDataPenduduk);
 
 router.get("/stats/total", pendudukController.getTotalPenduduk);
 router.get("/stats/kepala-keluarga", pendudukController.getTotalKepalaKeluarga);
-router.get("/stats/pria", pendudukController.getTotalLakiLaki);
-router.get("/stats/wanita", pendudukController.getTotalPerempuan);
+router.get("/stats/laki-laki", pendudukController.getTotalLakiLaki);
+router.get("/stats/perempuan", pendudukController.getTotalPerempuan);
 router.get("/stats/agama", pendudukController.getPendudukByAgama);
 router.get("/stats/umur", pendudukController.getPendudukByUmur);
 

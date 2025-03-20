@@ -51,9 +51,10 @@ class PengumumanDTO {
 }
 
 class BeritaDTO {
-    constructor(id, judul, isi, tanggalTerbit, penulis) {
+    constructor(id, judul, foto, isi, tanggalTerbit, penulis) {
         this.id = id;
         this.judul = judul;
+        this.foto = foto;
         this.isi = isi;
         this.tanggalTerbit = tanggalTerbit;
         this.penulis = penulis;
@@ -82,4 +83,23 @@ class DanaKeluarDTO {
     }
 }
 
-export { UserDTO, PendudukDTO, SuratMasukDTO, SuratKeluarDTO, PengumumanDTO, BeritaDTO, DanaMasukDTO, DanaKeluarDTO };
+class MediaDTO{
+    constructor(id, nama, tipe, url, deskripsi){
+        this.id = id
+        this.nama = nama
+        this.tipe = tipe
+        this.url = url
+        this.deskripsi = deskripsi 
+    }
+}
+
+class PelayananDTO{
+    constructor(nama_layanan, kategori, deskripsi, link_google_form){
+        this.nama_layanan = nama_layanan
+        this.kategori = kategori
+        this.deskripsi = deskripsi
+        this.link_google_form = link_google_form 
+    }
+}
+
+export { UserDTO, PendudukDTO, SuratMasukDTO, SuratKeluarDTO, PengumumanDTO, BeritaDTO, DanaMasukDTO, DanaKeluarDTO, MediaDTO, PelayananDTO };
