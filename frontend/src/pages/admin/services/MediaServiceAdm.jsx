@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000"; // Sesuaikan dengan URL API Anda
+const API_URL = "http://localhost:3000";
 
 // Buat axios instance dengan default config
 const api = axios.create({
@@ -22,12 +22,27 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-const MediaServiceAdmin = {
-  // GET methods
+const MediaService = {
+  // GET methods - Dapat diakses oleh admin dan user
   getAllMedia: async () => {
     try {
       const response = await api.get("/media");
-      return response.data.data || [];
+      // Tambahkan created_at jika tidak ada (workaround)
+      const data = response.data.data || [];
+      return data.map((item) => {
+        // Jika tidak ada created_at, coba ekstrak dari nama file (jika menggunakan timestamp)
+        if (!item.created_at && item.file) {
+          const filenameParts = item.file.split(".");
+          const possibleTimestamp = Number.parseInt(filenameParts[0]);
+          if (!isNaN(possibleTimestamp)) {
+            item.created_at = new Date(possibleTimestamp).toISOString();
+          } else {
+            // Fallback: gunakan tanggal hari ini
+            item.created_at = new Date().toISOString();
+          }
+        }
+        return item;
+      });
     } catch (error) {
       console.error("Error fetching media:", error);
       return [];
@@ -37,27 +52,34 @@ const MediaServiceAdmin = {
   getMediaById: async (id) => {
     try {
       const response = await api.get(`/media/${id}`);
-      return response.data.data;
+      const item = response.data.data;
+      // Tambahkan created_at jika tidak ada (workaround)
+      if (!item.created_at && item.file) {
+        const filenameParts = item.file.split(".");
+        const possibleTimestamp = Number.parseInt(filenameParts[0]);
+        if (!isNaN(possibleTimestamp)) {
+          item.created_at = new Date(possibleTimestamp).toISOString();
+        } else {
+          // Fallback: gunakan tanggal hari ini
+          item.created_at = new Date().toISOString();
+        }
+      }
+      return item;
     } catch (error) {
       console.error(`Error fetching media with id ${id}:`, error);
       return null;
     }
   },
 
-  // POST method
+  // POST method - Hanya dapat diakses oleh admin
   addMedia: async (mediaData) => {
     try {
       // Jika ada file, gunakan FormData
-      if (mediaData.file) {
-        const formData = new FormData();
-        formData.append("nama", mediaData.nama);
-        formData.append("tipe", mediaData.tipe);
-        formData.append("deskripsi", mediaData.deskripsi);
-        formData.append("file", mediaData.file);
-
-        const response = await api.post("/media", formData, {
+      if (mediaData instanceof FormData) {
+        const response = await axios.post(`${API_URL}/media`, mediaData, {
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         return response.data;
@@ -72,20 +94,15 @@ const MediaServiceAdmin = {
     }
   },
 
-  // PUT method
+  // PUT method - Hanya dapat diakses oleh admin
   updateMedia: async (id, mediaData) => {
     try {
       // Jika ada file, gunakan FormData
-      if (mediaData.file) {
-        const formData = new FormData();
-        formData.append("nama", mediaData.nama);
-        formData.append("tipe", mediaData.tipe);
-        formData.append("deskripsi", mediaData.deskripsi);
-        formData.append("file", mediaData.file);
-
-        const response = await api.put(`/media/${id}`, formData, {
+      if (mediaData instanceof FormData) {
+        const response = await axios.put(`${API_URL}/media/${id}`, mediaData, {
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         return response.data;
@@ -100,7 +117,7 @@ const MediaServiceAdmin = {
     }
   },
 
-  // DELETE method
+  // DELETE method - Hanya dapat diakses oleh admin
   deleteMedia: async (id) => {
     try {
       const response = await api.delete(`/media/${id}`);
@@ -111,7 +128,7 @@ const MediaServiceAdmin = {
     }
   },
 
-  // Get media URL
+  // Get media URL - Dapat diakses oleh admin dan user
   getMediaUrl: (filename) => {
     if (!filename) return null;
 
@@ -120,9 +137,80 @@ const MediaServiceAdmin = {
       return filename;
     }
 
-    // Return the complete URL
-    return `${API_URL}${filename}`;
+    // Ekstrak nama file dari path jika ada
+    const filenameOnly = filename.split("/").pop();
+
+    // Return the complete URL - tanpa parameter tambahan yang bisa menyebabkan masalah
+    return `${API_URL}/berita/${filenameOnly}`;
+  },
+
+  // Format date - Dapat diakses oleh admin dan user
+  formatDate: (dateString) => {
+    if (!dateString) return "-";
+
+    try {
+      const date = new Date(dateString);
+
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+
+      return date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    } catch (err) {
+      console.error("Error formatting date:", dateString, err);
+      return dateString;
+    }
+  },
+
+  // Ekstrak tahun dari tanggal - Fungsi baru untuk membantu filter tahun
+  extractYear: (item) => {
+    if (item.created_at) {
+      const date = new Date(item.created_at);
+      if (!isNaN(date.getTime())) {
+        return date.getFullYear().toString();
+      }
+
+      // Jika format tanggal tidak valid, coba ekstrak substring
+      if (typeof item.created_at === "string" && item.created_at.length >= 4) {
+        return item.created_at.substring(0, 4);
+      }
+    }
+
+    // Fallback: coba ekstrak dari nama file
+    if (item.file) {
+      const filenameParts = item.file.split(".");
+      const possibleTimestamp = Number.parseInt(filenameParts[0]);
+      if (!isNaN(possibleTimestamp)) {
+        return new Date(possibleTimestamp).getFullYear().toString();
+      }
+    }
+
+    // Jika semua cara gagal, gunakan tahun saat ini
+    return new Date().getFullYear().toString();
+  },
+
+  // Deteksi tipe file berdasarkan ekstensi
+  getFileType: (filename) => {
+    if (!filename) return null;
+
+    const extension = filename.split(".").pop().toLowerCase();
+
+    // Grup ekstensi berdasarkan tipe
+    const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
+    const videoExtensions = ["mp4", "webm", "ogg", "mkv"];
+    const pdfExtensions = ["pdf"];
+
+    if (imageExtensions.includes(extension)) return "image";
+    if (videoExtensions.includes(extension)) return "video";
+    if (pdfExtensions.includes(extension)) return "pdf";
+
+    return "unknown";
   },
 };
 
-export default MediaServiceAdmin;
+export default MediaService;

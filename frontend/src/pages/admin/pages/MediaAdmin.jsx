@@ -11,8 +11,11 @@ import {
   FaEye,
   FaChartBar,
   FaSpinner,
+  FaDownload,
+  FaTimesCircle,
+  FaExclamationTriangle,
 } from "react-icons/fa";
-import MediaServiceAdmin from "../services/MediaServiceAdm";
+import MediaService from "../services/MediaServiceAdm";
 
 const MediaAdmin = () => {
   // State untuk data
@@ -29,6 +32,8 @@ const MediaAdmin = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaError, setMediaError] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -48,7 +53,7 @@ const MediaAdmin = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await MediaServiceAdmin.getAllMedia();
+      const data = await MediaService.getAllMedia();
       setMediaData(data);
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -114,6 +119,35 @@ const MediaAdmin = () => {
     }
   };
 
+  // Get thumbnail for video
+  const getVideoThumbnail = (item) => {
+    // In a real app, you might have a thumbnail field or generate one
+    // For now, we'll use a placeholder
+    return "/placeholder.svg?height=300&width=400";
+  };
+
+  // Handle download - perbaikan untuk langsung mengunduh file
+  const handleDownload = (e, fileUrl, filename) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      // Buat elemen anchor tersembunyi
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = filename || "download"; // Gunakan nama file jika tersedia
+
+      // Penting: jangan gunakan target="_blank" karena bisa menyebabkan masalah "#blocked"
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Gagal mengunduh file. Silakan coba lagi.");
+    }
+  };
+
+  // Perbaiki fungsi saveNewItem untuk menangani upload file dengan benar
   const saveNewItem = async () => {
     try {
       // Validasi form
@@ -127,8 +161,15 @@ const MediaAdmin = () => {
         return;
       }
 
+      // Create a FormData object for file upload
+      const mediaFormData = new FormData();
+      mediaFormData.append("nama", formData.nama);
+      mediaFormData.append("tipe", formData.tipe);
+      mediaFormData.append("deskripsi", formData.deskripsi);
+      mediaFormData.append("file", formData.file);
+
       // Send to API
-      await MediaServiceAdmin.addMedia(formData);
+      const result = await MediaService.addMedia(mediaFormData);
 
       // Refresh data
       await fetchMediaData();
@@ -139,6 +180,7 @@ const MediaAdmin = () => {
     }
   };
 
+  // Perbaiki fungsi saveEditedItem untuk menangani update file dengan benar
   const saveEditedItem = async () => {
     try {
       // Validasi form
@@ -147,8 +189,19 @@ const MediaAdmin = () => {
         return;
       }
 
+      // Create a FormData object for file upload
+      const mediaFormData = new FormData();
+      mediaFormData.append("nama", formData.nama);
+      mediaFormData.append("tipe", formData.tipe);
+      mediaFormData.append("deskripsi", formData.deskripsi);
+
+      // Hanya tambahkan file jika ada file baru
+      if (formData.file) {
+        mediaFormData.append("file", formData.file);
+      }
+
       // Send to API
-      await MediaServiceAdmin.updateMedia(currentItem.id, formData);
+      await MediaService.updateMedia(currentItem.id, mediaFormData);
 
       // Refresh data
       await fetchMediaData();
@@ -162,7 +215,7 @@ const MediaAdmin = () => {
   const confirmDelete = async () => {
     try {
       // Send to API
-      await MediaServiceAdmin.deleteMedia(currentItem.id);
+      await MediaService.deleteMedia(currentItem.id);
 
       // Refresh data
       await fetchMediaData();
@@ -187,28 +240,109 @@ const MediaAdmin = () => {
     }
   };
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
+  // Render media content based on type
+  const renderMediaContent = () => {
+    if (!currentItem) return null;
 
-    try {
-      const date = new Date(dateString);
+    const mediaUrl = MediaService.getMediaUrl(currentItem.file);
 
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        return dateString;
-      }
-
-      return date.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-    } catch (err) {
-      console.error("Error formatting date:", dateString, err);
-      return dateString;
+    if (currentItem.tipe === "foto") {
+      return (
+        <div className="flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden">
+          {mediaLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
+              <FaSpinner className="animate-spin text-4xl text-white" />
+            </div>
+          )}
+          <img
+            src={mediaUrl || "/placeholder.svg"}
+            alt={currentItem.nama}
+            className="max-w-full max-h-[70vh] object-contain"
+            onLoad={() => setMediaLoading(false)}
+            onError={(e) => {
+              setMediaLoading(false);
+              setMediaError(true);
+              e.target.onerror = null;
+              e.target.src = "/placeholder.svg?height=600&width=800";
+            }}
+          />
+        </div>
+      );
+    } else if (currentItem.tipe === "video") {
+      return (
+        <div className="relative bg-black rounded-lg overflow-hidden">
+          {mediaLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
+              <FaSpinner className="animate-spin text-4xl text-white" />
+            </div>
+          )}
+          <video
+            src={mediaUrl}
+            controls
+            autoPlay
+            className="w-full max-h-[70vh]"
+            poster={getVideoThumbnail(currentItem)}
+            onLoadedData={() => setMediaLoading(false)}
+            onError={() => {
+              setMediaLoading(false);
+              setMediaError(true);
+            }}
+          >
+            Browser Anda tidak mendukung pemutaran video.
+          </video>
+        </div>
+      );
+    } else if (currentItem.tipe === "dokumen") {
+      return (
+        <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+          {mediaLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
+              <FaSpinner className="animate-spin text-4xl text-white" />
+            </div>
+          )}
+          <iframe
+            src={mediaUrl}
+            className="w-full h-[70vh]"
+            title={currentItem.nama}
+            onLoad={() => setMediaLoading(false)}
+            onError={() => {
+              setMediaLoading(false);
+              setMediaError(true);
+            }}
+          />
+          {mediaError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
+              <FaExclamationTriangle className="text-red-500 text-5xl mb-4" />
+              <p className="text-gray-700 mb-4">Dokumen tidak dapat dimuat</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.open(mediaUrl, "_blank")}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Buka di Tab Baru
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
     }
+
+    return (
+      <div className="flex flex-col items-center justify-center h-64 bg-gray-100 rounded-lg">
+        <FaExclamationTriangle className="text-yellow-500 text-5xl mb-4" />
+        <p className="text-gray-700">Format media tidak didukung</p>
+      </div>
+    );
   };
+
+  // Effect untuk mengatur loading state saat modal preview dibuka
+  useEffect(() => {
+    if (showPreviewModal && currentItem) {
+      setMediaLoading(true);
+      setMediaError(false);
+    }
+  }, [showPreviewModal, currentItem]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -464,8 +598,12 @@ const MediaAdmin = () => {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"
+            onClick={() => setShowAddModal(false)}
+          ></div>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md relative">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
                 Tambah Media Baru
@@ -587,8 +725,12 @@ const MediaAdmin = () => {
 
       {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"
+            onClick={() => setShowEditModal(false)}
+          ></div>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md relative">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">Edit Media</h3>
               <p className="text-gray-600 text-sm">
@@ -707,8 +849,12 @@ const MediaAdmin = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"
+            onClick={() => setShowDeleteModal(false)}
+          ></div>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md relative">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
                 Konfirmasi Hapus
@@ -737,11 +883,18 @@ const MediaAdmin = () => {
         </div>
       )}
 
-      {/* Preview Modal */}
-      {showPreviewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl">
-            <div className="flex justify-between items-center mb-4">
+      {/* Preview Modal - Dengan background blur */}
+      {showPreviewModal && currentItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"
+            onClick={() => setShowPreviewModal(false)}
+          ></div>
+          <div
+            className="relative w-full max-w-5xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-xl font-bold text-gray-800">
                 {getMediaIcon(currentItem?.tipe)} {currentItem?.nama}
               </h3>
@@ -749,99 +902,53 @@ const MediaAdmin = () => {
                 onClick={() => setShowPreviewModal(false)}
                 className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <FaTimesCircle className="text-gray-600" />
               </button>
             </div>
 
-            <div className="mb-4">
-              {currentItem?.tipe === "foto" && (
-                <img
-                  src={
-                    MediaServiceAdmin.getMediaUrl(currentItem?.file) ||
-                    "/placeholder.svg"
-                  }
-                  alt={currentItem?.nama}
-                  className="w-full h-auto rounded-lg"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/placeholder.svg";
-                  }}
-                />
-              )}
-              {currentItem?.tipe === "video" && (
-                <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg">
-                  <video
-                    src={MediaServiceAdmin.getMediaUrl(currentItem?.file)}
-                    controls
-                    className="w-full h-full rounded-lg"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.parentNode.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-full">
-                          <FaVideo class="text-red-500 text-5xl" />
-                          <p class="text-gray-500 mt-4">Video tidak dapat dimuat</p>
-                        </div>
-                      `;
-                    }}
-                  >
-                    Browser Anda tidak mendukung pemutaran video.
-                  </video>
-                </div>
-              )}
-              {currentItem?.tipe === "dokumen" && (
-                <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
-                  <FaFileAlt className="text-yellow-500 text-5xl" />
-                  <p className="text-gray-500 mt-4">Dokumen Preview</p>
-                  <a
-                    href={MediaServiceAdmin.getMediaUrl(currentItem?.file)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
-                  >
-                    Buka Dokumen
-                  </a>
-                </div>
-              )}
-            </div>
+            <div className="p-6">
+              {/* Media Content */}
+              <div className="mb-4">{renderMediaContent()}</div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-700 mb-4">{currentItem?.deskripsi}</p>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-500">Tipe</p>
-                  <p className="font-medium">{currentItem?.tipe}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Tanggal Dibuat</p>
-                  <p className="font-medium">
-                    {currentItem?.created_at
-                      ? formatDate(currentItem.created_at)
-                      : "-"}
-                  </p>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-700 mb-4">{currentItem?.deskripsi}</p>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-500">Tipe</p>
+                    <p className="font-medium">{currentItem?.tipe}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Tanggal Dibuat</p>
+                    <p className="font-medium">
+                      {currentItem?.created_at
+                        ? MediaService.formatDate(currentItem.created_at)
+                        : "-"}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Tutup
-              </button>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors mr-2"
+                >
+                  Tutup
+                </button>
+                <button
+                  onClick={(e) =>
+                    handleDownload(
+                      e,
+                      MediaService.getMediaUrl(currentItem?.file),
+                      currentItem?.file.split("/").pop()
+                    )
+                  }
+                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
+                >
+                  <FaDownload />
+                  <span>Unduh</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
