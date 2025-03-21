@@ -76,6 +76,26 @@ const MediaService = {
     try {
       // Jika ada file, gunakan FormData
       if (mediaData instanceof FormData) {
+        // Generate a unique filename with timestamp
+        if (mediaData.get("file")) {
+          const file = mediaData.get("file");
+          const fileExt = file.name.split(".").pop();
+          const timestamp = Date.now();
+          const newFilename = `${timestamp}.${fileExt}`;
+
+          // Create a new file object with the new name
+          const renamedFile = new File([file], newFilename, {
+            type: file.type,
+          });
+
+          // Replace the original file with the renamed one
+          mediaData.delete("file");
+          mediaData.append("file", renamedFile);
+
+          // Also store the original filename for reference
+          mediaData.append("original_filename", file.name);
+        }
+
         const response = await axios.post(`${API_URL}/media`, mediaData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -99,6 +119,26 @@ const MediaService = {
     try {
       // Jika ada file, gunakan FormData
       if (mediaData instanceof FormData) {
+        // Generate a unique filename with timestamp if there's a new file
+        if (mediaData.get("file")) {
+          const file = mediaData.get("file");
+          const fileExt = file.name.split(".").pop();
+          const timestamp = Date.now();
+          const newFilename = `${timestamp}.${fileExt}`;
+
+          // Create a new file object with the new name
+          const renamedFile = new File([file], newFilename, {
+            type: file.type,
+          });
+
+          // Replace the original file with the renamed one
+          mediaData.delete("file");
+          mediaData.append("file", renamedFile);
+
+          // Also store the original filename for reference
+          mediaData.append("original_filename", file.name);
+        }
+
         const response = await axios.put(`${API_URL}/media/${id}`, mediaData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -140,8 +180,8 @@ const MediaService = {
     // Ekstrak nama file dari path jika ada
     const filenameOnly = filename.split("/").pop();
 
-    // Return the complete URL - tanpa parameter tambahan yang bisa menyebabkan masalah
-    return `${API_URL}/berita/${filenameOnly}`;
+    // Return the complete URL
+    return `../../public/berita/${filenameOnly}`;
   },
 
   // Format date - Dapat diakses oleh admin dan user
@@ -210,6 +250,19 @@ const MediaService = {
     if (pdfExtensions.includes(extension)) return "pdf";
 
     return "unknown";
+  },
+
+  // Generate thumbnail for video
+  getVideoThumbnail: (item) => {
+    if (!item || !item.file) return "/placeholder.svg?height=300&width=400";
+
+    // If there's a thumbnail field, use it
+    if (item.thumbnail) {
+      return MediaService.getMediaUrl(item.thumbnail);
+    }
+
+    // Otherwise, use a placeholder
+    return "/placeholder.svg?height=300&width=400";
   },
 };
 

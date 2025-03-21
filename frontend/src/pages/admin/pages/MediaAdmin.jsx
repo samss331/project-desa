@@ -116,14 +116,9 @@ const MediaAdmin = () => {
     if (item) {
       setCurrentItem(item);
       setShowPreviewModal(true);
+      setMediaLoading(true);
+      setMediaError(false);
     }
-  };
-
-  // Get thumbnail for video
-  const getVideoThumbnail = (item) => {
-    // In a real app, you might have a thumbnail field or generate one
-    // For now, we'll use a placeholder
-    return "/placeholder.svg?height=300&width=400";
   };
 
   // Handle download - perbaikan untuk langsung mengunduh file
@@ -161,6 +156,37 @@ const MediaAdmin = () => {
         return;
       }
 
+      // Validate file type based on selected media type
+      const fileExt = formData.file.name.split(".").pop().toLowerCase();
+
+      // Define allowed extensions for each type
+      const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
+      const videoExtensions = ["mp4", "webm", "ogg", "mkv"];
+      const pdfExtensions = ["pdf"];
+
+      let isValidFileType = false;
+
+      if (formData.tipe === "foto" && imageExtensions.includes(fileExt)) {
+        isValidFileType = true;
+      } else if (
+        formData.tipe === "video" &&
+        videoExtensions.includes(fileExt)
+      ) {
+        isValidFileType = true;
+      } else if (
+        formData.tipe === "dokumen" &&
+        pdfExtensions.includes(fileExt)
+      ) {
+        isValidFileType = true;
+      }
+
+      if (!isValidFileType) {
+        alert(
+          `Format file tidak sesuai dengan tipe media ${formData.tipe} yang dipilih!`
+        );
+        return;
+      }
+
       // Create a FormData object for file upload
       const mediaFormData = new FormData();
       mediaFormData.append("nama", formData.nama);
@@ -170,6 +196,7 @@ const MediaAdmin = () => {
 
       // Send to API
       const result = await MediaService.addMedia(mediaFormData);
+      console.log("Media added successfully:", result);
 
       // Refresh data
       await fetchMediaData();
@@ -189,6 +216,39 @@ const MediaAdmin = () => {
         return;
       }
 
+      // Validate file type if a new file is uploaded
+      if (formData.file) {
+        const fileExt = formData.file.name.split(".").pop().toLowerCase();
+
+        // Define allowed extensions for each type
+        const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
+        const videoExtensions = ["mp4", "webm", "ogg", "mkv"];
+        const pdfExtensions = ["pdf"];
+
+        let isValidFileType = false;
+
+        if (formData.tipe === "foto" && imageExtensions.includes(fileExt)) {
+          isValidFileType = true;
+        } else if (
+          formData.tipe === "video" &&
+          videoExtensions.includes(fileExt)
+        ) {
+          isValidFileType = true;
+        } else if (
+          formData.tipe === "dokumen" &&
+          pdfExtensions.includes(fileExt)
+        ) {
+          isValidFileType = true;
+        }
+
+        if (!isValidFileType) {
+          alert(
+            `Format file tidak sesuai dengan tipe media ${formData.tipe} yang dipilih!`
+          );
+          return;
+        }
+      }
+
       // Create a FormData object for file upload
       const mediaFormData = new FormData();
       mediaFormData.append("nama", formData.nama);
@@ -202,6 +262,7 @@ const MediaAdmin = () => {
 
       // Send to API
       await MediaService.updateMedia(currentItem.id, mediaFormData);
+      console.log("Media updated successfully");
 
       // Refresh data
       await fetchMediaData();
@@ -216,6 +277,7 @@ const MediaAdmin = () => {
     try {
       // Send to API
       await MediaService.deleteMedia(currentItem.id);
+      console.log("Media deleted successfully");
 
       // Refresh data
       await fetchMediaData();
@@ -228,26 +290,25 @@ const MediaAdmin = () => {
 
   // Get icon based on media type
   const getMediaIcon = (type) => {
-    switch (type.toLowerCase()) {
-      case "foto":
-        return <FaImage className="text-blue-500" />;
-      case "video":
-        return <FaVideo className="text-red-500" />;
-      case "dokumen":
-        return <FaFileAlt className="text-yellow-500" />;
-      default:
-        return <FaFileAlt className="text-gray-500" />;
-    }
+    const iconMap = {
+      foto: <FaImage className="text-blue-500" />,
+      video: <FaVideo className="text-red-500" />,
+      dokumen: <FaFileAlt className="text-yellow-500" />,
+    };
+
+    return (
+      iconMap[type.toLowerCase()] || <FaFileAlt className="text-gray-500" />
+    );
   };
 
-  // Render media content based on type
+  // Render media content based on type - menggunakan metode mapping
   const renderMediaContent = () => {
     if (!currentItem) return null;
 
     const mediaUrl = MediaService.getMediaUrl(currentItem.file);
 
-    if (currentItem.tipe === "foto") {
-      return (
+    const mediaTypeMap = {
+      foto: (
         <div className="flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden">
           {mediaLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
@@ -255,7 +316,7 @@ const MediaAdmin = () => {
             </div>
           )}
           <img
-            src={mediaUrl || "/placeholder.svg"}
+            src={mediaUrl || "/placeholder.svg?height=600&width=800"}
             alt={currentItem.nama}
             className="max-w-full max-h-[70vh] object-contain"
             onLoad={() => setMediaLoading(false)}
@@ -267,9 +328,8 @@ const MediaAdmin = () => {
             }}
           />
         </div>
-      );
-    } else if (currentItem.tipe === "video") {
-      return (
+      ),
+      video: (
         <div className="relative bg-black rounded-lg overflow-hidden">
           {mediaLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
@@ -281,7 +341,7 @@ const MediaAdmin = () => {
             controls
             autoPlay
             className="w-full max-h-[70vh]"
-            poster={getVideoThumbnail(currentItem)}
+            poster="/placeholder.svg?height=600&width=800"
             onLoadedData={() => setMediaLoading(false)}
             onError={() => {
               setMediaLoading(false);
@@ -290,10 +350,23 @@ const MediaAdmin = () => {
           >
             Browser Anda tidak mendukung pemutaran video.
           </video>
+          {mediaError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
+              <FaExclamationTriangle className="text-red-500 text-5xl mb-4" />
+              <p className="text-gray-700 mb-4">Video tidak dapat dimuat</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.open(mediaUrl, "_blank")}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Buka di Tab Baru
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      );
-    } else if (currentItem.tipe === "dokumen") {
-      return (
+      ),
+      dokumen: (
         <div className="relative bg-gray-100 rounded-lg overflow-hidden">
           {mediaLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
@@ -325,24 +398,19 @@ const MediaAdmin = () => {
             </div>
           )}
         </div>
-      );
-    }
+      ),
+    };
 
+    // Return the appropriate media content based on type, or a default message
     return (
-      <div className="flex flex-col items-center justify-center h-64 bg-gray-100 rounded-lg">
-        <FaExclamationTriangle className="text-yellow-500 text-5xl mb-4" />
-        <p className="text-gray-700">Format media tidak didukung</p>
-      </div>
+      mediaTypeMap[currentItem.tipe] || (
+        <div className="flex flex-col items-center justify-center h-64 bg-gray-100 rounded-lg">
+          <FaExclamationTriangle className="text-yellow-500 text-5xl mb-4" />
+          <p className="text-gray-700">Format media tidak didukung</p>
+        </div>
+      )
     );
   };
-
-  // Effect untuk mengatur loading state saat modal preview dibuka
-  useEffect(() => {
-    if (showPreviewModal && currentItem) {
-      setMediaLoading(true);
-      setMediaError(false);
-    }
-  }, [showPreviewModal, currentItem]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
