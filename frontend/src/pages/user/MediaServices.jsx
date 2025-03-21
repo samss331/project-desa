@@ -42,7 +42,7 @@ const MediaServiceUser = {
     }
 
     // Return the complete URL
-    return `${API_URL}/uploads/${filename}`;
+    return `${API_URL}/${filename}`;
   },
 
   // Utility function untuk format tanggal

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
@@ -11,11 +11,13 @@ import {
   FaSpinner,
   FaExclamationTriangle,
   FaArrowLeft,
+  FaNewspaper,
 } from "react-icons/fa";
-import BeritaService from "./services/BeritaService";
+import BeritaService from "./user/BeritaService";
 
 const BeritaDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [berita, setBerita] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,7 +26,21 @@ const BeritaDetail = () => {
     const fetchBerita = async () => {
       setIsLoading(true);
       setError(null);
+
       try {
+        // First try to get from localStorage (if navigated from Information page)
+        const storedBerita = localStorage.getItem("selectedBerita");
+
+        if (storedBerita) {
+          const parsedBerita = JSON.parse(storedBerita);
+          if (parsedBerita.id.toString() === id) {
+            setBerita(parsedBerita);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // If not in localStorage or ID doesn't match, fetch from API
         const data = await BeritaService.getBeritaById(id);
         if (!data) {
           setError("Berita tidak ditemukan");
@@ -41,30 +57,30 @@ const BeritaDetail = () => {
 
     if (id) {
       fetchBerita();
+    } else {
+      // If no ID is provided, try to get from localStorage
+      const storedBerita = localStorage.getItem("selectedBerita");
+      if (storedBerita) {
+        setBerita(JSON.parse(storedBerita));
+        setIsLoading(false);
+      } else {
+        setError("Berita tidak ditemukan");
+        setIsLoading(false);
+      }
     }
   }, [id]);
-
-  // Get placeholder image
-  const getPlaceholderImage = () => {
-    const placeholders = [
-      "/assets/berita1.jpg",
-      "/assets/berita2.jpg",
-      "/assets/berita3.jpg",
-    ];
-    return placeholders[Math.floor(Math.random() * placeholders.length)];
-  };
 
   return (
     <div>
       <Navbar />
       <div className="my-4 md:mx-40 pt-20 px-4 md:px-0">
         <div className="mb-6">
-          <a
-            href="/berita"
+          <button
+            onClick={() => navigate("/Information")}
             className="inline-flex items-center text-blue-600 hover:text-blue-800"
           >
             <FaArrowLeft className="mr-2" /> Kembali ke daftar berita
-          </a>
+          </button>
         </div>
 
         {isLoading ? (
@@ -98,11 +114,19 @@ const BeritaDetail = () => {
             </div>
 
             <div className="mb-8">
-              <img
-                src={getPlaceholderImage() || "/placeholder.svg"}
-                alt={berita.judul}
-                className="w-full h-64 md:h-96 object-cover rounded-xl"
-              />
+              {berita.foto ? (
+                <img
+                  src={
+                    BeritaService.getImageUrl(berita.foto) || "/placeholder.svg"
+                  }
+                  alt={berita.judul}
+                  className="w-full h-64 md:h-96 object-cover rounded-xl"
+                />
+              ) : (
+                <div className="w-full h-64 md:h-96 bg-gray-200 rounded-xl flex items-center justify-center">
+                  <FaNewspaper className="text-gray-400 text-5xl" />
+                </div>
+              )}
             </div>
 
             <div className="prose max-w-none">

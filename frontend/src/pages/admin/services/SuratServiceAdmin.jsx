@@ -46,11 +46,16 @@ api.interceptors.response.use(
 
 // Helper function to find file field in an object
 const findFileField = (item) => {
-  // List of possible file field names
+  // Check for the 'file' field first (as seen in the database)
+  if (item.file) {
+    console.log(`Found file in field: file with value: ${item.file}`);
+    return item.file;
+  }
+
+  // List of other possible file field names as fallback
   const possibleFileFields = [
     "file_surat",
     "fileSurat",
-    "file",
     "dokumen",
     "attachment",
     "lampiran",
@@ -103,7 +108,7 @@ const SuratService = {
           pengirim: item.pengirim || "",
           tanggal: item.tanggalTerima || new Date().toISOString(),
           status: "Diterima",
-          file_surat: fileField,
+          file: fileField, // Use 'file' to match database field
           // Store the raw item for debugging
           _raw: item,
         };
@@ -120,7 +125,7 @@ const SuratService = {
           pengirim: item.penerima || "", // penerima disimpan di field pengirim untuk UI
           tanggal: item.tanggalKirim || new Date().toISOString(),
           status: "Terkirim",
-          file_surat: fileField,
+          file: fileField, // Use 'file' to match database field
           // Store the raw item for debugging
           _raw: item,
         };
@@ -154,7 +159,7 @@ const SuratService = {
           pengirim: item.pengirim || "",
           tanggal: item.tanggalTerima || new Date().toISOString(),
           status: "Diterima",
-          file_surat: fileField,
+          file: fileField, // Use 'file' to match database field
           _raw: item,
         };
       });
@@ -183,7 +188,7 @@ const SuratService = {
           pengirim: item.penerima || "", // penerima disimpan di field pengirim untuk UI
           tanggal: item.tanggalKirim || new Date().toISOString(),
           status: "Terkirim",
-          file_surat: fileField,
+          file: fileField, // Use 'file' to match database field
           _raw: item,
         };
       });
@@ -302,6 +307,16 @@ const SuratService = {
         );
       }
 
+      // Check if the file field exists and rename it to match server expectation
+      if (formData.has("file")) {
+        const fileObject = formData.get("file");
+        formData.delete("file");
+        formData.append("file_surat", fileObject);
+        console.log(
+          "Renamed 'file' field to 'file_surat' to match server expectation"
+        );
+      }
+
       // Use axios directly with the token in headers
       const response = await axios.post(
         `${API_URL}/surat/addSuratMasuk`,
@@ -342,6 +357,16 @@ const SuratService = {
         );
       }
 
+      // Check if the file field exists and rename it to match server expectation
+      if (formData.has("file")) {
+        const fileObject = formData.get("file");
+        formData.delete("file");
+        formData.append("file_surat", fileObject);
+        console.log(
+          "Renamed 'file' field to 'file_surat' to match server expectation"
+        );
+      }
+
       // Use axios directly with the token in headers
       const response = await axios.post(
         `${API_URL}/surat/addSuratKeluar`,
@@ -375,6 +400,16 @@ const SuratService = {
         throw new Error("Authentication token required");
       }
 
+      // Check if the file field exists and rename it to match server expectation
+      if (formData.has("file")) {
+        const fileObject = formData.get("file");
+        formData.delete("file");
+        formData.append("file_surat", fileObject);
+        console.log(
+          "Renamed 'file' field to 'file_surat' to match server expectation"
+        );
+      }
+
       const response = await axios.put(
         `${API_URL}/surat/update-surat-masuk/${id}`,
         formData,
@@ -398,6 +433,16 @@ const SuratService = {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Authentication token required");
+      }
+
+      // Check if the file field exists and rename it to match server expectation
+      if (formData.has("file")) {
+        const fileObject = formData.get("file");
+        formData.delete("file");
+        formData.append("file_surat", fileObject);
+        console.log(
+          "Renamed 'file' field to 'file_surat' to match server expectation"
+        );
       }
 
       const response = await axios.put(
@@ -426,6 +471,26 @@ const SuratService = {
         throw new Error("Authentication token required");
       }
 
+      // First, get the surat to find the file path
+      const suratList = await SuratService.getSuratMasuk();
+      const surat = suratList.find((item) => item.id === id);
+
+      // If there's a file, request its deletion
+      if (surat && surat.file) {
+        try {
+          // Request file deletion from server
+          await axios.delete(`${API_URL}/surat/delete-file`, {
+            headers: { Authorization: `Bearer ${token}` },
+            data: { filePath: surat.file },
+          });
+          console.log(`Requested deletion of file: ${surat.file}`);
+        } catch (fileError) {
+          console.error("Error deleting file:", fileError);
+          // Continue with surat deletion even if file deletion fails
+        }
+      }
+
+      // Delete the surat record
       const response = await axios.delete(
         `${API_URL}/surat/delete-surat-masuk/${id}`,
         {
@@ -449,6 +514,26 @@ const SuratService = {
         throw new Error("Authentication token required");
       }
 
+      // First, get the surat to find the file path
+      const suratList = await SuratService.getSuratKeluar();
+      const surat = suratList.find((item) => item.id === id);
+
+      // If there's a file, request its deletion
+      if (surat && surat.file) {
+        try {
+          // Request file deletion from server
+          await axios.delete(`${API_URL}/surat/delete-file`, {
+            headers: { Authorization: `Bearer ${token}` },
+            data: { filePath: surat.file },
+          });
+          console.log(`Requested deletion of file: ${surat.file}`);
+        } catch (fileError) {
+          console.error("Error deleting file:", fileError);
+          // Continue with surat deletion even if file deletion fails
+        }
+      }
+
+      // Delete the surat record
       const response = await axios.delete(
         `${API_URL}/surat/delete-surat-keluar/${id}`,
         {
@@ -467,7 +552,10 @@ const SuratService = {
 
   // File methods - accessible by both admin and user
   getFileUrl: (fileName) => {
-    if (!fileName) return null;
+    if (!fileName) {
+      console.log("No filename provided to getFileUrl");
+      return null;
+    }
 
     console.log("Getting file URL for:", fileName); // Debug log
 
@@ -477,29 +565,63 @@ const SuratService = {
       return fileName;
     }
 
-    // If it's a path that starts with /public/, adjust it for frontend access
-    if (fileName.startsWith("/public/")) {
-      const url = fileName.replace("/public/", "/");
-      console.log("File is in public directory, adjusted URL:", url);
-      return url;
-    }
+    // For files in the berita directory (as seen in your setup)
+    const fileUrl = `/berita/${fileName.split("/").pop()}`;
+    console.log("Constructed file URL:", fileUrl);
+    return fileUrl;
+  },
 
-    // If it's a path that includes /surat/ or /berita/, return the direct path
-    if (fileName.includes("/surat/") || fileName.includes("/berita/")) {
-      const url = `${API_URL}/surat/file_surat/${
-        fileName.startsWith("/") ? "" : "/"
-      }${fileName}`;
-      console.log(
-        "File is in surat or berita directory, constructed URL:",
-        url
-      );
-      return url;
-    }
+  // Download file as blob to avoid browser blocking
+  downloadFile: async (fileName) => {
+    if (!fileName) return null;
 
-    // Otherwise, construct the API URL
-    const url = `${API_URL}/surat/file_surat/${fileName}`;
-    console.log("Constructed URL for file:", url);
-    return url;
+    try {
+      console.log("Downloading file:", fileName);
+      const fileUrl = SuratService.getFileUrl(fileName);
+
+      // Fetch the file as a blob
+      const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch file: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const blob = await response.blob();
+
+      // Create a blob URL and trigger download
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName.split("/").pop(); // Extract filename
+
+      // Append to document, click, and clean up
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Release the blob URL after a short delay
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+
+      return true;
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      return false;
+    }
+  },
+
+  // Check if file exists
+  checkFileExists: async (fileName) => {
+    if (!fileName) return false;
+
+    try {
+      const fileUrl = SuratService.getFileUrl(fileName);
+      const response = await fetch(fileUrl, { method: "HEAD" });
+      return response.ok;
+    } catch (error) {
+      console.error("Error checking if file exists:", error);
+      return false;
+    }
   },
 };
 

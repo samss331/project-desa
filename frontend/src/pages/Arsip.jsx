@@ -15,7 +15,7 @@ import {
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import SuratService from "../pages/admin/services//SuratServiceAdmin";
+import SuratService from "../pages/admin/services/SuratServiceAdmin";
 
 export default function ArsipSurat() {
   const [suratData, setSuratData] = useState({});
@@ -146,20 +146,24 @@ export default function ArsipSurat() {
     setPdfUrl(null);
 
     try {
-      if (item.file_surat) {
+      if (item.file) {
         // Get the file URL
-        const fileUrl = SuratService.getFileUrl(item.file_surat);
+        const fileUrl = SuratService.getFileUrl(item.file);
         console.log("File URL for preview:", fileUrl);
 
-        // Try to fetch the file to verify it exists
-        const response = await fetch(fileUrl, { method: "HEAD" });
+        // Check if file exists
+        const fileExists = await SuratService.checkFileExists(item.file);
 
-        if (response.ok) {
+        if (fileExists) {
           setPdfUrl(fileUrl);
+          setPdfError(false);
         } else {
           console.error("File not found or inaccessible:", fileUrl);
           setPdfError(true);
         }
+      } else {
+        console.log("No file attached to this item");
+        setPdfError(true);
       }
     } catch (error) {
       console.error("Error preparing file for preview:", error);
@@ -180,19 +184,10 @@ export default function ArsipSurat() {
     }
 
     try {
-      // Get direct URL to the file
-      const fileUrl = SuratService.getFileUrl(fileName);
-
-      // Create a temporary anchor element
-      const link = document.createElement("a");
-      link.href = fileUrl;
-      link.target = "_blank";
-      link.download = fileName.split("/").pop(); // Extract filename from path
-
-      // Append to body, click, and remove
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const success = await SuratService.downloadFile(fileName);
+      if (!success) {
+        alert("Terjadi kesalahan saat mengunduh file");
+      }
     } catch (error) {
       console.error("Error downloading file:", error);
       alert("Terjadi kesalahan saat mengunduh file");
@@ -457,11 +452,9 @@ export default function ArsipSurat() {
                               >
                                 <FaEye className="text-[#6CABCA]" />
                               </button>
-                              {surat.file_surat && (
+                              {surat.file && (
                                 <button
-                                  onClick={() =>
-                                    handleDownload(surat.file_surat)
-                                  }
+                                  onClick={() => handleDownload(surat.file)}
                                   className="p-1.5 bg-gray-100 bg-opacity-20 rounded-md hover:bg-gray-200 hover:bg-opacity-30 transition-colors"
                                   title="Unduh"
                                 >
@@ -497,7 +490,7 @@ export default function ArsipSurat() {
       {/* Preview Modal */}
       {showPreviewModal && currentItem && (
         <div className="fixed inset-0 backdrop-blur-sm bg-gray-700/30 flex items-center justify-center z-50 transition-all duration-300">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 {getSuratIcon(currentItem.jenis)}{" "}
@@ -557,25 +550,20 @@ export default function ArsipSurat() {
                     <FaSpinner className="animate-spin text-4xl text-[#6CABCA] mb-4" />
                     <p>Memuat dokumen...</p>
                   </div>
-                ) : currentItem.file_surat && pdfUrl ? (
+                ) : currentItem.file && pdfUrl ? (
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <p className="font-medium">
                         <FaFilePdf className="inline-block mr-2 text-red-500" />
-                        {currentItem.file_surat.split("/").pop() ||
-                          "Dokumen Surat"}
+                        {currentItem.file.split("/").pop() || "Dokumen Surat"}
                       </p>
-                      <div className="flex gap-2">
-                        <a
-                          href={pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
-                        >
-                          <FaEye className="text-white" />
-                          <span>Buka di Tab Baru</span>
-                        </a>
-                      </div>
+                      <button
+                        onClick={() => handleDownload(currentItem.file)}
+                        className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1"
+                      >
+                        <FaDownload className="text-white" />
+                        <span>Unduh</span>
+                      </button>
                     </div>
 
                     {/* PDF Viewer */}
@@ -615,15 +603,6 @@ export default function ArsipSurat() {
               >
                 Tutup
               </button>
-              {currentItem.file_surat && pdfUrl && (
-                <button
-                  onClick={() => handleDownload(currentItem.file_surat)}
-                  className="px-4 py-2 bg-[#B9FF66] text-gray-800 rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
-                >
-                  <FaDownload />
-                  <span>Unduh Dokumen</span>
-                </button>
-              )}
             </div>
           </div>
         </div>
