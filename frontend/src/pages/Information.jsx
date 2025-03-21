@@ -18,7 +18,7 @@ import {
 import BeritaService from "./user/BeritaService";
 
 const Information = () => {
-  // State for slider
+  // State for slide
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // State for berita data
