@@ -10,7 +10,7 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to include auth token
+// Add request interceptor to include auth token when available
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -44,8 +44,42 @@ api.interceptors.response.use(
   }
 );
 
+// Helper function to find file field in an object
+const findFileField = (item) => {
+  // Check for the 'file' field first (as seen in the database)
+  if (item.file) {
+    console.log(`Found file in field: file with value: ${item.file}`);
+    return item.file;
+  }
+
+  // List of other possible file field names as fallback
+  const possibleFileFields = [
+    "file_surat",
+    "fileSurat",
+    "dokumen",
+    "attachment",
+    "lampiran",
+    "document",
+    "pdf",
+    "fileUrl",
+    "url",
+  ];
+
+  // Check each possible field name
+  for (const field of possibleFileFields) {
+    if (item[field]) {
+      console.log(`Found file in field: ${field} with value: ${item[field]}`);
+      return item[field];
+    }
+  }
+
+  // If no field is found, log all available fields for debugging
+  console.log("Available fields in item:", Object.keys(item));
+  return null;
+};
+
 const SuratService = {
-  // GET methods
+  // GET methods - accessible by both admin and user
   getAllSurat: async () => {
     try {
       // Fetch surat masuk
@@ -63,27 +97,39 @@ const SuratService = {
       console.log("Surat Keluar Data:", suratKeluarData);
 
       // Transform data for display
-      const transformedMasuk = suratMasukData.map((item) => ({
-        id: item.id,
-        jenis: "Surat Masuk",
-        nomor: item.nomorSurat || "",
-        perihal: item.perihal || "",
-        pengirim: item.pengirim || "",
-        tanggal: item.tanggalTerima || new Date().toISOString(),
-        status: "Diterima",
-        file_surat: item.file_surat || null,
-      }));
+      const transformedMasuk = suratMasukData.map((item) => {
+        const fileField = findFileField(item);
+        return {
+          id: item.id,
+          jenis: "Surat Masuk",
+          nomor: item.nomorSurat || "",
+          perihal: item.perihal || "",
+          judul: item.perihal || "",
+          pengirim: item.pengirim || "",
+          tanggal: item.tanggalTerima || new Date().toISOString(),
+          status: "Diterima",
+          file: fileField, // Use 'file' to match database field
+          // Store the raw item for debugging
+          _raw: item,
+        };
+      });
 
-      const transformedKeluar = suratKeluarData.map((item) => ({
-        id: item.id,
-        jenis: "Surat Keluar",
-        nomor: item.nomorSurat || "",
-        perihal: item.perihal || "",
-        pengirim: item.penerima || "", // penerima disimpan di field pengirim untuk UI
-        tanggal: item.tanggalKirim || new Date().toISOString(),
-        status: "Terkirim",
-        file_surat: item.file_surat || null,
-      }));
+      const transformedKeluar = suratKeluarData.map((item) => {
+        const fileField = findFileField(item);
+        return {
+          id: item.id,
+          jenis: "Surat Keluar",
+          nomor: item.nomorSurat || "",
+          perihal: item.perihal || "",
+          judul: item.perihal || "",
+          pengirim: item.penerima || "", // penerima disimpan di field pengirim untuk UI
+          tanggal: item.tanggalKirim || new Date().toISOString(),
+          status: "Terkirim",
+          file: fileField, // Use 'file' to match database field
+          // Store the raw item for debugging
+          _raw: item,
+        };
+      });
 
       const combinedData = [...transformedMasuk, ...transformedKeluar];
       console.log("Combined Data:", combinedData);
@@ -102,16 +148,21 @@ const SuratService = {
       console.log("Surat Masuk Data:", suratMasukData);
 
       // Transform data for display
-      return suratMasukData.map((item) => ({
-        id: item.id,
-        jenis: "Surat Masuk",
-        nomor: item.nomorSurat || "",
-        perihal: item.perihal || "",
-        pengirim: item.pengirim || "",
-        tanggal: item.tanggalTerima || new Date().toISOString(),
-        status: "Diterima",
-        file_surat: item.file_surat || null,
-      }));
+      return suratMasukData.map((item) => {
+        const fileField = findFileField(item);
+        return {
+          id: item.id,
+          jenis: "Surat Masuk",
+          nomor: item.nomorSurat || "",
+          perihal: item.perihal || "",
+          judul: item.perihal || "",
+          pengirim: item.pengirim || "",
+          tanggal: item.tanggalTerima || new Date().toISOString(),
+          status: "Diterima",
+          file: fileField, // Use 'file' to match database field
+          _raw: item,
+        };
+      });
     } catch (error) {
       console.error("Error fetching surat masuk:", error);
       return [];
@@ -126,32 +177,143 @@ const SuratService = {
       console.log("Surat Keluar Data:", suratKeluarData);
 
       // Transform data for display
-      return suratKeluarData.map((item) => ({
-        id: item.id,
-        jenis: "Surat Keluar",
-        nomor: item.nomorSurat || "",
-        perihal: item.perihal || "",
-        pengirim: item.penerima || "", // penerima disimpan di field pengirim untuk UI
-        tanggal: item.tanggalKirim || new Date().toISOString(),
-        status: "Terkirim",
-        file_surat: item.file_surat || null,
-      }));
+      return suratKeluarData.map((item) => {
+        const fileField = findFileField(item);
+        return {
+          id: item.id,
+          jenis: "Surat Keluar",
+          nomor: item.nomorSurat || "",
+          perihal: item.perihal || "",
+          judul: item.perihal || "",
+          pengirim: item.penerima || "", // penerima disimpan di field pengirim untuk UI
+          tanggal: item.tanggalKirim || new Date().toISOString(),
+          status: "Terkirim",
+          file: fileField, // Use 'file' to match database field
+          _raw: item,
+        };
+      });
     } catch (error) {
       console.error("Error fetching surat keluar:", error);
       return [];
     }
   },
 
-  // POST methods
+  // Get surat by year - for user page
+  getSuratByYear: async (year) => {
+    try {
+      const allSurat = await SuratService.getAllSurat();
+
+      // Filter by year
+      return allSurat.filter((surat) => {
+        // Pastikan tanggal valid
+        if (!surat.tanggal) return false;
+
+        let suratYear;
+        try {
+          // Coba parse tanggal dengan berbagai format
+          const date = new Date(surat.tanggal);
+
+          // Periksa apakah tanggal valid
+          if (isNaN(date.getTime())) {
+            // Jika format tanggal tidak standar, coba ekstrak tahun dengan regex
+            const yearMatch = surat.tanggal.match(/\d{4}/);
+            suratYear = yearMatch ? yearMatch[0] : null;
+          } else {
+            suratYear = date.getFullYear().toString();
+          }
+
+          return suratYear === year;
+        } catch (err) {
+          console.error("Error parsing date:", surat.tanggal, err);
+          return false;
+        }
+      });
+    } catch (error) {
+      console.error(`Error fetching surat for year ${year}:`, error);
+      return [];
+    }
+  },
+
+  // Get available years - for user page
+  getAvailableYears: async () => {
+    try {
+      const allSurat = await SuratService.getAllSurat();
+
+      // Extract unique years with better date handling
+      const years = allSurat.reduce((acc, surat) => {
+        if (!surat.tanggal) return acc;
+
+        let year;
+        try {
+          // Coba parse tanggal dengan berbagai format
+          const date = new Date(surat.tanggal);
+
+          // Periksa apakah tanggal valid
+          if (isNaN(date.getTime())) {
+            // Jika format tanggal tidak standar, coba ekstrak tahun dengan regex
+            const yearMatch = surat.tanggal.match(/\d{4}/);
+            year = yearMatch ? yearMatch[0] : null;
+          } else {
+            year = date.getFullYear().toString();
+          }
+
+          if (year && !acc.includes(year)) {
+            acc.push(year);
+          }
+        } catch (err) {
+          console.error("Error parsing date:", surat.tanggal, err);
+        }
+
+        return acc;
+      }, []);
+
+      // Jika tidak ada tahun yang ditemukan, gunakan tahun default
+      if (years.length === 0) {
+        const currentYear = new Date().getFullYear();
+        return [
+          currentYear.toString(),
+          (currentYear - 1).toString(),
+          (currentYear - 2).toString(),
+        ];
+      }
+
+      // Sort years in descending order
+      return years.sort((a, b) => b - a);
+    } catch (error) {
+      console.error("Error fetching available years:", error);
+      // Fallback to default years
+      const currentYear = new Date().getFullYear();
+      return [
+        currentYear.toString(),
+        (currentYear - 1).toString(),
+        (currentYear - 2).toString(),
+      ];
+    }
+  },
+
+  // POST methods - admin only
   addSuratMasuk: async (formData) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token required");
+      }
 
       // Debug: Log what we're sending to the server
       console.log("FormData fields being sent:");
       for (const pair of formData.entries()) {
         console.log(
           `${pair[0]}: ${typeof pair[1] === "object" ? "File object" : pair[1]}`
+        );
+      }
+
+      // Check if the file field exists and rename it to match server expectation
+      if (formData.has("file")) {
+        const fileObject = formData.get("file");
+        formData.delete("file");
+        formData.append("file_surat", fileObject);
+        console.log(
+          "Renamed 'file' field to 'file_surat' to match server expectation"
         );
       }
 
@@ -183,12 +345,25 @@ const SuratService = {
   addSuratKeluar: async (formData) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token required");
+      }
 
       // Debug: Log what we're sending to the server
       console.log("FormData fields being sent:");
       for (const pair of formData.entries()) {
         console.log(
           `${pair[0]}: ${typeof pair[1] === "object" ? "File object" : pair[1]}`
+        );
+      }
+
+      // Check if the file field exists and rename it to match server expectation
+      if (formData.has("file")) {
+        const fileObject = formData.get("file");
+        formData.delete("file");
+        formData.append("file_surat", fileObject);
+        console.log(
+          "Renamed 'file' field to 'file_surat' to match server expectation"
         );
       }
 
@@ -217,10 +392,23 @@ const SuratService = {
     }
   },
 
-  // PUT methods
+  // PUT methods - admin only
   updateSuratMasuk: async (id, formData) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token required");
+      }
+
+      // Check if the file field exists and rename it to match server expectation
+      if (formData.has("file")) {
+        const fileObject = formData.get("file");
+        formData.delete("file");
+        formData.append("file_surat", fileObject);
+        console.log(
+          "Renamed 'file' field to 'file_surat' to match server expectation"
+        );
+      }
 
       const response = await axios.put(
         `${API_URL}/surat/update-surat-masuk/${id}`,
@@ -243,6 +431,19 @@ const SuratService = {
   updateSuratKeluar: async (id, formData) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token required");
+      }
+
+      // Check if the file field exists and rename it to match server expectation
+      if (formData.has("file")) {
+        const fileObject = formData.get("file");
+        formData.delete("file");
+        formData.append("file_surat", fileObject);
+        console.log(
+          "Renamed 'file' field to 'file_surat' to match server expectation"
+        );
+      }
 
       const response = await axios.put(
         `${API_URL}/surat/update-surat-keluar/${id}`,
@@ -262,11 +463,34 @@ const SuratService = {
     }
   },
 
-  // DELETE methods
+  // DELETE methods - admin only
   deleteSuratMasuk: async (id) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token required");
+      }
 
+      // First, get the surat to find the file path
+      const suratList = await SuratService.getSuratMasuk();
+      const surat = suratList.find((item) => item.id === id);
+
+      // If there's a file, request its deletion
+      if (surat && surat.file) {
+        try {
+          // Request file deletion from server
+          await axios.delete(`${API_URL}/surat/delete-file`, {
+            headers: { Authorization: `Bearer ${token}` },
+            data: { filePath: surat.file },
+          });
+          console.log(`Requested deletion of file: ${surat.file}`);
+        } catch (fileError) {
+          console.error("Error deleting file:", fileError);
+          // Continue with surat deletion even if file deletion fails
+        }
+      }
+
+      // Delete the surat record
       const response = await axios.delete(
         `${API_URL}/surat/delete-surat-masuk/${id}`,
         {
@@ -286,7 +510,30 @@ const SuratService = {
   deleteSuratKeluar: async (id) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token required");
+      }
 
+      // First, get the surat to find the file path
+      const suratList = await SuratService.getSuratKeluar();
+      const surat = suratList.find((item) => item.id === id);
+
+      // If there's a file, request its deletion
+      if (surat && surat.file) {
+        try {
+          // Request file deletion from server
+          await axios.delete(`${API_URL}/surat/delete-file`, {
+            headers: { Authorization: `Bearer ${token}` },
+            data: { filePath: surat.file },
+          });
+          console.log(`Requested deletion of file: ${surat.file}`);
+        } catch (fileError) {
+          console.error("Error deleting file:", fileError);
+          // Continue with surat deletion even if file deletion fails
+        }
+      }
+
+      // Delete the surat record
       const response = await axios.delete(
         `${API_URL}/surat/delete-surat-keluar/${id}`,
         {
@@ -303,9 +550,78 @@ const SuratService = {
     }
   },
 
-  // File methods
+  // File methods - accessible by both admin and user
   getFileUrl: (fileName) => {
-    return `${API_URL}/surat/file/${fileName}`;
+    if (!fileName) {
+      console.log("No filename provided to getFileUrl");
+      return null;
+    }
+
+    console.log("Getting file URL for:", fileName); // Debug log
+
+    // If it's already a full URL, return as is
+    if (fileName.startsWith("http://") || fileName.startsWith("https://")) {
+      console.log("File is already a full URL, returning as is:", fileName);
+      return fileName;
+    }
+
+    // For files in the berita directory (as seen in your setup)
+    const fileUrl = `/berita/${fileName.split("/").pop()}`;
+    console.log("Constructed file URL:", fileUrl);
+    return fileUrl;
+  },
+
+  // Download file as blob to avoid browser blocking
+  downloadFile: async (fileName) => {
+    if (!fileName) return null;
+
+    try {
+      console.log("Downloading file:", fileName);
+      const fileUrl = SuratService.getFileUrl(fileName);
+
+      // Fetch the file as a blob
+      const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch file: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const blob = await response.blob();
+
+      // Create a blob URL and trigger download
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName.split("/").pop(); // Extract filename
+
+      // Append to document, click, and clean up
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Release the blob URL after a short delay
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+
+      return true;
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      return false;
+    }
+  },
+
+  // Check if file exists
+  checkFileExists: async (fileName) => {
+    if (!fileName) return false;
+
+    try {
+      const fileUrl = SuratService.getFileUrl(fileName);
+      const response = await fetch(fileUrl, { method: "HEAD" });
+      return response.ok;
+    } catch (error) {
+      console.error("Error checking if file exists:", error);
+      return false;
+    }
   },
 };
 

@@ -5,24 +5,43 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 /* eslint-enable no-unused-vars */
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Pic from "../../assets/dad.png";
-import Pic2 from "../../assets/download.png";
+import Ketua from "../../assets/KetuaBPD.jpg";
+import Sekertaris from "../../assets/SekertarisBPD.jpg";
+import KasiPelayanan from "../../assets/KasiPelayanan.jpg";
+import KaurKeuangan from "../../assets/kaurkeuangan.jpg";
+import KepDus1 from "../../assets/KepDus1.jpg";
+import KepDus2 from "../../assets/KepDus2.jpg";
 
 const aparatur = [
   {
-    name: "John Doe",
-    tugas: "Mengelola administrasi pemerintahan desa",
-    image: Pic,
+    name: "",
+    tugas: "Ketua BPD",
+    image: Ketua,
   },
   {
-    name: "Jane Smith",
-    tugas: "Mengatur keuangan desa dan anggaran",
-    image: Pic2,
+    name: "",
+    tugas: "Sekertaris BPD",
+    image: Sekertaris,
   },
   {
-    name: "Michael Johnson",
-    tugas: "Membantu pelayanan masyarakat desa",
-    image: Pic,
+    name: "",
+    tugas: "Kasi Pelayanan dan Kesejahteraan",
+    image: KasiPelayanan,
+  },
+  {
+    name: "",
+    tugas: "Kaur Keuangan",
+    image: KaurKeuangan,
+  },
+  {
+    name: "",
+    tugas: "Kepala Dusun 1",
+    image: KepDus1,
+  },
+  {
+    name: "",
+    tugas: "Kepala Dusun 2",
+    image: KepDus2,
   },
 ];
 
@@ -75,7 +94,7 @@ export default function CarouselAparatur() {
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={index}
-            className="absolute inset-0 flex flex-col md:flex md:flex-row justify-center items-center text-center md:text-left bg-purple-700 text-white p-8 rounded-2xl"
+            className="absolute inset-0 flex flex-col md:flex md:flex-row justify-center items-center text-center md:text-left bg-gray-100 text-black p-8 rounded-2xl md:px-48"
             variants={variants}
             initial="enter"
             animate="center"
@@ -85,12 +104,12 @@ export default function CarouselAparatur() {
           >
             <div className="flex-1 space-y-3">
               <h2 className="text-xl font-bold">{aparatur[index].name}</h2>
-              <p>{aparatur[index].tugas}</p>
+              <p className="text-xl font-semibold">{aparatur[index].tugas}</p>
             </div>
             <img
               src={aparatur[index].image}
               alt={aparatur[index].name}
-              className="w-48 h-48 object-cover rounded-lg shadow-md"
+              className="w-48 h-64 object-fill rounded-lg shadow-md"
             />
           </motion.div>
         </AnimatePresence>

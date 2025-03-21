@@ -12,6 +12,11 @@ import {
   FaUser,
   FaTags,
   FaSpinner,
+  FaCheck,
+  FaTimesCircle,
+  FaImage,
+  FaExchangeAlt,
+  FaTrashAlt,
 } from "react-icons/fa";
 import BeritaServiceAdmin from "../services/BeritaServiceAdmin";
 
@@ -33,6 +38,9 @@ const BeritaAdmin = () => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
 
+  // State for action loading
+  const [isActionLoading, setIsActionLoading] = useState(false);
+
   // Form state
   const [formData, setFormData] = useState({
     judul: "",
@@ -42,27 +50,37 @@ const BeritaAdmin = () => {
     status: "Draft",
     ringkasan: "",
     isi: "",
+    foto: null,
+    fotoPreview: null,
+    deleteFoto: false,
+    originalFoto: null,
   });
 
   // Definisi animasi CSS
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes modalFadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
         }
-    }
-    
-    .animate-modalFadeIn {
-      animation: modalFadeIn 0.3s ease-out forwards;
-    }
-  `;
-  document.head.appendChild(style);
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .animate-modalFadeIn {
+        animation: modalFadeIn 0.3s ease-out forwards;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // Get token from localStorage on component mount
   useEffect(() => {
@@ -94,6 +112,7 @@ const BeritaAdmin = () => {
         status: item.status || "Dipublikasi", // Default to "Dipublikasi" if not provided
         ringkasan: item.ringkasan || item.isi?.substring(0, 150) || "", // Use first 150 chars of isi as ringkasan if not provided
         isi: item.isi,
+        foto: item.foto,
       }));
 
       setBeritaData(transformedData);
@@ -140,6 +159,10 @@ const BeritaAdmin = () => {
       status: "Draft",
       ringkasan: "",
       isi: "",
+      foto: null,
+      fotoPreview: null,
+      deleteFoto: false,
+      originalFoto: null,
     });
     setShowAddModal(true);
   };
@@ -148,15 +171,39 @@ const BeritaAdmin = () => {
     const item = beritaData.find((item) => item.id === id);
     if (item) {
       setCurrentItem(item);
+
+      // Ensure tanggalTerbit is in the correct format for date input
+      let formattedDate = item.tanggalTerbit;
+      if (formattedDate) {
+        try {
+          const date = new Date(formattedDate);
+          if (!isNaN(date.getTime())) {
+            formattedDate = date.toISOString().split("T")[0];
+          }
+        } catch (e) {
+          console.error("Error formatting date:", e);
+          formattedDate = new Date().toISOString().split("T")[0];
+        }
+      } else {
+        formattedDate = new Date().toISOString().split("T")[0];
+      }
+
       setFormData({
-        judul: item.judul,
+        judul: item.judul || "",
         kategori: item.kategori || "Umum",
-        tanggalTerbit: item.tanggalTerbit,
-        penulis: item.penulis,
+        tanggalTerbit: formattedDate,
+        penulis: item.penulis || "",
         status: item.status || "Draft",
         ringkasan: item.ringkasan || "",
         isi: item.isi || "",
+        foto: null,
+        fotoPreview: item.foto
+          ? BeritaServiceAdmin.getImageUrl(item.foto)
+          : null,
+        deleteFoto: false,
+        originalFoto: item.foto,
       });
+
       setShowEditModal(true);
     }
   };
@@ -177,6 +224,32 @@ const BeritaAdmin = () => {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        foto: file,
+        fotoPreview: URL.createObjectURL(file),
+        deleteFoto: false,
+      });
+    }
+  };
+
+  const handleChangeThumbnail = () => {
+    // Trigger file input click
+    document.getElementById("thumbnail-file-input").click();
+  };
+
+  const handleDeleteThumbnail = () => {
+    setFormData({
+      ...formData,
+      foto: null,
+      fotoPreview: null,
+      deleteFoto: true,
+    });
+  };
+
   const saveNewItem = async () => {
     if (!token) {
       alert("Anda harus login sebagai admin untuk menambahkan berita");
@@ -184,6 +257,8 @@ const BeritaAdmin = () => {
     }
 
     try {
+      setIsActionLoading(true);
+
       // Validasi form
       if (
         !formData.judul ||
@@ -192,41 +267,33 @@ const BeritaAdmin = () => {
         !formData.penulis
       ) {
         alert("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
+        setIsActionLoading(false);
         return;
       }
 
       // Prepare data for API
-      const newBeritaData = {
+      const beritaData = {
         judul: formData.judul,
         isi: formData.isi,
         tanggalTerbit: formData.tanggalTerbit,
         penulis: formData.penulis,
-        // Additional fields not in the API but we'll keep them in our transformed data
-        kategori: formData.kategori,
         status: formData.status,
+        kategori: formData.kategori,
         ringkasan: formData.ringkasan,
+        foto: formData.foto,
       };
 
       // Send to API
-      const result = await BeritaServiceAdmin.addBerita(newBeritaData);
+      const result = await BeritaServiceAdmin.addBerita(beritaData);
 
-      // Add the new item to our state with transformed data
-      const newItem = {
-        id: result.id,
-        judul: result.judul,
-        kategori: formData.kategori,
-        tanggalTerbit: formData.tanggalTerbit,
-        penulis: formData.penulis,
-        status: formData.status,
-        ringkasan: formData.ringkasan || formData.isi.substring(0, 150),
-        isi: result.isi,
-      };
-
-      setBeritaData([...beritaData, newItem]);
+      // Refresh data
+      await fetchBeritaData();
       setShowAddModal(false);
     } catch (err) {
       console.error("Error saving berita:", err);
       alert("Terjadi kesalahan saat menyimpan berita.");
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
@@ -237,6 +304,8 @@ const BeritaAdmin = () => {
     }
 
     try {
+      setIsActionLoading(true);
+
       // Validasi form
       if (
         !formData.judul ||
@@ -245,51 +314,34 @@ const BeritaAdmin = () => {
         !formData.penulis
       ) {
         alert("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
-        return;
-      }
-
-      // Validasi currentItem
-      if (!currentItem || !currentItem.id) {
-        alert("Data berita yang akan diedit tidak ditemukan!");
+        setIsActionLoading(false);
         return;
       }
 
       // Prepare data for API
-      const editBeritaData = {
+      const beritaData = {
         judul: formData.judul,
         isi: formData.isi,
         tanggalTerbit: formData.tanggalTerbit,
         penulis: formData.penulis,
-        // Additional fields not in the API but we'll keep them in our transformed data
-        kategori: formData.kategori,
         status: formData.status,
+        kategori: formData.kategori,
         ringkasan: formData.ringkasan,
+        foto: formData.foto,
+        deleteFoto: formData.deleteFoto,
       };
 
       // Send to API
-      await BeritaServiceAdmin.updateBerita(currentItem.id, editBeritaData);
+      await BeritaServiceAdmin.updateBerita(currentItem.id, beritaData);
 
-      // Update our state with transformed data
-      const updatedData = beritaData.map((item) =>
-        item.id === currentItem.id
-          ? {
-              ...item,
-              judul: formData.judul,
-              kategori: formData.kategori,
-              tanggalTerbit: formData.tanggalTerbit,
-              penulis: formData.penulis,
-              status: formData.status,
-              ringkasan: formData.ringkasan || formData.isi.substring(0, 150),
-              isi: formData.isi,
-            }
-          : item
-      );
-
-      setBeritaData(updatedData);
+      // Refresh data
+      await fetchBeritaData();
       setShowEditModal(false);
     } catch (err) {
       console.error("Error updating berita:", err);
       alert("Terjadi kesalahan saat memperbarui berita.");
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
@@ -300,67 +352,59 @@ const BeritaAdmin = () => {
     }
 
     try {
-      // Validasi currentItem
-      if (!currentItem || !currentItem.id) {
-        alert("Tidak ada berita yang dipilih untuk dihapus!");
-        return;
-      }
+      setIsActionLoading(true);
 
       // Send to API
       await BeritaServiceAdmin.deleteBerita(currentItem.id);
 
-      // Update our state
-      const updatedData = beritaData.filter(
-        (item) => item.id !== currentItem.id
-      );
-      setBeritaData(updatedData);
+      // Refresh data
+      await fetchBeritaData();
       setShowDeleteModal(false);
     } catch (err) {
       console.error("Error deleting berita:", err);
       alert("Terjadi kesalahan saat menghapus berita.");
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
-  const publishBerita = async (id) => {
+  const togglePublishStatus = async (id) => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk mempublikasikan berita");
+      alert("Anda harus login sebagai admin untuk mengubah status berita");
       return;
     }
 
     try {
-      // Validasi item
       const item = beritaData.find((item) => item.id === id);
-      if (!item) {
-        alert("Berita tidak ditemukan!");
-        return;
-      }
+      if (!item) return;
 
-      // Prepare data for API
-      const publishData = {
-        judul: item.judul,
-        isi: item.isi,
-        tanggalTerbit: item.tanggalTerbit,
-        penulis: item.penulis,
-        kategori: item.kategori,
-        status: "Dipublikasi",
-        ringkasan: item.ringkasan,
-      };
+      // Toggle status
+      const newStatus = item.status === "Dipublikasi" ? "Draft" : "Dipublikasi";
 
-      // Send to API
-      await BeritaServiceAdmin.updateBerita(id, publishData);
+      // Update status in backend first
+      await BeritaServiceAdmin.updateBeritaStatus(id, newStatus);
 
-      // Update status in our state
-      const updatedData = beritaData.map((beritaItem) =>
-        beritaItem.id === id
-          ? { ...beritaItem, status: "Dipublikasi" }
-          : beritaItem
+      // If successful, update in our state
+      const updatedData = beritaData.map((item) =>
+        item.id === id ? { ...item, status: newStatus } : item
       );
 
       setBeritaData(updatedData);
-      setShowPreviewModal(false);
+
+      // If preview modal is open and showing this item, update it there too
+      if (showPreviewModal && currentItem && currentItem.id === id) {
+        setCurrentItem({ ...currentItem, status: newStatus });
+      }
+
+      // Show success message
+      alert(
+        `Berita berhasil ${
+          newStatus === "Dipublikasi" ? "dipublikasikan" : "diubah ke draft"
+        }`
+      );
     } catch (err) {
-      console.error("Error publishing berita:", err);
-      alert("Terjadi kesalahan saat mempublikasikan berita.");
+      console.error("Error toggling publish status:", err);
+      alert("Terjadi kesalahan saat mengubah status publikasi berita.");
     }
   };
 
@@ -576,6 +620,9 @@ const BeritaAdmin = () => {
                       Judul
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Thumbnail
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
                       Kategori
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
@@ -600,6 +647,22 @@ const BeritaAdmin = () => {
                           {berita.judul}
                         </td>
                         <td className="px-4 py-3 text-sm">
+                          {berita.foto ? (
+                            <img
+                              src={
+                                BeritaServiceAdmin.getImageUrl(berita.foto) ||
+                                "/placeholder.svg"
+                              }
+                              alt={berita.judul}
+                              className="w-12 h-12 object-cover rounded-md"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                              <FaImage className="text-gray-400" />
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
                           <span
                             className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
                               berita.kategori
@@ -621,13 +684,35 @@ const BeritaAdmin = () => {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                              berita.status
-                            )}`}
-                          >
-                            {berita.status || "Dipublikasi"}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                                berita.status
+                              )}`}
+                            >
+                              {berita.status || "Dipublikasi"}
+                            </span>
+                            {/* Tombol toggle status */}
+                            <button
+                              onClick={() => togglePublishStatus(berita.id)}
+                              className={`p-1 rounded-full ${
+                                berita.status === "Dipublikasi"
+                                  ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                                  : "bg-green-100 text-green-700 hover:bg-green-200"
+                              }`}
+                              title={
+                                berita.status === "Dipublikasi"
+                                  ? "Ubah ke Draft"
+                                  : "Publikasikan"
+                              }
+                            >
+                              {berita.status === "Dipublikasi" ? (
+                                <FaTimesCircle className="text-xs" />
+                              ) : (
+                                <FaCheck className="text-xs" />
+                              )}
+                            </button>
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex justify-end gap-2">
@@ -659,7 +744,7 @@ const BeritaAdmin = () => {
                   ) : (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="px-4 py-8 text-center text-gray-500"
                       >
                         Tidak ada data berita yang ditemukan.
@@ -704,6 +789,45 @@ const BeritaAdmin = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Masukkan judul berita"
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="foto"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Thumbnail Berita
+                </label>
+                <div className="flex items-center gap-4">
+                  <input
+                    id="foto"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                  {formData.fotoPreview && (
+                    <div className="relative w-16 h-16">
+                      <img
+                        src={formData.fotoPreview || "/placeholder.svg"}
+                        alt="Preview"
+                        className="w-16 h-16 object-cover rounded-md"
+                      />
+                      <button
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            foto: null,
+                            fotoPreview: null,
+                          })
+                        }
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -832,14 +956,23 @@ const BeritaAdmin = () => {
               <button
                 onClick={() => setShowAddModal(false)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                disabled={isActionLoading}
               >
                 Batal
               </button>
               <button
                 onClick={saveNewItem}
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
+                disabled={isActionLoading}
               >
-                Simpan
+                {isActionLoading ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    <span>Menyimpan...</span>
+                  </>
+                ) : (
+                  <span>Simpan</span>
+                )}
               </button>
             </div>
           </div>
@@ -872,6 +1005,70 @@ const BeritaAdmin = () => {
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-foto"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Thumbnail Berita
+                </label>
+                <div className="flex flex-col gap-3">
+                  {/* Thumbnail preview */}
+                  {formData.fotoPreview ? (
+                    <div className="flex items-center gap-4">
+                      <div className="w-24 h-24 relative">
+                        <img
+                          src={formData.fotoPreview || "/placeholder.svg"}
+                          alt="Thumbnail"
+                          className="w-24 h-24 object-cover rounded-md"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={handleChangeThumbnail}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                        >
+                          <FaExchangeAlt size={14} />
+                          <span>Ganti Thumbnail</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDeleteThumbnail}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                        >
+                          <FaTrashAlt size={14} />
+                          <span>Hapus Thumbnail</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4">
+                      <div className="w-24 h-24 bg-gray-200 rounded-md flex items-center justify-center">
+                        <FaImage className="text-gray-400 text-2xl" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleChangeThumbnail}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                      >
+                        <FaPlus size={14} />
+                        <span>Tambah Thumbnail</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Hidden file input */}
+                  <input
+                    id="thumbnail-file-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </div>
               </div>
 
               <div>
@@ -997,14 +1194,23 @@ const BeritaAdmin = () => {
               <button
                 onClick={() => setShowEditModal(false)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                disabled={isActionLoading}
               >
                 Batal
               </button>
               <button
                 onClick={saveEditedItem}
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
+                disabled={isActionLoading}
               >
-                Simpan Perubahan
+                {isActionLoading ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    <span>Menyimpan...</span>
+                  </>
+                ) : (
+                  <span>Simpan Perubahan</span>
+                )}
               </button>
             </div>
           </div>
@@ -1029,14 +1235,23 @@ const BeritaAdmin = () => {
               <button
                 onClick={() => setShowDeleteModal(false)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                disabled={isActionLoading}
               >
                 Batal
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
+                disabled={isActionLoading}
               >
-                Hapus
+                {isActionLoading ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <span>Hapus</span>
+                )}
               </button>
             </div>
           </div>
@@ -1074,9 +1289,20 @@ const BeritaAdmin = () => {
             </div>
 
             <div className="mb-6">
-              <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
-                <FaNewspaper className="text-gray-300 text-5xl" />
-              </div>
+              {currentItem?.foto ? (
+                <img
+                  src={
+                    BeritaServiceAdmin.getImageUrl(currentItem.foto) ||
+                    "/placeholder.svg"
+                  }
+                  alt={currentItem.judul}
+                  className="w-full h-64 object-cover rounded-lg mb-4"
+                />
+              ) : (
+                <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
+                  <FaNewspaper className="text-gray-300 text-5xl" />
+                </div>
+              )}
 
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 {currentItem?.judul}
@@ -1131,13 +1357,41 @@ const BeritaAdmin = () => {
               >
                 Tutup
               </button>
-              {currentItem?.status === "Draft" && (
+              {currentItem?.status === "Draft" ? (
                 <button
-                  onClick={() => publishBerita(currentItem.id)}
+                  onClick={() => togglePublishStatus(currentItem.id)}
                   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+                  disabled={isActionLoading}
                 >
-                  <FaNewspaper className="text-white" />
-                  <span>Publikasikan</span>
+                  {isActionLoading ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      <span>Memproses...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaNewspaper className="text-white" />
+                      <span>Publikasikan</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={() => togglePublishStatus(currentItem.id)}
+                  className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors flex items-center gap-2"
+                  disabled={isActionLoading}
+                >
+                  {isActionLoading ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      <span>Memproses...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaTimesCircle className="text-white" />
+                      <span>Ubah ke Draft</span>
+                    </>
+                  )}
                 </button>
               )}
             </div>

@@ -10,6 +10,8 @@ import Pelayanan from "../pages/Pelayanan";
 import Media from "../pages/Media";
 import Arsip from "../pages/Arsip";
 import Information from "../pages/Information";
+import BeritaDetail from "../pages/BeritaDetail";
+import Map from "../pages/Map"
 
 // Admin Layout (Parent Admin)
 import DashboardAdmin from "../pages/admin/DashboardAdmin";
@@ -38,6 +40,9 @@ const AppRoutes = () => {
         <Route path="/Media" element={<Media />} />
         <Route path="/Arsip" element={<Arsip />} />
         <Route path="/Information" element={<Information />} />
+        <Route path="/berita-detail/:id" element={<BeritaDetail />} />
+        <Route path="/Map" element={<Map />} />
+
 
         {/* ===================== HALAMAN ADMIN DENGAN LAYOUT ===================== */}
         <Route path="/admin" element={<DashboardAdmin />}>

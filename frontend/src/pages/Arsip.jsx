@@ -9,10 +9,13 @@ import {
   FaEye,
   FaSearch,
   FaCalendarAlt,
+  FaSpinner,
+  FaFilePdf,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import SuratService from "./user/SuratService";
+import SuratService from "../pages/admin/services/SuratServiceAdmin";
 
 export default function ArsipSurat() {
   const [suratData, setSuratData] = useState({});
@@ -28,6 +31,11 @@ export default function ArsipSurat() {
   const [currentItem, setCurrentItem] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // PDF viewer state
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
 
   // Tambahkan fungsi formatDate untuk memastikan tampilan tanggal yang konsisten
   const formatDate = (dateString) => {
@@ -133,18 +141,57 @@ export default function ArsipSurat() {
 
   // Handle preview
   const handlePreview = async (item) => {
-    // If the item has a file_surat, get the URL
-    if (item.file_surat) {
-      const fileUrl = SuratService.getFileUrl(item.file_surat);
-      setCurrentItem({
-        ...item,
-        url: fileUrl,
-      });
-    } else {
-      setCurrentItem(item);
+    setPdfLoading(true);
+    setPdfError(false);
+    setPdfUrl(null);
+
+    try {
+      if (item.file) {
+        // Get the file URL
+        const fileUrl = SuratService.getFileUrl(item.file);
+        console.log("File URL for preview:", fileUrl);
+
+        // Check if file exists
+        const fileExists = await SuratService.checkFileExists(item.file);
+
+        if (fileExists) {
+          setPdfUrl(fileUrl);
+          setPdfError(false);
+        } else {
+          console.error("File not found or inaccessible:", fileUrl);
+          setPdfError(true);
+        }
+      } else {
+        console.log("No file attached to this item");
+        setPdfError(true);
+      }
+    } catch (error) {
+      console.error("Error preparing file for preview:", error);
+      setPdfError(true);
+    } finally {
+      setPdfLoading(false);
     }
 
+    setCurrentItem(item);
     setShowPreviewModal(true);
+  };
+
+  // Handle file download
+  const handleDownload = async (fileName) => {
+    if (!fileName) {
+      alert("File tidak tersedia untuk diunduh");
+      return;
+    }
+
+    try {
+      const success = await SuratService.downloadFile(fileName);
+      if (!success) {
+        alert("Terjadi kesalahan saat mengunduh file");
+      }
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      alert("Terjadi kesalahan saat mengunduh file");
+    }
   };
 
   // Get icon and color based on surat type
@@ -329,7 +376,7 @@ export default function ArsipSurat() {
 
             {isLoading ? (
               <div className="text-center py-8">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#6CABCA]"></div>
+                <FaSpinner className="animate-spin text-4xl text-[#6CABCA] mx-auto mb-4" />
                 <p className="mt-2 text-gray-600">Memuat data...</p>
               </div>
             ) : error ? (
@@ -405,18 +452,14 @@ export default function ArsipSurat() {
                               >
                                 <FaEye className="text-[#6CABCA]" />
                               </button>
-                              {surat.file_surat && (
-                                <a
-                                  href={SuratService.getFileUrl(
-                                    surat.file_surat
-                                  )}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                              {surat.file && (
+                                <button
+                                  onClick={() => handleDownload(surat.file)}
                                   className="p-1.5 bg-gray-100 bg-opacity-20 rounded-md hover:bg-gray-200 hover:bg-opacity-30 transition-colors"
                                   title="Unduh"
                                 >
                                   <FaDownload className="text-[#6CABCA]" />
-                                </a>
+                                </button>
                               )}
                             </div>
                           </td>
@@ -446,11 +489,12 @@ export default function ArsipSurat() {
 
       {/* Preview Modal */}
       {showPreviewModal && currentItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-700/30 flex items-center justify-center z-50 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800">
-                {getSuratIcon(currentItem.jenis)} {currentItem.judul}
+              <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                {getSuratIcon(currentItem.jenis)}{" "}
+                {currentItem.judul || currentItem.perihal}
               </h3>
               <button
                 onClick={() => setShowPreviewModal(false)}
@@ -500,19 +544,53 @@ export default function ArsipSurat() {
               <h4 className="text-sm font-medium text-gray-700 mb-2">
                 Preview Dokumen
               </h4>
-              <div className="bg-gray-100 rounded-lg p-4 h-[400px] flex items-center justify-center">
-                {currentItem.url ? (
-                  <iframe
-                    src={currentItem.url}
-                    className="w-full h-full"
-                    title={currentItem.judul}
-                  >
-                    Browser Anda tidak mendukung tampilan PDF.
-                  </iframe>
+              <div className="bg-gray-100 rounded-lg p-4 flex flex-col gap-4">
+                {pdfLoading ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <FaSpinner className="animate-spin text-4xl text-[#6CABCA] mb-4" />
+                    <p>Memuat dokumen...</p>
+                  </div>
+                ) : currentItem.file && pdfUrl ? (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">
+                        <FaFilePdf className="inline-block mr-2 text-red-500" />
+                        {currentItem.file.split("/").pop() || "Dokumen Surat"}
+                      </p>
+                      <button
+                        onClick={() => handleDownload(currentItem.file)}
+                        className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1"
+                      >
+                        <FaDownload className="text-white" />
+                        <span>Unduh</span>
+                      </button>
+                    </div>
+
+                    {/* PDF Viewer */}
+                    <div className="h-[400px] w-full border border-gray-200 rounded-lg overflow-hidden bg-white">
+                      <iframe
+                        src={pdfUrl}
+                        className="w-full h-full"
+                        title={currentItem.judul || currentItem.perihal}
+                      >
+                        Browser Anda tidak mendukung tampilan PDF.
+                      </iframe>
+                    </div>
+                  </div>
+                ) : pdfError ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-red-500">
+                    <FaExclamationTriangle className="text-4xl mb-4" />
+                    <p>Terjadi kesalahan saat memuat dokumen.</p>
+                    <p className="text-sm mt-2">
+                      File mungkin tidak tersedia atau tidak dapat diakses.
+                    </p>
+                  </div>
                 ) : (
-                  <div className="text-center text-gray-500">
-                    <FaFileAlt className="text-gray-300 text-5xl mx-auto mb-3" />
-                    <p>Dokumen tidak tersedia untuk ditampilkan</p>
+                  <div className="flex flex-col items-center justify-center h-full py-8">
+                    <FaFileAlt className="text-gray-300 text-5xl mb-3" />
+                    <p className="text-gray-500">
+                      Dokumen tidak tersedia untuk ditampilkan
+                    </p>
                   </div>
                 )}
               </div>
@@ -525,17 +603,6 @@ export default function ArsipSurat() {
               >
                 Tutup
               </button>
-              {currentItem.url && (
-                <a
-                  href={currentItem.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 bg-[#B9FF66] text-gray-800 rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
-                >
-                  <FaDownload />
-                  <span>Unduh Dokumen</span>
-                </a>
-              )}
             </div>
           </div>
         </div>

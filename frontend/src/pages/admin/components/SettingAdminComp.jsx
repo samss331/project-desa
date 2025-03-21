@@ -1,98 +1,80 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import {
-  FaCog,
-  FaUser,
-  FaEnvelope,
-  FaLock,
-  FaSave,
-  FaUndo,
-  FaEye,
-  FaEyeSlash,
-} from "react-icons/fa";
+import { useState } from "react"
+import { FaCog, FaUser, FaEnvelope, FaLock, FaSave, FaUndo, FaEye, FaEyeSlash } from "react-icons/fa"
+import { update } from "../../user/authService"
 
 const SettingAdminComp = () => {
-  // Default values that would be set by the developer
-  const DEFAULT_VALUES = {
-    name: "Admin",
-    email: "admin@example.com",
+  // State untuk data user
+  const [userData, setUserData] = useState({
+    nama: "",
     password: "",
-  };
-
-  // State for form data
-  const [formData, setFormData] = useState({
-    name: DEFAULT_VALUES.name,
-    email: DEFAULT_VALUES.email,
-    password: "",
-  });
+  })
 
   // UI states
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
+  const [error, setError] = useState("")
 
   // Add these state variables after the existing state declarations
-  const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
-  const [showSaveConfirmModal, setShowSaveConfirmModal] = useState(false);
-  const [showPasswordConfirmModal, setShowPasswordConfirmModal] =
-    useState(false);
-  const [passwordChanged, setPasswordChanged] = useState(false);
+  const [showResetConfirmModal, setShowResetConfirmModal] = useState(false)
+  const [showSaveConfirmModal, setShowSaveConfirmModal] = useState(false)
 
   // Handle form submission
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault()
+    setError("")
 
-    // Check if password was changed
-    if (formData.password && formData.password.trim() !== "") {
-      setPasswordChanged(true);
-      setShowPasswordConfirmModal(true);
-    } else {
-      setShowSaveConfirmModal(true);
+    // Validasi data
+    if (!userData.nama || userData.nama.trim() === "") {
+      setError("Nama tidak boleh kosong")
+      return
     }
-  };
 
-  // Reset form to default values
+    if (!userData.password || userData.password.trim() === "") {
+      setError("Password tidak boleh kosong")
+      return
+    }
+
+    setShowSaveConfirmModal(true)
+  }
+
+  // Reset form to empty
   const handleReset = () => {
-    setShowResetConfirmModal(true);
-  };
+    setShowResetConfirmModal(true)
+  }
 
   // Add these new functions after handleReset
   const confirmReset = () => {
-    setFormData(DEFAULT_VALUES);
-    setShowResetConfirmModal(false);
-    setSuccessMessage("Pengaturan telah direset ke nilai default");
-    setShowSuccessModal(true);
-  };
+    setUserData({
+      nama: "",
+      password: "",
+    })
+    setShowResetConfirmModal(false)
+    setSuccessMessage("Form telah direset")
+    setShowSuccessModal(true)
+  }
 
-  const confirmSave = () => {
-    setIsLoading(true);
-    setShowSaveConfirmModal(false);
+  const confirmSave = async () => {
+    setIsLoading(true)
+    setShowSaveConfirmModal(false)
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Saving settings:", formData);
-      setSuccessMessage("Pengaturan berhasil disimpan");
-      setShowSuccessModal(true);
-      setIsLoading(false);
-    }, 1000);
-  };
+    try {
+      // Call the update function from authService
+      const response = await update(userData)
+      setSuccessMessage("Pengaturan berhasil disimpan")
+      setShowSuccessModal(true)
 
-  const confirmPasswordChange = () => {
-    setIsLoading(true);
-    setShowPasswordConfirmModal(false);
-
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Saving settings with password change:", formData);
-      setSuccessMessage("Pengaturan dan password berhasil diperbarui");
-      setShowSuccessModal(true);
-      setIsLoading(false);
       // Reset password field after successful update
-      setFormData({ ...formData, password: "" });
-    }, 1000);
-  };
+      setUserData({ ...userData, password: "" })
+    } catch (err) {
+      setError(err.message || "Terjadi kesalahan saat menyimpan pengaturan")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -108,21 +90,16 @@ const SettingAdminComp = () => {
         <div className="bg-white rounded-2xl shadow-md p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">
-                Kredensial Akun
-              </h2>
-              <p className="text-gray-600 text-sm">
-                Kelola informasi akun dan kredensial login Anda
-              </p>
+              <h2 className="text-xl font-bold text-gray-800">Kredensial Akun</h2>
+              <p className="text-gray-600 text-sm">Kelola informasi akun dan kredensial login Anda</p>
             </div>
           </div>
 
+          {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="nama" className="block text-sm font-medium text-gray-700 mb-1">
                 Nama
               </label>
               <div className="relative">
@@ -130,26 +107,19 @@ const SettingAdminComp = () => {
                   <FaUser className="text-gray-400" />
                 </div>
                 <input
-                  id="name"
+                  id="nama"
                   type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  value={userData.nama}
+                  onChange={(e) => setUserData({ ...userData, nama: e.target.value })}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Masukkan nama Anda"
                 />
               </div>
-              <p className="mt-1 text-sm text-gray-500">
-                Nama yang akan ditampilkan di dashboard
-              </p>
+              <p className="mt-1 text-sm text-gray-500">Nama yang akan ditampilkan di dashboard</p>
             </div>
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email
               </label>
               <div className="relative">
@@ -159,25 +129,18 @@ const SettingAdminComp = () => {
                 <input
                   id="email"
                   type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="admin@example.com"
+                  value={localStorage.getItem("userEmail") || ""}
+                  disabled
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                  placeholder="Email Anda (tidak dapat diubah)"
                 />
               </div>
-              <p className="mt-1 text-sm text-gray-500">
-                Email yang digunakan untuk login dan notifikasi
-              </p>
+              <p className="mt-1 text-sm text-gray-500">Email yang digunakan untuk login (tidak dapat diubah)</p>
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Password
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Password Baru
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -186,10 +149,8 @@ const SettingAdminComp = () => {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
+                  value={userData.password}
+                  onChange={(e) => setUserData({ ...userData, password: e.target.value })}
                   className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Masukkan password baru"
                 />
@@ -205,9 +166,7 @@ const SettingAdminComp = () => {
                   )}
                 </button>
               </div>
-              <p className="mt-1 text-sm text-gray-500">
-                Biarkan kosong jika tidak ingin mengubah password
-              </p>
+              <p className="mt-1 text-sm text-gray-500">Password baru untuk login</p>
             </div>
 
             <div className="flex justify-between pt-4">
@@ -217,7 +176,7 @@ const SettingAdminComp = () => {
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 <FaUndo />
-                <span>Reset ke Default</span>
+                <span>Reset Form</span>
               </button>
 
               <button
@@ -252,12 +211,7 @@ const SettingAdminComp = () => {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-800">Berhasil</h3>
@@ -281,12 +235,9 @@ const SettingAdminComp = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-gray-800">
-                Konfirmasi Reset
-              </h3>
+              <h3 className="text-xl font-bold text-gray-800">Konfirmasi Reset</h3>
               <p className="text-gray-600 text-sm">
-                Apakah Anda yakin ingin mereset semua pengaturan ke nilai
-                default? Tindakan ini tidak dapat dibatalkan.
+                Apakah Anda yakin ingin mereset form? Tindakan ini tidak dapat dibatalkan.
               </p>
             </div>
 
@@ -313,13 +264,8 @@ const SettingAdminComp = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-gray-800">
-                Konfirmasi Simpan
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Apakah Anda yakin ingin menyimpan perubahan pada pengaturan
-                akun?
-              </p>
+              <h3 className="text-xl font-bold text-gray-800">Konfirmasi Simpan</h3>
+              <p className="text-gray-600 text-sm">Apakah Anda yakin ingin menyimpan perubahan pada pengaturan akun?</p>
             </div>
 
             <div className="flex justify-end gap-2">
@@ -339,40 +285,9 @@ const SettingAdminComp = () => {
           </div>
         </div>
       )}
-
-      {/* Password Change Confirmation Modal */}
-      {showPasswordConfirmModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
-            <div className="mb-6">
-              <h3 className="text-xl font-bold text-gray-800">
-                Konfirmasi Perubahan Password
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Anda akan mengubah password akun. Apakah Anda yakin ingin
-                melanjutkan?
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowPasswordConfirmModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                onClick={confirmPasswordChange}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Ya, Ubah Password
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-  );
-};
+  )
+}
 
-export default SettingAdminComp;
+export default SettingAdminComp
+

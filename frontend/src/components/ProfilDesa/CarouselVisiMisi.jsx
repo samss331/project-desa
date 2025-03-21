@@ -32,7 +32,7 @@ const CarouselVisiMisi = () => {
           {/* Tombol Navigasi Kiri */}
           <button 
             onClick={prevSlide} 
-            className="absolute left-0 md:left-[-40px] top-1/2 transform -translate-y-1/2 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600"
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-green-500 text-white p-3 px-4 rounded-full shadow-lg hover:bg-green-600"
           >
             ←
           </button>
@@ -54,7 +54,7 @@ const CarouselVisiMisi = () => {
           {/* Tombol Navigasi Kanan */}
           <button 
             onClick={nextSlide} 
-            className="absolute right-0 md:right-[-40px] top-1/2 transform -translate-y-1/2 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600"
+            className="absolute flex right-0 top-1/2 transform -translate-y-1/2 bg-green-500 text-white p-3 px-4 rounded-full shadow-lg hover:bg-green-600"
           >
             →
           </button>

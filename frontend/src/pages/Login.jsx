@@ -1,73 +1,75 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
-import axios from "axios";
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
+import { X } from "lucide-react"
+import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa"
+import { login } from "./user/authService"
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
 
   // Check if form is valid to enable button
-  const isFormValid = email.trim() !== "" && password.trim() !== "";
+  const isFormValid = email.trim() !== "" && password.trim() !== ""
+
+  // Load saved email when component mounts
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail")
+    if (savedEmail) {
+      setEmail(savedEmail)
+      setRememberMe(true)
+    }
+  }, [])
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+    e.preventDefault()
+    setError("")
+    setIsLoading(true)
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/auth/login",
-        { email, password },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const result = await login(email, password)
 
-      console.log("Response Data:", response.data); // Debugging response
-
-      if (response.data.success && response.data.data.token) {
-        localStorage.setItem("token", response.data.data.token);
-        // console.log("Token disimpan:", response.data.data.token);
-        alert("Login berhasil!");
-        window.location.href = "/admin/beranda"; // Redirect setelah login sukses
+      // Save or remove email based on rememberMe checkbox
+      if (rememberMe) {
+        localStorage.setItem("rememberedEmail", email)
       } else {
-        setError("Token tidak ditemukan dalam response!");
+        localStorage.removeItem("rememberedEmail")
+      }
+
+      if (result.success) {
+        window.location.href = "/admin/beranda" // Redirect setelah login sukses
       }
     } catch (err) {
-      console.error("Login error:", err.response?.data?.message || err.message);
-      setError("Login gagal. Cek kredensial dan coba lagi.");
+      setError(err.message)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div
-      className="flex items-center justify-center min-h-screen bg-gray-100"
-      style={{ fontFamily: "poppins" }}
-    >
+    <div className="flex items-center justify-center min-h-screen bg-gray-100" style={{ fontFamily: "poppins" }}>
+        <button
+          className="text-gray-700 focus:outline-none absolute top-4 right-4 z-50 p-3"
+          aria-label="Close menu"
+        >
+          <Link to="/">
+           <X size={28} />
+          </Link>
+         </button>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-center mb-2">
-          Login Sebagai Admin
-        </h2>
-        <p className="text-gray-500 text-center mb-6">
-          Selamat datang, silahkan masukkan kredensial Anda
-        </p>
+        <h2 className="text-2xl font-semibold text-center mb-2">Login Sebagai Admin</h2>
+        <p className="text-gray-500 text-center mb-6">Selamat datang, silahkan masukkan kredensial Anda</p>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
 
         <form onSubmit={handleLogin}>
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-1">
-              Email
-            </label>
+            <label className="block text-gray-700 text-sm font-medium mb-1">Email</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FaUser className="text-gray-400" />
@@ -77,16 +79,14 @@ const Login = () => {
                 className="w-full pl-10 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Masukkan username Anda"
+                placeholder="Masukkan email Anda"
                 required
               />
             </div>
           </div>
 
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-medium mb-1">
-              Password
-            </label>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-medium mb-1">Password</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FaLock className="text-gray-400" />
@@ -113,12 +113,23 @@ const Login = () => {
             </div>
           </div>
 
+          <div className="mb-6 flex items-center">
+            <input
+              type="checkbox"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
+              Ingat email saya
+            </label>
+          </div>
+
           <button
             type="submit"
             className={`w-full py-2.5 rounded-lg font-medium transition-colors ${
-              isFormValid
-                ? "bg-blue-600 hover:bg-blue-700 text-white"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              isFormValid ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
             disabled={!isFormValid || isLoading}
           >
@@ -127,7 +138,8 @@ const Login = () => {
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login
+

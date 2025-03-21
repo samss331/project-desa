@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 /* eslint-disable no-unused-vars */
 import { motion, AnimatePresence } from "framer-motion";
 /* eslint-enable no-unused-vars */
@@ -68,12 +69,12 @@ export default function ProfilDesa() {
               Selatan : -2,649603”.
             </p>
             <div>
-              <a
+            <Link to = "/Map"
                 className="bg-[#16BE27] text-lg md:text-2xl rounded-lg p-1 md:p-3 font-bold cursor-pointer md:w-fit text-gray-700"
                 style={{ fontFamily: "poppins" }}
               >
-                Baca Selengkapnya
-              </a>
+                Liat Selengkapnya
+              </Link>
             </div>
           </div>
         </div>

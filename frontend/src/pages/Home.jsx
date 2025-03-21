@@ -5,6 +5,7 @@ import Bg from "../assets/Background.jpg";
 import Pengumuman from "../components/Pengumuman";
 import Card from "../components/CardTemlpate1";
 import { BookOpen, Bell, Users, ClipboardList } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
@@ -34,10 +35,10 @@ const HeroSection = () => {
       >
         <div className="absolute inset-0 bg-black/50 md:bg-black/30 flex flex-col justify-center items-center text-white text-center px-4">
           <h2 className="text-[2rem] md:text-[5rem] font-bold">
-            WEBSITE RESMI
+            DESA DIGITAL
           </h2>
-          <p className="text-[1rem] md:text-[3rem] font-bold">
-            DESA BAHONTOBUNGKU
+          <p className="text-[1.5rem] md:text-[3.5rem] font-bold">
+            BAHONTOBUNGKU
           </p>
         </div>
       </div>
@@ -77,65 +78,71 @@ const InfoSection = () => {
         </div>
         <div className="flex flex-col justify-center items-center w-full md:w-3/5 md:flex md:flex-row space-x-6 space-y-6 relative z-10">
           <div className="flex flex-col w-1/2 space-y-6 items-center pt-6 md:pt-20 mx-auto">
-            <Card>
-              <div className="flex flex-col items-center justify-center text-center space-y-6">
-                <BookOpen
-                  size={40}
-                  strokeWidth={1}
-                  className="p-4 mt-4 w-36 h-28 bg-blue-100 rounded-2xl"
-                />
-                <h3 className="text-xl font-semibold mt-3">Berita</h3>
-                <p className="text-gray-500">
-                  Baca berbagai berita terbaru tentang desa bahontobungku
-                </p>
-              </div>
-            </Card>
-
-            <Card>
-              <div className="flex flex-col items-center justify-center text-center space-y-6">
-                <Users
-                  size={40}
-                  strokeWidth={1}
-                  className="p-4 mt-4 w-36 h-28 bg-yellow-100 rounded-2xl"
-                />
-                <h3 className="text-xl font-semibold mt-3">Aparatur</h3>
-                <p className="text-gray-500">
-                  Ketahui profil singkat dari para perangkat pemerintahan desa
-                  bahontobungku
-                </p>
-              </div>
-            </Card>
+            <Link to="/Information">
+              <Card>
+                <div className="flex flex-col items-center justify-center text-center space-y-6">
+                  <BookOpen
+                    size={40}
+                    strokeWidth={1}
+                    className="p-4 mt-4 w-36 h-28 bg-blue-100 rounded-2xl"
+                  />
+                  <h3 className="text-xl font-semibold mt-3">Berita</h3>
+                  <p className="text-gray-500">
+                    Baca berbagai berita terbaru tentang desa bahontobungku
+                  </p>
+                </div>
+              </Card>
+            </Link>
+            <Link to="/ProfilDesa">
+              <Card>
+                <div className="flex flex-col items-center justify-center text-center space-y-6">
+                  <Users
+                    size={40}
+                    strokeWidth={1}
+                    className="p-4 mt-4 w-36 h-28 bg-yellow-100 rounded-2xl"
+                  />
+                  <h3 className="text-xl font-semibold mt-3">Aparatur</h3>
+                  <p className="text-gray-500">
+                    Ketahui profil singkat dari para perangkat pemerintahan desa
+                    bahontobungku
+                  </p>
+                </div>
+              </Card>
+            </Link>
           </div>
           <div className="flex flex-col w-1/2 space-y-6 items-center">
-            <Card>
-              <div className="flex flex-col items-center justify-center text-center space-y-6">
-                <Bell
-                  size={40}
-                  strokeWidth={1}
-                  className="p-4 mt-4 w-36 h-28 bg-pink-100 rounded-2xl"
-                />
-                <h3 className="text-xl font-semibold mt-3">Pengumuman</h3>
-                <p className="text-gray-500">
-                  Informasi terkait pengumuman untuk masyarakat desa
-                  bahontobungku
-                </p>
-              </div>
-            </Card>
-
-            <Card>
-              <div className="flex flex-col items-center justify-center text-center space-y-6">
-                <ClipboardList
-                  size={40}
-                  strokeWidth={1}
-                  className="p-4 mt-4 w-36 h-28 bg-green-100 rounded-2xl"
-                />
-                <h3 className="text-xl font-semibold mt-3">Fasilitas</h3>
-                <p className="text-gray-500">
-                  Lihat data statistik terkait fasilitas yang ada di desa
-                  bahontobungku
-                </p>
-              </div>
-            </Card>
+            <Link to="/Information">
+              <Card>
+                <div className="flex flex-col items-center justify-center text-center space-y-6">
+                  <Bell
+                    size={40}
+                    strokeWidth={1}
+                    className="p-4 mt-4 w-36 h-28 bg-pink-100 rounded-2xl"
+                  />
+                  <h3 className="text-xl font-semibold mt-3">Pengumuman</h3>
+                  <p className="text-gray-500">
+                    Informasi terkait pengumuman untuk masyarakat desa
+                    bahontobungku
+                  </p>
+                </div>
+              </Card>
+            </Link>
+            <Link to="/Infografis">
+              <Card>
+                <div className="flex flex-col items-center justify-center text-center space-y-6">
+                  <ClipboardList
+                    size={40}
+                    strokeWidth={1}
+                    className="p-4 mt-4 w-36 h-28 bg-green-100 rounded-2xl"
+                  />
+                  <h3 className="text-xl font-semibold mt-3">Fasilitas</h3>
+                  <p className="text-gray-500">
+                    Lihat data statistik terkait fasilitas yang ada di desa
+                    bahontobungku
+                  </p>
+                </div>
+              </Card>
+            </Link>
           </div>
         </div>
       </div>

@@ -1,31 +1,31 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { FaSignOutAlt } from "react-icons/fa";
+import { useState } from "react"
+import { FaSignOutAlt } from "react-icons/fa"
+import { logout } from "../../user/authService"
 
 const LogoutAdminDialog = ({ onClose }) => {
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleLogout = () => {
-    setIsLoggingOut(true);
+    setIsLoggingOut(true)
 
-    // Simulate logout process
-    setTimeout(() => {
-      // In a real app, you would redirect to login page or clear auth state
-      window.location.href = "/";
-      setIsLoggingOut(false);
-      if (onClose) onClose();
-    }, 1000);
-  };
+    try {
+      // Gunakan fungsi logout dari authService
+      logout()
+      // onClose tidak perlu dipanggil karena halaman akan di-redirect
+    } catch (error) {
+      setIsLoggingOut(false)
+      if (onClose) onClose()
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
         <div className="mb-6">
           <h3 className="text-xl font-bold text-gray-800">Konfirmasi Logout</h3>
-          <p className="text-gray-600 text-sm">
-            Apakah Anda yakin ingin keluar dari dashboard admin?
-          </p>
+          <p className="text-gray-600 text-sm">Apakah Anda yakin ingin keluar dari dashboard admin?</p>
         </div>
 
         <div className="flex justify-end gap-2">
@@ -52,7 +52,8 @@ const LogoutAdminDialog = ({ onClose }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LogoutAdminDialog;
+export default LogoutAdminDialog
+

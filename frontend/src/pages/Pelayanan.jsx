@@ -1,68 +1,90 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import cs from "../assets/cs.png";
-import { FaIdCard, FaUsers, FaEdit, FaArrowRight } from "react-icons/fa";
+import {
+  FaIdCard,
+  FaUsers,
+  FaEdit,
+  FaArrowRight,
+  FaSpinner,
+  FaExclamationTriangle,
+} from "react-icons/fa";
+import PelayananServiceUser from "./user/PelayananService";
 
 export default function Pelayanan() {
-  // Service categories with icons
-  const serviceCategories = [
-    {
-      title: "Dokumen Identitas",
-      icon: <FaIdCard className="text-[#FE7C66] text-3xl" />,
-      services: [
-        {
-          name: "Pembuatan KTP",
-          link: "https://forms.gle/example1",
-          description:
-            "Layanan pembuatan Kartu Tanda Penduduk baru atau penggantian",
-        },
-        {
-          name: "Pembuatan Kartu Keluarga",
-          link: "https://forms.gle/example5",
-          description: "Layanan pembuatan Kartu Keluarga baru",
-        },
-        {
-          name: "Perubahan Data Kartu Keluarga",
-          link: "https://forms.gle/example6",
-          description: "Layanan perubahan data pada Kartu Keluarga",
-        },
-      ],
-    },
-    {
-      title: "Kependudukan",
-      icon: <FaUsers className="text-[#5DE1C4] text-3xl" />,
-      services: [
-        {
-          name: "Pembuatan Surat Pindah",
-          link: "https://forms.gle/example2",
-          description: "Layanan pembuatan surat keterangan pindah domisili",
-        },
-        {
-          name: "Pembuatan Surat Keterangan Domisili",
-          link: "https://forms.gle/example7",
-          description: "Layanan pembuatan surat keterangan domisili",
-        },
-      ],
-    },
-    {
-      title: "Pencatatan Sipil",
-      icon: <FaEdit className="text-[#6CABCA] text-3xl" />,
-      services: [
-        {
-          name: "Pembuatan Akta Kelahiran",
-          link: "https://forms.gle/example3",
-          description: "Layanan pembuatan akta kelahiran",
-        },
-        {
-          name: "Pembuatan Akta Kematian",
-          link: "https://forms.gle/example4",
-          description: "Layanan pembuatan akta kematian",
-        },
-      ],
-    },
-  ];
+  // State untuk data
+  const [layananData, setLayananData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchPelayananData();
+  }, []);
+
+  // Fetch pelayanan data
+  const fetchPelayananData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await PelayananServiceUser.getAllPelayanan();
+      setLayananData(data);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Gagal memuat data pelayanan. Silakan coba lagi nanti.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Organize services by category
+  const organizeServicesByCategory = () => {
+    const categories = [
+      {
+        title: "Dokumen Identitas",
+        icon: <FaIdCard className="text-[#FE7C66] text-3xl" />,
+        services: [],
+      },
+      {
+        title: "Kependudukan",
+        icon: <FaUsers className="text-[#5DE1C4] text-3xl" />,
+        services: [],
+      },
+      {
+        title: "Pencatatan Sipil",
+        icon: <FaEdit className="text-[#6CABCA] text-3xl" />,
+        services: [],
+      },
+    ];
+
+    // Populate services into categories
+    layananData.forEach((layanan) => {
+      const service = {
+        name: layanan.nama_layanan,
+        link: layanan.link_google_form,
+        description: layanan.deskripsi,
+      };
+
+      if (layanan.kategori === "Dokumen Identitas") {
+        categories[0].services.push(service);
+      } else if (layanan.kategori === "Kependudukan") {
+        categories[1].services.push(service);
+      } else if (layanan.kategori === "Pencatatan Sipil") {
+        categories[2].services.push(service);
+      }
+    });
+
+    // Filter out empty categories
+    return categories.filter((category) => category.services.length > 0);
+  };
+
+  const serviceCategories = organizeServicesByCategory();
 
   return (
+    <>
     <div
       className="flex flex-col bg-gray-50 items-center min-h-screen"
       style={{ fontFamily: "poppins" }}
@@ -72,7 +94,7 @@ export default function Pelayanan() {
       {/* Hero Section */}
       <div className="w-full bg-gradient-to-r from-[#6CABCA] to-white py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between">
+          <div className="flex flex-col-reverse md:flex-row items-center justify-between">
             <div className="md:w-1/2 mb-8 md:mb-0">
               <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold text-white leading-tight mb-4">
                 Pusat Pelayanan
@@ -102,7 +124,7 @@ export default function Pelayanan() {
               <img
                 src={cs || "/placeholder.svg"}
                 alt="Icon Infografis"
-                className="w-150 h-150 object-contain"
+                className="w-90 h-80 md:w-150 md:h-150 object-contain"
               />
             </div>
           </div>
@@ -125,71 +147,94 @@ export default function Pelayanan() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {serviceCategories.map((category, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition"
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <FaSpinner className="animate-spin text-4xl text-[#6CABCA]" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col justify-center items-center py-12">
+            <FaExclamationTriangle className="text-4xl text-yellow-500 mb-2" />
+            <p className="text-gray-600">{error}</p>
+            <button
+              onClick={fetchPelayananData}
+              className="mt-4 px-4 py-2 bg-[#6CABCA] text-white rounded-lg hover:bg-opacity-90 transition"
             >
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="p-3 bg-gray-100 rounded-xl mr-4">
-                    {category.icon}
+              Coba Lagi
+            </button>
+          </div>
+        ) : serviceCategories.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {serviceCategories.map((category, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition"
+              >
+                <div className="p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="p-3 bg-gray-100 rounded-xl mr-4">
+                      {category.icon}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800">
+                      {category.title}
+                    </h3>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800">
-                    {category.title}
-                  </h3>
-                </div>
-                <div className="space-y-4">
-                  {category.services.map((service, index) => (
-                    <a
-                      key={index}
-                      href={service.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`block p-4 bg-gray-50 rounded-xl hover:bg-opacity-20 transition group
-                        ${
-                          idx === 0
-                            ? "hover:bg-[#FE7C66]"
-                            : idx === 1
-                            ? "hover:bg-[#5DE1C4]"
-                            : "hover:bg-[#6CABCA]"
-                        }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span
-                          className={`font-medium text-gray-800 
+                  <div className="space-y-4">
+                    {category.services.map((service, index) => (
+                      <a
+                        key={index}
+                        href={service.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`block p-4 bg-gray-50 rounded-xl hover:bg-opacity-20 transition group
                           ${
                             idx === 0
-                              ? "group-hover:text-white"
+                              ? "hover:bg-[#FE7C66]"
                               : idx === 1
-                              ? "group-hover:text-white"
-                              : "group-hover:text-white"
+                              ? "hover:bg-[#5DE1C4]"
+                              : "hover:bg-[#6CABCA]"
                           }`}
-                        >
-                          {service.name}
-                        </span>
-                        <FaArrowRight
-                          className={`text-gray-400 transform group-hover:translate-x-1 transition-transform
-                          ${
-                            idx === 0
-                              ? "group-hover:text-white"
-                              : idx === 1
-                              ? "group-hover:text-white"
-                              : "group-hover:text-white"
-                          }`}
-                        />
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1 transform group-hover:text-white">
-                        {service.description}
-                      </p>
-                    </a>
-                  ))}
+                      >
+                        <div className="flex justify-between items-center">
+                          <span
+                            className={`font-medium text-gray-800 
+                            ${
+                              idx === 0
+                                ? "group-hover:text-white"
+                                : idx === 1
+                                ? "group-hover:text-white"
+                                : "group-hover:text-white"
+                            }`}
+                          >
+                            {service.name}
+                          </span>
+                          <FaArrowRight
+                            className={`text-gray-400 transform group-hover:translate-x-1 transition-transform
+                            ${
+                              idx === 0
+                                ? "group-hover:text-white"
+                                : idx === 1
+                                ? "group-hover:text-white"
+                                : "group-hover:text-white"
+                            }`}
+                          />
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1 transform group-hover:text-white">
+                          {service.description}
+                        </p>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white rounded-2xl shadow-md">
+            <p className="text-gray-600">
+              Tidak ada layanan yang tersedia saat ini.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* How It Works Section */}
@@ -304,8 +349,8 @@ export default function Pelayanan() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
+    <Footer />
+    </>
   );
 }
