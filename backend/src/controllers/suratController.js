@@ -3,7 +3,7 @@ import suratServices from "../services/suratServices.js";
 const addSuratMasuk = async (req, res) => {
     try {
         const { nomorSurat, pengirim, perihal, tanggalTerima } = req.body;
-        const file = req.file ? req.file.filename : null; // Jika ada file yang di-upload
+        const file = req.file ? req.file : null; // Jika ada file yang di-upload
 
         const result = await suratServices.addSuratMasuk(nomorSurat, pengirim, perihal, tanggalTerima, file);
         res.status(201).json({ success: true, message: "Surat masuk berhasil ditambahkan", data: result });
@@ -15,7 +15,7 @@ const addSuratMasuk = async (req, res) => {
 const addSuratKeluar = async (req, res) => {
     try {
         const { nomorSurat, penerima, perihal, tanggalKirim } = req.body;
-        const file = req.file ? req.file.filename : null; // Jika ada file yang di-upload
+        const file = req.file ? req.file : null; // Jika ada file yang di-upload
 
         const result = await suratServices.addSuratKeluar(nomorSurat, penerima, perihal, tanggalKirim, file);
         res.status(201).json({ success: true, message: "Surat keluar berhasil ditambahkan", data: result });
@@ -66,7 +66,7 @@ const updateSuratMasuk = async (req, res) => {
     try {
         const { id } = req.params;
         const { nomorSurat, pengirim, perihal, tanggalTerima } = req.body;
-        const file = req.file ? req.file.filename : null;
+        const file = req.file ? req.file : null;
 
         const updated = await suratServices.updateSuratMasuk(id, nomorSurat, pengirim, perihal, tanggalTerima, file);
         if (!updated) {
@@ -83,7 +83,7 @@ const updateSuratKeluar = async (req, res) => {
     try {
         const { id } = req.params;
         const { nomorSurat, penerima, perihal, tanggalKirim } = req.body;
-        const file = req.file ? req.file.filename : null;
+        const file = req.file ? req.file : null;
 
         const updated = await suratServices.updateSuratKeluar(id, nomorSurat, penerima, perihal, tanggalKirim, file);
         if (!updated) {
