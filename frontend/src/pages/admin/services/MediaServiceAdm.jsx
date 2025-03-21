@@ -121,7 +121,7 @@ const MediaServiceAdmin = {
     }
 
     // Return the complete URL
-    return `${API_URL}/uploads/${filename}`;
+    return `${API_URL}${filename}`;
   },
 };
 
