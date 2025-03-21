@@ -28,6 +28,7 @@ const HeroSection = () => {
       className="py-8 px-4 md:px-8 pt-24 pb-11"
       style={{ fontFamily: "Poppins" }}
     >
+      <img src="../assets/berita2.jpg" />
       <div
         className="relative w-full max-w-9xl h-[40rem] md:h-[37rem] bg-cover bg-center rounded-3xl overflow-hidden mx-auto"
         style={{ backgroundImage: `url(${Bg})` }}

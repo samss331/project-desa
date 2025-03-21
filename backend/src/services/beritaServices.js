@@ -16,7 +16,7 @@ const addBerita = async (
   }
 
   // Foto bisa null/undefined
-  const fotoPath = foto ? `/uploads/berita/${foto.filename}` : null;
+  const fotoPath = foto ? foto.filename : null;
 
   const result = await beritaRepository.addBerita(
     judul,

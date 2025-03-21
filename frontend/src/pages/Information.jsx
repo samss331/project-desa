@@ -144,6 +144,8 @@ const Information = () => {
     navigate("/Detail");
   };
 
+  console.log(featuredBerita);
+
   return (
     <div>
       <Navbar />
@@ -184,10 +186,7 @@ const Information = () => {
                   >
                     {berita.foto ? (
                       <img
-                        src={
-                          BeritaService.getImageUrl(berita.foto) ||
-                          "/placeholder.svg"
-                        }
+                        src={`../../public/berita/${berita.foto}`}
                         alt={berita.judul}
                         className="w-full h-full object-cover"
                       />
@@ -288,10 +287,7 @@ const Information = () => {
                       {berita.foto ? (
                         <img
                           className="w-full h-52 sm:h-52 object-cover rounded-2xl cursor-pointer"
-                          src={
-                            BeritaService.getImageUrl(berita.foto) ||
-                            "/placeholder.svg"
-                          }
+                          src={`../../public/berita/${berita.foto}`}
                           alt={berita.judul}
                           onClick={() => navigateToDetail(berita)}
                         />
