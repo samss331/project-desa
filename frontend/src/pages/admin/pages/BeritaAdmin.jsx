@@ -12,6 +12,9 @@ import {
   FaUser,
   FaTags,
   FaSpinner,
+  FaCheck,
+  FaTimesCircle,
+  FaImage,
 } from "react-icons/fa";
 import BeritaServiceAdmin from "../services/BeritaServiceAdmin";
 
@@ -42,6 +45,8 @@ const BeritaAdmin = () => {
     status: "Draft",
     ringkasan: "",
     isi: "",
+    foto: null,
+    fotoPreview: null,
   });
 
   // Definisi animasi CSS
@@ -55,7 +60,7 @@ const BeritaAdmin = () => {
       to {
         opacity: 1;
         transform: translateY(0);
-        }
+      }
     }
     
     .animate-modalFadeIn {
@@ -94,6 +99,7 @@ const BeritaAdmin = () => {
         status: item.status || "Dipublikasi", // Default to "Dipublikasi" if not provided
         ringkasan: item.ringkasan || item.isi?.substring(0, 150) || "", // Use first 150 chars of isi as ringkasan if not provided
         isi: item.isi,
+        foto: item.foto,
       }));
 
       setBeritaData(transformedData);
@@ -140,6 +146,8 @@ const BeritaAdmin = () => {
       status: "Draft",
       ringkasan: "",
       isi: "",
+      foto: null,
+      fotoPreview: null,
     });
     setShowAddModal(true);
   };
@@ -156,6 +164,10 @@ const BeritaAdmin = () => {
         status: item.status || "Draft",
         ringkasan: item.ringkasan || "",
         isi: item.isi || "",
+        foto: null,
+        fotoPreview: item.foto
+          ? BeritaServiceAdmin.getImageUrl(item.foto)
+          : null,
       });
       setShowEditModal(true);
     }
@@ -174,6 +186,17 @@ const BeritaAdmin = () => {
     if (item) {
       setCurrentItem(item);
       setShowPreviewModal(true);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        foto: file,
+        fotoPreview: URL.createObjectURL(file),
+      });
     }
   };
 
@@ -196,33 +219,21 @@ const BeritaAdmin = () => {
       }
 
       // Prepare data for API
-      const newBeritaData = {
+      const beritaData = {
         judul: formData.judul,
         isi: formData.isi,
         tanggalTerbit: formData.tanggalTerbit,
         penulis: formData.penulis,
-        // Additional fields not in the API but we'll keep them in our transformed data
-        kategori: formData.kategori,
         status: formData.status,
-        ringkasan: formData.ringkasan,
+        kategori: formData.kategori,
+        foto: formData.foto,
       };
 
       // Send to API
-      const result = await BeritaServiceAdmin.addBerita(newBeritaData);
+      const result = await BeritaServiceAdmin.addBerita(beritaData);
 
-      // Add the new item to our state with transformed data
-      const newItem = {
-        id: result.id,
-        judul: result.judul,
-        kategori: formData.kategori,
-        tanggalTerbit: formData.tanggalTerbit,
-        penulis: formData.penulis,
-        status: formData.status,
-        ringkasan: formData.ringkasan || formData.isi.substring(0, 150),
-        isi: result.isi,
-      };
-
-      setBeritaData([...beritaData, newItem]);
+      // Refresh data
+      await fetchBeritaData();
       setShowAddModal(false);
     } catch (err) {
       console.error("Error saving berita:", err);
@@ -248,44 +259,22 @@ const BeritaAdmin = () => {
         return;
       }
 
-      // Validasi currentItem
-      if (!currentItem || !currentItem.id) {
-        alert("Data berita yang akan diedit tidak ditemukan!");
-        return;
-      }
-
       // Prepare data for API
-      const editBeritaData = {
+      const beritaData = {
         judul: formData.judul,
         isi: formData.isi,
         tanggalTerbit: formData.tanggalTerbit,
         penulis: formData.penulis,
-        // Additional fields not in the API but we'll keep them in our transformed data
-        kategori: formData.kategori,
         status: formData.status,
-        ringkasan: formData.ringkasan,
+        kategori: formData.kategori,
+        foto: formData.foto,
       };
 
       // Send to API
-      await BeritaServiceAdmin.updateBerita(currentItem.id, editBeritaData);
+      await BeritaServiceAdmin.updateBerita(currentItem.id, beritaData);
 
-      // Update our state with transformed data
-      const updatedData = beritaData.map((item) =>
-        item.id === currentItem.id
-          ? {
-              ...item,
-              judul: formData.judul,
-              kategori: formData.kategori,
-              tanggalTerbit: formData.tanggalTerbit,
-              penulis: formData.penulis,
-              status: formData.status,
-              ringkasan: formData.ringkasan || formData.isi.substring(0, 150),
-              isi: formData.isi,
-            }
-          : item
-      );
-
-      setBeritaData(updatedData);
+      // Refresh data
+      await fetchBeritaData();
       setShowEditModal(false);
     } catch (err) {
       console.error("Error updating berita:", err);
@@ -300,20 +289,11 @@ const BeritaAdmin = () => {
     }
 
     try {
-      // Validasi currentItem
-      if (!currentItem || !currentItem.id) {
-        alert("Tidak ada berita yang dipilih untuk dihapus!");
-        return;
-      }
-
       // Send to API
       await BeritaServiceAdmin.deleteBerita(currentItem.id);
 
-      // Update our state
-      const updatedData = beritaData.filter(
-        (item) => item.id !== currentItem.id
-      );
-      setBeritaData(updatedData);
+      // Refresh data
+      await fetchBeritaData();
       setShowDeleteModal(false);
     } catch (err) {
       console.error("Error deleting berita:", err);
@@ -321,46 +301,43 @@ const BeritaAdmin = () => {
     }
   };
 
-  const publishBerita = async (id) => {
+  const togglePublishStatus = async (id) => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk mempublikasikan berita");
+      alert("Anda harus login sebagai admin untuk mengubah status berita");
       return;
     }
 
     try {
-      // Validasi item
       const item = beritaData.find((item) => item.id === id);
-      if (!item) {
-        alert("Berita tidak ditemukan!");
-        return;
-      }
+      if (!item) return;
 
-      // Prepare data for API
-      const publishData = {
+      // Toggle status
+      const newStatus = item.status === "Dipublikasi" ? "Draft" : "Dipublikasi";
+
+      // Update status in our state
+      const updatedData = beritaData.map((item) =>
+        item.id === id ? { ...item, status: newStatus } : item
+      );
+
+      setBeritaData(updatedData);
+
+      // Update in backend
+      await BeritaServiceAdmin.updateBerita(id, {
         judul: item.judul,
         isi: item.isi,
         tanggalTerbit: item.tanggalTerbit,
         penulis: item.penulis,
+        status: newStatus,
         kategori: item.kategori,
-        status: "Dipublikasi",
-        ringkasan: item.ringkasan,
-      };
+      });
 
-      // Send to API
-      await BeritaServiceAdmin.updateBerita(id, publishData);
-
-      // Update status in our state
-      const updatedData = beritaData.map((beritaItem) =>
-        beritaItem.id === id
-          ? { ...beritaItem, status: "Dipublikasi" }
-          : beritaItem
-      );
-
-      setBeritaData(updatedData);
-      setShowPreviewModal(false);
+      // If preview modal is open and showing this item, update it there too
+      if (showPreviewModal && currentItem && currentItem.id === id) {
+        setCurrentItem({ ...currentItem, status: newStatus });
+      }
     } catch (err) {
-      console.error("Error publishing berita:", err);
-      alert("Terjadi kesalahan saat mempublikasikan berita.");
+      console.error("Error toggling publish status:", err);
+      alert("Terjadi kesalahan saat mengubah status publikasi berita.");
     }
   };
 
@@ -576,6 +553,9 @@ const BeritaAdmin = () => {
                       Judul
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                      Thumbnail
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
                       Kategori
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
@@ -600,6 +580,22 @@ const BeritaAdmin = () => {
                           {berita.judul}
                         </td>
                         <td className="px-4 py-3 text-sm">
+                          {berita.foto ? (
+                            <img
+                              src={
+                                BeritaServiceAdmin.getImageUrl(berita.foto) ||
+                                "/placeholder.svg"
+                              }
+                              alt={berita.judul}
+                              className="w-12 h-12 object-cover rounded-md"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                              <FaImage className="text-gray-400" />
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
                           <span
                             className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
                               berita.kategori
@@ -621,13 +617,35 @@ const BeritaAdmin = () => {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                              berita.status
-                            )}`}
-                          >
-                            {berita.status || "Dipublikasi"}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                                berita.status
+                              )}`}
+                            >
+                              {berita.status || "Dipublikasi"}
+                            </span>
+                            {/* Tombol toggle status */}
+                            <button
+                              onClick={() => togglePublishStatus(berita.id)}
+                              className={`p-1 rounded-full ${
+                                berita.status === "Dipublikasi"
+                                  ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                                  : "bg-green-100 text-green-700 hover:bg-green-200"
+                              }`}
+                              title={
+                                berita.status === "Dipublikasi"
+                                  ? "Ubah ke Draft"
+                                  : "Publikasikan"
+                              }
+                            >
+                              {berita.status === "Dipublikasi" ? (
+                                <FaTimesCircle className="text-xs" />
+                              ) : (
+                                <FaCheck className="text-xs" />
+                              )}
+                            </button>
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex justify-end gap-2">
@@ -659,7 +677,7 @@ const BeritaAdmin = () => {
                   ) : (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="px-4 py-8 text-center text-gray-500"
                       >
                         Tidak ada data berita yang ditemukan.
@@ -704,6 +722,45 @@ const BeritaAdmin = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Masukkan judul berita"
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="foto"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Thumbnail Berita
+                </label>
+                <div className="flex items-center gap-4">
+                  <input
+                    id="foto"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                  {formData.fotoPreview && (
+                    <div className="relative w-16 h-16">
+                      <img
+                        src={formData.fotoPreview || "/placeholder.svg"}
+                        alt="Preview"
+                        className="w-16 h-16 object-cover rounded-md"
+                      />
+                      <button
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            foto: null,
+                            fotoPreview: null,
+                          })
+                        }
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -872,6 +929,48 @@ const BeritaAdmin = () => {
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-foto"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Thumbnail Berita
+                </label>
+                <div className="flex items-center gap-4">
+                  <input
+                    id="edit-foto"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                  {formData.fotoPreview && (
+                    <div className="relative w-16 h-16">
+                      <img
+                        src={formData.fotoPreview || "/placeholder.svg"}
+                        alt="Preview"
+                        className="w-16 h-16 object-cover rounded-md"
+                      />
+                      <button
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            foto: null,
+                            fotoPreview: null,
+                          })
+                        }
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Biarkan kosong jika tidak ingin mengubah thumbnail
+                </p>
               </div>
 
               <div>
@@ -1074,9 +1173,20 @@ const BeritaAdmin = () => {
             </div>
 
             <div className="mb-6">
-              <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
-                <FaNewspaper className="text-gray-300 text-5xl" />
-              </div>
+              {currentItem?.foto ? (
+                <img
+                  src={
+                    BeritaServiceAdmin.getImageUrl(currentItem.foto) ||
+                    "/placeholder.svg"
+                  }
+                  alt={currentItem.judul}
+                  className="w-full h-64 object-cover rounded-lg mb-4"
+                />
+              ) : (
+                <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
+                  <FaNewspaper className="text-gray-300 text-5xl" />
+                </div>
+              )}
 
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 {currentItem?.judul}
@@ -1133,7 +1243,7 @@ const BeritaAdmin = () => {
               </button>
               {currentItem?.status === "Draft" && (
                 <button
-                  onClick={() => publishBerita(currentItem.id)}
+                  onClick={() => togglePublishStatus(currentItem.id)}
                   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
                 >
                   <FaNewspaper className="text-white" />
