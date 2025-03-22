@@ -664,14 +664,17 @@ const MediaAdmin = () => {
         </div>
       </div>
 
-      {/* Add Modal */}
+      {/* Add Modal - Dengan background blur */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8">
+          {/* Backdrop with blur */}
           <div
-            className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"
+            className="fixed inset-0 backdrop-blur-sm bg-black/40"
             onClick={() => setShowAddModal(false)}
           ></div>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md relative">
+
+          {/* Modal content */}
+          <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
                 Tambah Media Baru
@@ -791,14 +794,17 @@ const MediaAdmin = () => {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Modal - Dengan background blur */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8">
+          {/* Backdrop with blur */}
           <div
-            className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"
+            className="fixed inset-0 backdrop-blur-sm bg-black/40"
             onClick={() => setShowEditModal(false)}
           ></div>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md relative">
+
+          {/* Modal content */}
+          <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">Edit Media</h3>
               <p className="text-gray-600 text-sm">
@@ -915,14 +921,17 @@ const MediaAdmin = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal - Dengan background blur */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8">
+          {/* Backdrop with blur */}
           <div
-            className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"
+            className="fixed inset-0 backdrop-blur-sm bg-black/40"
             onClick={() => setShowDeleteModal(false)}
           ></div>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md relative">
+
+          {/* Modal content */}
+          <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-xl p-6">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
                 Konfirmasi Hapus
@@ -951,19 +960,23 @@ const MediaAdmin = () => {
         </div>
       )}
 
-      {/* Preview Modal - Dengan background blur */}
+      {/* Preview Modal - Dengan background blur dan max-height */}
       {showPreviewModal && currentItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8">
+          {/* Backdrop with blur */}
           <div
-            className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"
+            className="fixed inset-0 backdrop-blur-sm bg-black/40"
             onClick={() => setShowPreviewModal(false)}
           ></div>
+
+          {/* Modal content */}
           <div
-            className="relative w-full max-w-5xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-5xl mx-4 bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-xl font-bold text-gray-800">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
+              <h3 className="text-xl font-bold text-gray-800 truncate">
                 {getMediaIcon(currentItem?.tipe)} {currentItem?.nama}
               </h3>
               <button
@@ -974,7 +987,8 @@ const MediaAdmin = () => {
               </button>
             </div>
 
-            <div className="p-6">
+            {/* Content - scrollable */}
+            <div className="p-6 overflow-auto">
               {/* Media Content */}
               <div className="mb-4">{renderMediaContent()}</div>
 
@@ -995,11 +1009,14 @@ const MediaAdmin = () => {
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="mt-6 flex justify-end">
+            {/* Footer - sticky */}
+            <div className="mt-auto p-4 border-t bg-white sticky bottom-0">
+              <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowPreviewModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors mr-2"
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Tutup
                 </button>

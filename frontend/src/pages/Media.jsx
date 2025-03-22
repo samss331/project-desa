@@ -497,6 +497,7 @@ export default function Media() {
                             src={
                               MediaService.getMediaUrl(media.file) ||
                               "/placeholder.svg?height=300&width=400" ||
+                              "/placeholder.svg" ||
                               "/placeholder.svg"
                             }
                             alt={media.nama}
@@ -513,6 +514,7 @@ export default function Media() {
                               src={
                                 getVideoThumbnail(media) ||
                                 "/placeholder.svg?height=300&width=400" ||
+                                "/placeholder.svg" ||
                                 "/placeholder.svg"
                               }
                               alt={media.nama}
@@ -631,19 +633,23 @@ export default function Media() {
         </div>
       </div>
 
-      {/* Preview Modal - Dengan background blur */}
+      {/* Preview Modal - Dengan background blur dan max-height */}
       {showPreviewModal && currentItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8">
+          {/* Backdrop with blur */}
           <div
-            className="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm"
+            className="fixed inset-0 backdrop-blur-sm bg-black/40"
             onClick={() => setShowPreviewModal(false)}
           ></div>
+
+          {/* Modal content */}
           <div
-            className="relative w-full max-w-5xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-5xl mx-4 bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-xl font-bold text-gray-800">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
+              <h3 className="text-xl font-bold text-gray-800 truncate">
                 {currentItem.tipe === "foto" ? (
                   <>
                     <FaImage className="inline-block mr-2 text-[#FE7C66]" />{" "}
@@ -669,7 +675,8 @@ export default function Media() {
               </button>
             </div>
 
-            <div className="p-6">
+            {/* Content - scrollable */}
+            <div className="p-6 overflow-auto">
               {/* Media Content */}
               <div className="mb-4">{renderMediaContent()}</div>
 
@@ -684,8 +691,11 @@ export default function Media() {
                   </p>
                 </div>
               </div>
+            </div>
 
-              <div className="mt-6 flex justify-end gap-2">
+            {/* Footer - sticky */}
+            <div className="mt-auto p-4 border-t bg-white sticky bottom-0">
+              <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowPreviewModal(false)}
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
