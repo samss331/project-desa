@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FaImage,
   FaVideo,
@@ -123,14 +123,14 @@ export default function Media() {
   const handlePreview = (item) => {
     setCurrentItem(item);
     setShowPreviewModal(true);
+    setMediaLoading(true);
+    setMediaError(false);
   };
 
-  // Get thumbnail for video
-  const getVideoThumbnail = (item) => {
-    // In a real app, you might have a thumbnail field or generate one
-    // For now, we'll use a placeholder
-    return "/placeholder.svg?height=300&width=400";
-  };
+  // Get video thumbnail
+  const getVideoThumbnail = useCallback((item) => {
+    return MediaService.getVideoThumbnail(item);
+  }, []);
 
   // Handle download - perbaikan untuk langsung mengunduh file
   const handleDownload = (e, fileUrl, filename) => {
@@ -153,18 +153,9 @@ export default function Media() {
     }
   };
 
-  // Effect untuk mengatur loading state saat modal preview dibuka
-  useEffect(() => {
-    if (showPreviewModal && currentItem) {
-      setMediaLoading(true);
-      setMediaError(false);
-    }
-  }, [showPreviewModal, currentItem]);
-
   // Render media content based on type
   const renderMediaContent = () => {
     if (!currentItem) return null;
-
     const mediaUrl = MediaService.getMediaUrl(currentItem.file);
 
     if (currentItem.tipe === "foto") {
@@ -176,7 +167,7 @@ export default function Media() {
             </div>
           )}
           <img
-            src={mediaUrl || "/placeholder.svg"}
+            src={mediaUrl || "/placeholder.svg?height=600&width=800"}
             alt={currentItem.nama}
             className="max-w-full max-h-[70vh] object-contain"
             onLoad={() => setMediaLoading(false)}
@@ -211,6 +202,20 @@ export default function Media() {
           >
             Browser Anda tidak mendukung pemutaran video.
           </video>
+          {mediaError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
+              <FaExclamationTriangle className="text-red-500 text-5xl mb-4" />
+              <p className="text-gray-700 mb-4">Video tidak dapat dimuat</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.open(mediaUrl, "_blank")}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Buka di Tab Baru
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       );
     } else if (currentItem.tipe === "dokumen") {
@@ -491,7 +496,8 @@ export default function Media() {
                           <img
                             src={
                               MediaService.getMediaUrl(media.file) ||
-                              "/placeholder.svg?height=300&width=400"
+                              "/placeholder.svg?height=300&width=400" ||
+                              "/placeholder.svg"
                             }
                             alt={media.nama}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -506,7 +512,8 @@ export default function Media() {
                             <img
                               src={
                                 getVideoThumbnail(media) ||
-                                "/placeholder.svg?height=300&width=400"
+                                "/placeholder.svg?height=300&width=400" ||
+                                "/placeholder.svg"
                               }
                               alt={media.nama}
                               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
