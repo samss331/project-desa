@@ -96,6 +96,26 @@ const MediaService = {
           mediaData.append("original_filename", file.name);
         }
 
+        // Jika ada thumbnail, generate unique filename dengan timestamp
+        if (mediaData.get("thumbnail")) {
+          const thumbnail = mediaData.get("thumbnail");
+          const thumbnailExt = thumbnail.name.split(".").pop();
+          const timestamp = Date.now();
+          const newThumbnailFilename = `thumb_${timestamp}.${thumbnailExt}`;
+
+          // Create a new file object with the new name
+          const renamedThumbnail = new File([thumbnail], newThumbnailFilename, {
+            type: thumbnail.type,
+          });
+
+          // Replace the original thumbnail with the renamed one
+          mediaData.delete("thumbnail");
+          mediaData.append("thumbnail", renamedThumbnail);
+
+          // Also store the original thumbnail filename for reference
+          mediaData.append("original_thumbnail_filename", thumbnail.name);
+        }
+
         const response = await axios.post(`${API_URL}/media`, mediaData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -137,6 +157,26 @@ const MediaService = {
 
           // Also store the original filename for reference
           mediaData.append("original_filename", file.name);
+        }
+
+        // Jika ada thumbnail, generate unique filename dengan timestamp
+        if (mediaData.get("thumbnail")) {
+          const thumbnail = mediaData.get("thumbnail");
+          const thumbnailExt = thumbnail.name.split(".").pop();
+          const timestamp = Date.now();
+          const newThumbnailFilename = `thumb_${timestamp}.${thumbnailExt}`;
+
+          // Create a new file object with the new name
+          const renamedThumbnail = new File([thumbnail], newThumbnailFilename, {
+            type: thumbnail.type,
+          });
+
+          // Replace the original thumbnail with the renamed one
+          mediaData.delete("thumbnail");
+          mediaData.append("thumbnail", renamedThumbnail);
+
+          // Also store the original thumbnail filename for reference
+          mediaData.append("original_thumbnail_filename", thumbnail.name);
         }
 
         const response = await axios.put(`${API_URL}/media/${id}`, mediaData, {
@@ -258,10 +298,13 @@ const MediaService = {
 
     // If there's a thumbnail field, use it
     if (item.thumbnail) {
-      return MediaService.getMediaUrl(item.thumbnail);
+      const thumbnailUrl = MediaService.getMediaUrl(item.thumbnail);
+      console.log("Using thumbnail:", thumbnailUrl);
+      return thumbnailUrl;
     }
 
     // Otherwise, use a placeholder
+    console.log("No thumbnail found, using placeholder");
     return "/placeholder.svg?height=300&width=400";
   },
 };

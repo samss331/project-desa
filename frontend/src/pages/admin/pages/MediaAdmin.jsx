@@ -35,12 +35,19 @@ const MediaAdmin = () => {
   const [mediaLoading, setMediaLoading] = useState(false);
   const [mediaError, setMediaError] = useState(false);
 
+  // Add a new state for thumbnail loading
+  // Add this to the state declarations at the top of the component
+
+  // State for thumbnail generation loading
+  const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
+
   // Form state
   const [formData, setFormData] = useState({
     nama: "",
     tipe: "foto",
     deskripsi: "",
     file: null,
+    thumbnail: null, // Tambahkan state untuk thumbnail
   });
 
   // Fetch data on component mount
@@ -85,6 +92,7 @@ const MediaAdmin = () => {
       tipe: "foto",
       deskripsi: "",
       file: null,
+      thumbnail: null, // Reset thumbnail
     });
     setShowAddModal(true);
   };
@@ -98,6 +106,7 @@ const MediaAdmin = () => {
         tipe: item.tipe,
         deskripsi: item.deskripsi,
         file: null, // Reset file input
+        thumbnail: null, // Reset thumbnail input
       });
       setShowEditModal(true);
     }
@@ -141,6 +150,85 @@ const MediaAdmin = () => {
       alert("Gagal mengunduh file. Silakan coba lagi.");
     }
   };
+
+  // Add a new function to extract the first frame from a video
+  // Add this function after the handleDownload function and before saveNewItem
+
+  // Function to extract the first frame from a video
+  const extractThumbnailFromVideo = (videoFile) => {
+    return new Promise((resolve, reject) => {
+      try {
+        // Create a video element
+        const video = document.createElement("video");
+        video.preload = "metadata";
+        video.muted = true;
+        video.playsInline = true;
+
+        // Create a URL for the video file
+        const videoUrl = URL.createObjectURL(videoFile);
+        video.src = videoUrl;
+
+        // When video metadata is loaded, seek to the first frame
+        video.onloadedmetadata = () => {
+          video.currentTime = 0.1; // Seek to 0.1 seconds to ensure we get a frame
+        };
+
+        // When the video has seeked to the specified time
+        video.onseeked = () => {
+          try {
+            // Create a canvas element
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw the video frame on the canvas
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert canvas to blob
+            canvas.toBlob(
+              (blob) => {
+                // Clean up
+                URL.revokeObjectURL(videoUrl);
+
+                // Create a file from the blob
+                const thumbnailFile = new File(
+                  [blob],
+                  `auto_thumbnail_${Date.now()}.jpg`,
+                  {
+                    type: "image/jpeg",
+                  }
+                );
+
+                resolve(thumbnailFile);
+              },
+              "image/jpeg",
+              0.8
+            ); // JPEG format with 80% quality
+          } catch (err) {
+            console.error("Error creating thumbnail:", err);
+            reject(err);
+          }
+        };
+
+        // Handle errors
+        video.onerror = (err) => {
+          console.error("Error loading video:", err);
+          URL.revokeObjectURL(videoUrl);
+          reject(err);
+        };
+
+        // Start loading the video
+        video.load();
+      } catch (err) {
+        console.error("Error in thumbnail extraction:", err);
+        reject(err);
+      }
+    });
+  };
+
+  // Modify the saveNewItem function to include automatic thumbnail extraction
+  // Replace the saveNewItem function with this updated version
 
   // Perbaiki fungsi saveNewItem untuk menangani upload file dengan benar
   const saveNewItem = async () => {
@@ -187,12 +275,54 @@ const MediaAdmin = () => {
         return;
       }
 
+      // Validasi thumbnail jika ada dan tipe media adalah video
+      if (formData.tipe === "video" && formData.thumbnail) {
+        const thumbnailExt = formData.thumbnail.name
+          .split(".")
+          .pop()
+          .toLowerCase();
+        if (!imageExtensions.includes(thumbnailExt)) {
+          alert(
+            "Format thumbnail harus berupa gambar (JPG, JPEG, PNG, GIF, WEBP)"
+          );
+          return;
+        }
+      }
+
       // Create a FormData object for file upload
       const mediaFormData = new FormData();
       mediaFormData.append("nama", formData.nama);
       mediaFormData.append("tipe", formData.tipe);
       mediaFormData.append("deskripsi", formData.deskripsi);
       mediaFormData.append("file", formData.file);
+
+      // Jika tipe media adalah video dan tidak ada thumbnail yang diupload,
+      // ekstrak frame pertama dari video sebagai thumbnail
+      if (formData.tipe === "video") {
+        let thumbnailFile = formData.thumbnail;
+
+        if (!thumbnailFile) {
+          try {
+            // Show thumbnail loading state
+            setIsThumbnailLoading(true);
+            thumbnailFile = await extractThumbnailFromVideo(formData.file);
+            console.log("Auto-generated thumbnail:", thumbnailFile);
+          } catch (err) {
+            console.error("Failed to extract thumbnail:", err);
+            // Continue without thumbnail if extraction fails
+          } finally {
+            setIsThumbnailLoading(false);
+          }
+        }
+
+        // Tambahkan thumbnail jika ada
+        if (thumbnailFile) {
+          mediaFormData.append("thumbnail", thumbnailFile);
+        }
+      } else if (formData.tipe === "video" && formData.thumbnail) {
+        // Jika ada thumbnail yang diupload manual
+        mediaFormData.append("thumbnail", formData.thumbnail);
+      }
 
       // Send to API
       const result = await MediaService.addMedia(mediaFormData);
@@ -206,6 +336,9 @@ const MediaAdmin = () => {
       alert("Terjadi kesalahan saat menyimpan media.");
     }
   };
+
+  // Modify the saveEditedItem function to include automatic thumbnail extraction
+  // Replace the saveEditedItem function with this updated version
 
   // Perbaiki fungsi saveEditedItem untuk menangani update file dengan benar
   const saveEditedItem = async () => {
@@ -249,6 +382,21 @@ const MediaAdmin = () => {
         }
       }
 
+      // Validasi thumbnail jika ada dan tipe media adalah video
+      if (formData.tipe === "video" && formData.thumbnail) {
+        const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
+        const thumbnailExt = formData.thumbnail.name
+          .split(".")
+          .pop()
+          .toLowerCase();
+        if (!imageExtensions.includes(thumbnailExt)) {
+          alert(
+            "Format thumbnail harus berupa gambar (JPG, JPEG, PNG, GIF, WEBP)"
+          );
+          return;
+        }
+      }
+
       // Create a FormData object for file upload
       const mediaFormData = new FormData();
       mediaFormData.append("nama", formData.nama);
@@ -258,6 +406,37 @@ const MediaAdmin = () => {
       // Hanya tambahkan file jika ada file baru
       if (formData.file) {
         mediaFormData.append("file", formData.file);
+
+        // Jika tipe media adalah video, file baru diupload, dan tidak ada thumbnail baru yang diupload,
+        // ekstrak frame pertama dari video sebagai thumbnail
+        if (
+          formData.tipe === "video" &&
+          !formData.thumbnail &&
+          !currentItem.thumbnail
+        ) {
+          try {
+            // Show thumbnail loading state
+            setIsThumbnailLoading(true);
+            const thumbnailFile = await extractThumbnailFromVideo(
+              formData.file
+            );
+            console.log("Auto-generated thumbnail:", thumbnailFile);
+
+            if (thumbnailFile) {
+              mediaFormData.append("thumbnail", thumbnailFile);
+            }
+          } catch (err) {
+            console.error("Failed to extract thumbnail:", err);
+            // Continue without thumbnail if extraction fails
+          } finally {
+            setIsThumbnailLoading(false);
+          }
+        }
+      }
+
+      // Tambahkan thumbnail jika ada dan tipe media adalah video
+      if (formData.tipe === "video" && formData.thumbnail) {
+        mediaFormData.append("thumbnail", formData.thumbnail);
       }
 
       // Send to API
@@ -341,7 +520,7 @@ const MediaAdmin = () => {
             controls
             autoPlay
             className="w-full max-h-[70vh]"
-            poster="/placeholder.svg?height=600&width=800"
+            poster={MediaService.getVideoThumbnail(currentItem)}
             onLoadedData={() => setMediaLoading(false)}
             onError={() => {
               setMediaLoading(false);
@@ -774,6 +953,35 @@ const MediaAdmin = () => {
                     : "Format yang didukung: PDF"}
                 </p>
               </div>
+
+              {/* Tambahkan field thumbnail untuk video */}
+              {formData.tipe === "video" && (
+                <div>
+                  <label
+                    htmlFor="upload-thumbnail"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Upload Thumbnail Video (Opsional)
+                  </label>
+                  <input
+                    id="upload-thumbnail"
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                    onChange={(e) =>
+                      setFormData({ ...formData, thumbnail: e.target.files[0] })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Format yang didukung: JPG, JPEG, PNG, GIF, WEBP
+                  </p>
+                  <p className="text-xs text-blue-500 mt-1">
+                    <span className="font-medium">Catatan:</span> Jika tidak
+                    diisi, sistem akan otomatis mengambil frame pertama dari
+                    video sebagai thumbnail.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-2">
@@ -900,6 +1108,57 @@ const MediaAdmin = () => {
                   Kosongkan jika tidak ingin mengubah file.
                 </p>
               </div>
+
+              {/* Tambahkan field thumbnail untuk video */}
+              {formData.tipe === "video" && (
+                <div>
+                  <label
+                    htmlFor="edit-thumbnail"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Upload Thumbnail Video (Opsional)
+                  </label>
+                  <input
+                    id="edit-thumbnail"
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                    onChange={(e) =>
+                      setFormData({ ...formData, thumbnail: e.target.files[0] })
+                    }
+                    className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Kosongkan jika tidak ingin mengubah thumbnail.
+                  </p>
+                  <p className="text-xs text-blue-500 mt-1">
+                    <span className="font-medium">Catatan:</span> Jika tidak
+                    diisi dan video diubah, sistem akan otomatis mengambil frame
+                    pertama dari video sebagai thumbnail.
+                  </p>
+                  {currentItem?.thumbnail && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-500">
+                        Thumbnail saat ini:
+                      </p>
+                      <div className="mt-1 w-24 h-24 bg-gray-100 rounded-md overflow-hidden">
+                        <img
+                          src={
+                            MediaService.getMediaUrl(currentItem.thumbnail) ||
+                            "/placeholder.svg"
+                          }
+                          alt="Thumbnail"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src =
+                              "/placeholder.svg?height=96&width=96";
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Tombol Aksi */}
@@ -1035,6 +1294,18 @@ const MediaAdmin = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Thumbnail Generation Loading Overlay */}
+      {isThumbnailLoading && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl text-center">
+            <FaSpinner className="animate-spin text-purple-500 text-4xl mx-auto mb-4" />
+            <p className="text-gray-800 font-medium">
+              Menghasilkan thumbnail dari video...
+            </p>
+            <p className="text-gray-600 text-sm mt-2">Mohon tunggu sebentar</p>
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FaSignOutAlt } from "react-icons/fa";
+import { logout } from "../../user/authService";
 
 const LogoutAdminDialog = ({ onClose }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -9,13 +10,14 @@ const LogoutAdminDialog = ({ onClose }) => {
   const handleLogout = () => {
     setIsLoggingOut(true);
 
-    // Simulate logout process
-    setTimeout(() => {
-      // In a real app, you would redirect to login page or clear auth state
-      window.location.href = "/";
+    try {
+      // Gunakan fungsi logout dari authService
+      logout();
+      // onClose tidak perlu dipanggil karena halaman akan di-redirect
+    } catch (error) {
       setIsLoggingOut(false);
       if (onClose) onClose();
-    }, 1000);
+    }
   };
 
   return (

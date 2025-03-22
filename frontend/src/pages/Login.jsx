@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { X } from "lucide-react";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
-import axios from "axios";
+import { login } from "./user/authService";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -10,9 +12,19 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
 
   // Check if form is valid to enable button
   const isFormValid = email.trim() !== "" && password.trim() !== "";
+
+  // Load saved email when component mounts
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,25 +32,20 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/auth/login",
-        { email, password },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const result = await login(email, password);
 
-      console.log("Response Data:", response.data); // Debugging response
-
-      if (response.data.success && response.data.data.token) {
-        localStorage.setItem("token", response.data.data.token);
-        // console.log("Token disimpan:", response.data.data.token);
-        alert("Login berhasil!");
-        window.location.href = "/admin/beranda"; // Redirect setelah login sukses
+      // Save or remove email based on rememberMe checkbox
+      if (rememberMe) {
+        localStorage.setItem("rememberedEmail", email);
       } else {
-        setError("Token tidak ditemukan dalam response!");
+        localStorage.removeItem("rememberedEmail");
+      }
+
+      if (result.success) {
+        window.location.href = "/admin/beranda"; // Redirect setelah login sukses
       }
     } catch (err) {
-      console.error("Login error:", err.response?.data?.message || err.message);
-      setError("Login gagal. Cek kredensial dan coba lagi.");
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -49,6 +56,14 @@ const Login = () => {
       className="flex items-center justify-center min-h-screen bg-gray-100"
       style={{ fontFamily: "poppins" }}
     >
+      <button
+        className="text-gray-700 focus:outline-none absolute top-4 right-4 z-50 p-3"
+        aria-label="Close menu"
+      >
+        <Link to="/">
+          <X size={28} />
+        </Link>
+      </button>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-semibold text-center mb-2">
           Login Sebagai Admin
@@ -77,13 +92,13 @@ const Login = () => {
                 className="w-full pl-10 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Masukkan username Anda"
+                placeholder="Masukkan email Anda"
                 required
               />
             </div>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-gray-700 text-sm font-medium mb-1">
               Password
             </label>
@@ -111,6 +126,22 @@ const Login = () => {
                 )}
               </button>
             </div>
+          </div>
+
+          <div className="mb-6 flex items-center">
+            <input
+              type="checkbox"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label
+              htmlFor="rememberMe"
+              className="ml-2 block text-sm text-gray-700"
+            >
+              Ingat email saya
+            </label>
           </div>
 
           <button

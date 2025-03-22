@@ -498,6 +498,8 @@ export default function Media() {
                               MediaService.getMediaUrl(media.file) ||
                               "/placeholder.svg?height=300&width=400" ||
                               "/placeholder.svg" ||
+                              "/placeholder.svg" ||
+                              "/placeholder.svg" ||
                               "/placeholder.svg"
                             }
                             alt={media.nama}
@@ -512,10 +514,7 @@ export default function Media() {
                           <>
                             <img
                               src={
-                                getVideoThumbnail(media) ||
-                                "/placeholder.svg?height=300&width=400" ||
-                                "/placeholder.svg" ||
-                                "/placeholder.svg"
+                                getVideoThumbnail(media) || "/placeholder.svg"
                               }
                               alt={media.nama}
                               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
