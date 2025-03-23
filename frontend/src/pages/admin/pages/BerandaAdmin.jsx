@@ -14,133 +14,51 @@ import {
   FaArrowRight,
   FaCheck,
   FaExclamationTriangle,
-  FaPhotoVideo, // Import FaPhotoVideo
+  FaPhotoVideo,
+  FaSpinner,
+  FaImage,
+  FaVideo,
+  FaLink,
+  FaIdCard,
+  FaUsers,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import DashboardService from "../services/DashboardService";
 
 const BerandaAdmin = () => {
-  // Sample data for the dashboard
-  const dashboardData = {
-    surat: {
-      total: 5,
-      masuk: 2,
-      keluar: 3,
-      recent: [
-        {
-          id: 1,
-          jenis: "Surat Masuk",
-          nomor: "SM/2024/001",
-          perihal: "Undangan Rapat Koordinasi",
-          tanggal: "2024-02-01",
-          status: "Diterima",
-        },
-        {
-          id: 3,
-          jenis: "Surat Masuk",
-          nomor: "SM/2024/002",
-          perihal: "Pemberitahuan Kegiatan",
-          tanggal: "2024-02-10",
-          status: "Diproses",
-        },
-        {
-          id: 2,
-          jenis: "Surat Keluar",
-          nomor: "SK/2024/001",
-          perihal: "Permohonan Kerjasama",
-          tanggal: "2024-02-05",
-          status: "Terkirim",
-        },
-      ],
-      byMonth: [
-        { month: "Jan", count: 2 },
-        { month: "Feb", count: 3 },
-        { month: "Mar", count: 1 },
-        { month: "Apr", count: 4 },
-        { month: "Mei", count: 2 },
-        { month: "Jun", count: 0 },
-      ],
-    },
-    berita: {
-      total: 5,
-      published: 3,
-      draft: 2,
-      recent: [
-        {
-          id: 1,
-          judul: "Pembangunan Jalan Desa Telah Selesai",
-          kategori: "Infrastruktur",
-          tanggal: "2024-01-01",
-          status: "Dipublikasi",
-        },
-        {
-          id: 2,
-          judul: "Kegiatan Posyandu Bulan Januari",
-          kategori: "Kesehatan",
-          tanggal: "2024-01-02",
-          status: "Dipublikasi",
-        },
-        {
-          id: 4,
-          judul: "Jadwal Vaksinasi Covid-19 Tahap 3",
-          kategori: "Kesehatan",
-          tanggal: "2024-01-15",
-          status: "Draft",
-        },
-      ],
-      byCategory: [
-        { category: "Kesehatan", count: 2 },
-        { category: "Infrastruktur", count: 1 },
-        { category: "Pendidikan", count: 1 },
-        { category: "Pertanian", count: 1 },
-      ],
-    },
-    pengumuman: {
-      total: 5,
-      active: 4,
-      expired: 1,
-      recent: [
-        {
-          id: 1,
-          judul: "Jadwal Pemadaman Listrik",
-          kategori: "Informasi",
-          tanggal: "2024-01-05",
-          status: "Aktif",
-        },
-        {
-          id: 2,
-          judul: "Pengambilan Kartu Keluarga",
-          kategori: "Layanan",
-          tanggal: "2024-01-06",
-          status: "Aktif",
-        },
-        {
-          id: 5,
-          judul: "Pengumuman Pemenang Lomba Desa",
-          kategori: "Acara",
-          tanggal: "2023-12-20",
-          status: "Kadaluarsa",
-        },
-      ],
-      byPriority: [
-        { priority: "Tinggi", count: 2 },
-        { priority: "Sedang", count: 2 },
-        { priority: "Rendah", count: 1 },
-      ],
-    },
-    alerts: [
-      {
-        id: 1,
-        type: "warning",
-        message: "2 pengumuman akan kadaluarsa dalam 3 hari",
-        link: "/admin/pengumuman",
-      },
-      {
-        id: 2,
-        type: "info",
-        message: "5 berita baru ditambahkan bulan ini",
-        link: "/admin/berita",
-      },
-    ],
+  // State for dashboard data
+  const [dashboardData, setDashboardData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Fetch dashboard data on component mount
+  useEffect(() => {
+    fetchDashboardData();
+
+    // Set up timer for current time
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  // Fetch dashboard data
+  const fetchDashboardData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await DashboardService.getDashboardSummary();
+      setDashboardData(data);
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      setError("Gagal memuat data dashboard. Silakan coba lagi nanti.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Simple Donut Chart Component
@@ -350,18 +268,6 @@ const BerandaAdmin = () => {
     }
   };
 
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, []);
-
   const formatDate = (date) => {
     return date.toLocaleDateString("id-ID", {
       weekday: "long",
@@ -378,6 +284,36 @@ const BerandaAdmin = () => {
       second: "2-digit",
     });
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <FaSpinner className="animate-spin text-4xl text-purple-500 mx-auto mb-4" />
+          <p className="text-gray-600">Memuat data dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <FaExclamationTriangle className="text-4xl text-red-500 mx-auto mb-4" />
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={fetchDashboardData}
+            className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -404,8 +340,8 @@ const BerandaAdmin = () => {
           </div>
         </div>
 
-        {/* Alert Section */}
-        {dashboardData.alerts.length > 0 && (
+        {/* alert Section */}
+        {dashboardData?.alerts && dashboardData.alerts.length > 0 && (
           <div className="mb-6">
             {dashboardData.alerts.map((alert) => (
               <div
@@ -425,7 +361,7 @@ const BerandaAdmin = () => {
                 )}
                 <div className="flex-1">{alert.message}</div>
                 <Link
-                  href={alert.link}
+                  to={alert.link}
                   className="text-sm font-medium hover:underline"
                 >
                   Lihat
@@ -447,14 +383,14 @@ const BerandaAdmin = () => {
               </div>
             </div>
             <div className="text-3xl font-bold text-gray-900 mb-1">
-              {dashboardData.surat.total}
+              {dashboardData?.surat?.total || 0}
             </div>
             <div className="flex justify-between text-sm text-gray-600">
-              <span>Surat Masuk: {dashboardData.surat.masuk}</span>
-              <span>Surat Keluar: {dashboardData.surat.keluar}</span>
+              <span>Surat Masuk: {dashboardData?.surat?.masuk || 0}</span>
+              <span>Surat Keluar: {dashboardData?.surat?.keluar || 0}</span>
             </div>
             <Link
-              href="/admin/surat"
+              to="/admin/surat"
               className="mt-4 text-purple-600 text-sm font-medium flex items-center hover:underline"
             >
               Kelola Surat <FaArrowRight className="ml-1 text-xs" />
@@ -471,14 +407,14 @@ const BerandaAdmin = () => {
               </div>
             </div>
             <div className="text-3xl font-bold text-gray-900 mb-1">
-              {dashboardData.berita.total}
+              {dashboardData?.berita?.total || 0}
             </div>
             <div className="flex justify-between text-sm text-gray-600">
-              <span>Dipublikasi: {dashboardData.berita.published}</span>
-              <span>Draft: {dashboardData.berita.draft}</span>
+              <span>Dipublikasi: {dashboardData?.berita?.published || 0}</span>
+              <span>Draft: {dashboardData?.berita?.draft || 0}</span>
             </div>
             <Link
-              href="/admin/berita"
+              to="/admin/berita"
               className="mt-4 text-blue-600 text-sm font-medium flex items-center hover:underline"
             >
               Kelola Berita <FaArrowRight className="ml-1 text-xs" />
@@ -495,17 +431,88 @@ const BerandaAdmin = () => {
               </div>
             </div>
             <div className="text-3xl font-bold text-gray-900 mb-1">
-              {dashboardData.pengumuman.total}
+              {dashboardData?.pengumuman?.total || 0}
             </div>
             <div className="flex justify-between text-sm text-gray-600">
-              <span>Aktif: {dashboardData.pengumuman.active}</span>
-              <span>Kadaluarsa: {dashboardData.pengumuman.expired}</span>
+              <span>Aktif: {dashboardData?.pengumuman?.active || 0}</span>
+              <span>Kadaluarsa: {dashboardData?.pengumuman?.expired || 0}</span>
             </div>
             <Link
-              href="/admin/pengumuman"
+              to="/admin/pengumuman"
               className="mt-4 text-green-600 text-sm font-medium flex items-center hover:underline"
             >
               Kelola Pengumuman <FaArrowRight className="ml-1 text-xs" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Additional Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-white rounded-2xl shadow-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Layanan Administrasi
+              </h3>
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <FaLink className="text-blue-500 text-xl" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              {dashboardData?.pelayanan?.total || 0}
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <FaIdCard className="text-blue-500" />
+                <span>{dashboardData?.pelayanan?.dokumenIdentitas || 0}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <FaUsers className="text-green-500" />
+                <span>{dashboardData?.pelayanan?.kependudukan || 0}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <FaFileAlt className="text-purple-500" />
+                <span>{dashboardData?.pelayanan?.pencatatanSipil || 0}</span>
+              </div>
+            </div>
+            <Link
+              to="/admin/pelayanan"
+              className="mt-4 text-blue-600 text-sm font-medium flex items-center hover:underline"
+            >
+              Kelola Layanan <FaArrowRight className="ml-1 text-xs" />
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Media Digital
+              </h3>
+              <div className="bg-amber-100 p-2 rounded-lg">
+                <FaPhotoVideo className="text-amber-500 text-xl" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              {dashboardData?.media?.total || 0}
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <FaImage className="text-blue-500" />
+                <span>Foto: {dashboardData?.media?.foto || 0}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <FaVideo className="text-red-500" />
+                <span>Video: {dashboardData?.media?.video || 0}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <FaFileAlt className="text-yellow-500" />
+                <span>Dokumen: {dashboardData?.media?.dokumen || 0}</span>
+              </div>
+            </div>
+            <Link
+              to="/admin/media"
+              className="mt-4 text-amber-600 text-sm font-medium flex items-center hover:underline"
+            >
+              Kelola Media <FaArrowRight className="ml-1 text-xs" />
             </Link>
           </div>
         </div>
@@ -523,8 +530,14 @@ const BerandaAdmin = () => {
             </div>
             <DonutChart
               data={[
-                { label: "Surat Masuk", count: dashboardData.surat.masuk },
-                { label: "Surat Keluar", count: dashboardData.surat.keluar },
+                {
+                  label: "Surat Masuk",
+                  count: dashboardData?.surat?.masuk || 0,
+                },
+                {
+                  label: "Surat Keluar",
+                  count: dashboardData?.surat?.keluar || 0,
+                },
               ]}
               colors={["#3b82f6", "#10b981"]}
             />
@@ -550,7 +563,7 @@ const BerandaAdmin = () => {
               </div>
             </div>
             <BarChart
-              data={dashboardData.berita.byCategory}
+              data={dashboardData?.berita?.byCategory || []}
               colors={["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b"]}
               labelKey="category"
             />
@@ -565,7 +578,10 @@ const BerandaAdmin = () => {
                 <FaChartLine className="text-green-500 text-xl" />
               </div>
             </div>
-            <LineChart data={dashboardData.surat.byMonth} color="#10b981" />
+            <LineChart
+              data={dashboardData?.surat?.byMonth || []}
+              color="#10b981"
+            />
           </div>
         </div>
 
@@ -578,55 +594,62 @@ const BerandaAdmin = () => {
                 Surat Terbaru
               </h3>
               <Link
-                href="/admin/surat"
+                to="/admin/surat"
                 className="text-sm text-purple-600 hover:underline"
               >
                 Lihat Semua
               </Link>
             </div>
             <div className="space-y-3">
-              {dashboardData.surat.recent.map((surat) => (
-                <div
-                  key={surat.id}
-                  className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium text-gray-800">
-                        {surat.perihal}
-                      </h4>
-                      <p className="text-sm text-gray-600">{surat.nomor}</p>
-                    </div>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        surat.status
-                      )}`}
-                    >
-                      {surat.status}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      {surat.jenis === "Surat Masuk" ? (
-                        <FaEnvelopeOpen className="text-blue-500" />
-                      ) : (
-                        <FaEnvelope className="text-green-500" />
-                      )}
-                      <span>{surat.jenis}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FaCalendarAlt />
-                      <span>
-                        {new Date(surat.tanggal).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
+              {dashboardData?.surat?.recent &&
+              dashboardData.surat.recent.length > 0 ? (
+                dashboardData.surat.recent.map((surat) => (
+                  <div
+                    key={surat.id}
+                    className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-gray-800">
+                          {surat.perihal}
+                        </h4>
+                        <p className="text-sm text-gray-600">{surat.nomor}</p>
+                      </div>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          surat.status
+                        )}`}
+                      >
+                        {surat.status}
                       </span>
                     </div>
+                    <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        {surat.jenis === "Surat Masuk" ? (
+                          <FaEnvelopeOpen className="text-blue-500" />
+                        ) : (
+                          <FaEnvelope className="text-green-500" />
+                        )}
+                        <span>{surat.jenis}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <FaCalendarAlt />
+                        <span>
+                          {new Date(surat.tanggal).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </div>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  Belum ada data surat
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -637,55 +660,65 @@ const BerandaAdmin = () => {
                 Berita Terbaru
               </h3>
               <Link
-                href="/admin/berita"
+                to="/admin/berita"
                 className="text-sm text-blue-600 hover:underline"
               >
                 Lihat Semua
               </Link>
             </div>
             <div className="space-y-3">
-              {dashboardData.berita.recent.map((berita) => (
-                <div
-                  key={berita.id}
-                  className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium text-gray-800">
-                        {berita.judul}
-                      </h4>
-                      <div className="mt-1">
-                        <span className="inline-block px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
-                          {berita.kategori}
+              {dashboardData?.berita?.recent &&
+              dashboardData.berita.recent.length > 0 ? (
+                dashboardData.berita.recent.map((berita) => (
+                  <div
+                    key={berita.id}
+                    className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-gray-800">
+                          {berita.judul}
+                        </h4>
+                        <div className="mt-1">
+                          <span className="inline-block px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                            {berita.kategori}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          berita.status
+                        )}`}
+                      >
+                        {berita.status}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <FaNewspaper className="text-blue-500" />
+                        <span>Berita</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <FaCalendarAlt />
+                        <span>
+                          {new Date(berita.tanggal).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )}
                         </span>
                       </div>
                     </div>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        berita.status
-                      )}`}
-                    >
-                      {berita.status}
-                    </span>
                   </div>
-                  <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <FaNewspaper className="text-blue-500" />
-                      <span>Berita</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FaCalendarAlt />
-                      <span>
-                        {new Date(berita.tanggal).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </div>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  Belum ada data berita
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -696,58 +729,65 @@ const BerandaAdmin = () => {
                 Pengumuman Terbaru
               </h3>
               <Link
-                href="/admin/pengumuman"
+                to="/admin/pengumuman"
                 className="text-sm text-green-600 hover:underline"
               >
                 Lihat Semua
               </Link>
             </div>
             <div className="space-y-3">
-              {dashboardData.pengumuman.recent.map((pengumuman) => (
-                <div
-                  key={pengumuman.id}
-                  className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium text-gray-800">
-                        {pengumuman.judul}
-                      </h4>
-                      <div className="mt-1">
-                        <span className="inline-block px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
-                          {pengumuman.kategori}
+              {dashboardData?.pengumuman?.recent &&
+              dashboardData.pengumuman.recent.length > 0 ? (
+                dashboardData.pengumuman.recent.map((pengumuman) => (
+                  <div
+                    key={pengumuman.id}
+                    className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-gray-800">
+                          {pengumuman.judul}
+                        </h4>
+                        <div className="mt-1">
+                          <span className="inline-block px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                            {pengumuman.kategori}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          pengumuman.status
+                        )}`}
+                      >
+                        {pengumuman.status}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <FaBullhorn className="text-green-500" />
+                        <span>Pengumuman</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <FaCalendarAlt />
+                        <span>
+                          {new Date(pengumuman.tanggal).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )}
                         </span>
                       </div>
                     </div>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        pengumuman.status
-                      )}`}
-                    >
-                      {pengumuman.status}
-                    </span>
                   </div>
-                  <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <FaBullhorn className="text-green-500" />
-                      <span>Pengumuman</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FaCalendarAlt />
-                      <span>
-                        {new Date(pengumuman.tanggal).toLocaleDateString(
-                          "id-ID",
-                          {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          }
-                        )}
-                      </span>
-                    </div>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  Belum ada data pengumuman
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
@@ -757,9 +797,9 @@ const BerandaAdmin = () => {
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             Aksi Cepat
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Link
-              href="/admin/surat"
+              to="/admin/surat"
               className="flex flex-col items-center justify-center p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
             >
               <FaFileAlt className="text-purple-500 text-2xl mb-2" />
@@ -768,7 +808,7 @@ const BerandaAdmin = () => {
               </span>
             </Link>
             <Link
-              href="/admin/berita"
+              to="/admin/berita"
               className="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
             >
               <FaNewspaper className="text-blue-500 text-2xl mb-2" />
@@ -777,7 +817,7 @@ const BerandaAdmin = () => {
               </span>
             </Link>
             <Link
-              href="/admin/pengumuman"
+              to="/admin/pengumuman"
               className="flex flex-col items-center justify-center p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors"
             >
               <FaBullhorn className="text-green-500 text-2xl mb-2" />
@@ -786,12 +826,21 @@ const BerandaAdmin = () => {
               </span>
             </Link>
             <Link
-              href="/admin/media"
+              to="/admin/pelayanan"
+              className="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+            >
+              <FaLink className="text-blue-500 text-2xl mb-2" />
+              <span className="text-sm font-medium text-gray-800">
+                Kelola Layanan
+              </span>
+            </Link>
+            <Link
+              to="/admin/media"
               className="flex flex-col items-center justify-center p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors"
             >
               <FaPhotoVideo className="text-amber-500 text-2xl mb-2" />
               <span className="text-sm font-medium text-gray-800">
-                Kelola Gallery
+                Kelola Media
               </span>
             </Link>
           </div>

@@ -12,15 +12,19 @@ import {
   FaSearch,
   FaDownload,
   FaSpinner,
+  FaFilePdf,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import SuratService from "../services/SuratServiceAdmin";
 import SuratForm from "../components/SuratForm";
+import toast from "../../../components/Toast";
 
 function SuratAdmin() {
   const [suratData, setSuratData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   // State for search and filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,16 +37,10 @@ function SuratAdmin() {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    jenis: "Surat Masuk",
-    nomor: "",
-    perihal: "",
-    pengirim: "",
-    tanggal: "",
-    status: "Diterima",
-    file: null,
-  });
+  // PDF viewer state
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
 
   // Definisi animasi CSS
   useEffect(() => {
@@ -83,9 +81,9 @@ function SuratAdmin() {
     setIsLoading(true);
     setError(null);
     try {
-      console.log("Fetching all surat...");
+      ("Fetching all surat...");
       const data = await SuratService.getAllSurat();
-      console.log("Fetched data:", data);
+      "Fetched data:", data;
       setSuratData(data);
     } catch (err) {
       console.error("Error in fetchAllSurat:", err);
@@ -159,6 +157,17 @@ function SuratAdmin() {
     (item) => item.jenis === "Surat Keluar"
   ).length;
 
+  // Form state
+  const [formData, setFormData] = useState({
+    jenis: "Surat Masuk",
+    nomor: "",
+    perihal: "",
+    pengirim: "",
+    tanggal: "",
+    status: "Diterima",
+    file: null,
+  });
+
   // Handle actions
   const handleAdd = () => {
     setFormData({
@@ -202,22 +211,75 @@ function SuratAdmin() {
     }
   };
 
-  const handlePreview = (id) => {
+  const handlePreview = async (id) => {
+    setPdfLoading(true);
+    setPdfError(false);
+    setPdfUrl(null);
+
     const item = suratData.find((item) => item.id === id);
     if (item) {
+      "Preview item:", item;
+
+      try {
+        if (item.file) {
+          // Get the file URL
+          const fileUrl = SuratService.getFileUrl(item.file);
+          "File URL for preview:", fileUrl;
+
+          // Check if file exists
+          const fileExists = await SuratService.checkFileExists(item.file);
+
+          if (fileExists) {
+            setPdfUrl(fileUrl);
+            setPdfError(false);
+          } else {
+            console.error("File not found or inaccessible:", fileUrl);
+            setPdfError(true);
+          }
+        } else {
+          ("No file attached to this item");
+          setPdfError(true);
+        }
+      } catch (error) {
+        console.error("Error preparing file for preview:", error);
+        setPdfError(true);
+      } finally {
+        setPdfLoading(false);
+      }
+
       setCurrentItem(item);
       setShowPreviewModal(true);
+    }
+  };
+
+  // Handle file download
+  const handleDownload = async (fileName) => {
+    if (!fileName) {
+      toast.info("File tidak tersedia untuk diunduh");
+      return;
+    }
+
+    try {
+      const success = await SuratService.downloadFile(fileName);
+      if (!success) {
+        toast.error("Terjadi kesalahan saat mengunduh file");
+      }
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast.error("Terjadi kesalahan saat mengunduh file");
     }
   };
 
   // API calls for CRUD operations
   const saveNewItem = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk menambahkan surat");
+      toast.warning("Anda harus login sebagai admin untuk menambahkan surat");
       return;
     }
 
     try {
+      setIsActionLoading(true);
+
       // Validasi form
       if (
         !formData.nomor ||
@@ -226,9 +288,10 @@ function SuratAdmin() {
         !formData.pengirim ||
         !formData.jenis
       ) {
-        alert(
+        toast.warning(
           "Nomor surat, perihal, tanggal, pengirim/penerima, dan jenis surat wajib diisi!"
         );
+        setIsActionLoading(false);
         return;
       }
 
@@ -237,7 +300,7 @@ function SuratAdmin() {
       formDataObj.append("perihal", formData.perihal);
 
       if (formData.file) {
-        formDataObj.append("file_surat", formData.file);
+        formDataObj.append("file", formData.file);
       }
 
       let result;
@@ -263,27 +326,33 @@ function SuratAdmin() {
       }
 
       setShowAddModal(false);
+      toast.success("Surat berhasil ditambahkan");
     } catch (err) {
       console.error("Error saving data:", err);
-      alert(
-        "Terjadi kesalahan saat menyimpan surat. Pastikan API endpoint tersedia."
+      toast.info(
+        "Terjadi kesalahan saat menyimpan surat. silahkan coba login kembalu"
       );
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
   const saveEditedItem = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk mengedit surat");
+      toast.console.warning();
+      ("Anda harus login sebagai admin untuk mengedit surat");
       return;
     }
 
     try {
+      setIsActionLoading(true);
+
       const formDataObj = new FormData();
       formDataObj.append("nomorSurat", formData.nomor);
       formDataObj.append("perihal", formData.perihal);
 
       if (formData.file) {
-        formDataObj.append("file_surat", formData.file);
+        formDataObj.append("file", formData.file);
       }
 
       if (formData.jenis === "Surat Masuk") {
@@ -308,19 +377,24 @@ function SuratAdmin() {
       }
 
       setShowEditModal(false);
+      toast.error("Surat berhasil diperbarui");
     } catch (err) {
       console.error("Error updating data:", err);
-      alert("Terjadi kesalahan saat memperbarui");
+      toast.error("Terjadi kesalahan saat memperbarui");
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
   const confirmDelete = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk menghapus surat");
+      toast.warning("Anda harus login sebagai admin untuk menghapus surat");
       return;
     }
 
     try {
+      setIsActionLoading(true);
+
       if (currentItem.jenis === "Surat Masuk") {
         await SuratService.deleteSuratMasuk(currentItem.id);
       } else {
@@ -342,9 +416,12 @@ function SuratAdmin() {
       }
 
       setShowDeleteModal(false);
+      toast.success("Surat berhasil dihapus");
     } catch (err) {
       console.error("Error deleting data:", err);
-      alert("Terjadi kesalahan saat menghapus");
+      toast.error("Terjadi kesalahan saat menghapus");
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
@@ -695,14 +772,23 @@ function SuratAdmin() {
               <button
                 onClick={() => setShowDeleteModal(false)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                disabled={isActionLoading}
               >
                 Batal
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
+                disabled={isActionLoading}
               >
-                Hapus
+                {isActionLoading ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <span>Hapus</span>
+                )}
               </button>
             </div>
           </div>
@@ -710,13 +796,12 @@ function SuratAdmin() {
       )}
 
       {/* Preview Modal */}
-      {showPreviewModal && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-gray-800/40 flex items-center justify-center z-50 transition-all duration-300">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl border border-gray-200 animate-modalFadeIn">
+      {showPreviewModal && currentItem && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-gray-700/30 flex items-center justify-center z-50 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto border border-gray-200 animate-modalFadeIn">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                {getSuratIcon(currentItem?.jenis)}
-                <span>{currentItem?.perihal}</span>
+                {getSuratIcon(currentItem?.jenis)} {currentItem?.perihal}
               </h3>
               <button
                 onClick={() => setShowPreviewModal(false)}
@@ -787,48 +872,54 @@ function SuratAdmin() {
 
             <div className="mb-6">
               <h4 className="text-sm font-medium text-gray-700 mb-2">
-                Isi Surat
+                Dokumen Surat
               </h4>
-              <div className="bg-gray-50 p-4 rounded-lg text-gray-700 text-sm">
-                {currentItem?.file_surat ? (
+              <div className="bg-gray-50 p-4 rounded-lg text-gray-700">
+                {pdfLoading ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <FaSpinner className="animate-spin text-4xl text-purple-500 mb-4" />
+                    <p>Memuat dokumen...</p>
+                  </div>
+                ) : currentItem.file && pdfUrl ? (
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <p className="font-medium">
-                        Dokumen tersedia untuk diunduh.
+                        <FaFilePdf className="inline-block mr-2 text-red-500" />
+                        {currentItem.file.split("/").pop() || "Dokumen Surat"}
                       </p>
-                      <div className="flex gap-2">
-                        <a
-                          href={SuratService.getFileUrl(currentItem.file_surat)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
-                        >
-                          <FaEye className="text-white" />
-                          <span>Lihat</span>
-                        </a>
-                        <a
-                          href={SuratService.getFileUrl(currentItem.file_surat)}
-                          download
-                          className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1"
-                        >
-                          <FaDownload className="text-white" />
-                          <span>Unduh</span>
-                        </a>
-                      </div>
+                      <button
+                        onClick={() => handleDownload(currentItem.file)}
+                        className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1"
+                      >
+                        <FaDownload className="text-white" />
+                        <span>Unduh</span>
+                      </button>
                     </div>
+
                     {/* PDF Viewer */}
-                    <div className="w-full h-96 border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="w-full h-[400px] border border-gray-200 rounded-lg overflow-hidden bg-white">
                       <iframe
-                        src={`${SuratService.getFileUrl(
-                          currentItem.file_surat
-                        )}#toolbar=0`}
+                        src={pdfUrl}
                         className="w-full h-full"
                         title={`Preview ${currentItem.nomor}`}
                       ></iframe>
                     </div>
                   </div>
+                ) : pdfError ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-red-500">
+                    <FaExclamationTriangle className="text-4xl mb-4" />
+                    <p>Terjadi kesalahan saat memuat dokumen.</p>
+                    <p className="text-sm mt-2">
+                      File mungkin tidak tersedia atau tidak dapat diakses.
+                    </p>
+                  </div>
                 ) : (
-                  <p>Dokumen surat belum tersedia untuk ditampilkan.</p>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <FaFileAlt className="text-4xl mb-4" />
+                    <p className="text-gray-500">
+                      Dokumen surat tidak tersedia.
+                    </p>
+                  </div>
                 )}
               </div>
             </div>

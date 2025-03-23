@@ -4,54 +4,26 @@ import { useState, useEffect } from "react";
 import {
   FaUsers,
   FaUserTie,
-  FaBriefcase,
   FaPray,
   FaEdit,
   FaTrash,
-  FaTimes,
   FaUserPlus,
   FaListAlt,
   FaHome,
+  FaSpinner,
+  FaExclamationTriangle,
+  FaMars,
+  FaVenus,
 } from "react-icons/fa";
 
 // Ubah import PopupForm untuk mengarah ke file .jsx bukan .tsx
 import PopupForm from "./PopupForm.jsx";
+import PendudukService from "../../services/PendudukService";
+import toast from "../../../../components/Toast.jsx";
 
 export default function Penduduk() {
   // Data penduduk individual
-  const [pendudukData, setPendudukData] = useState([
-    {
-      id: 1,
-      nama: "Ahmad Suparjo",
-      nik: "3507012505780001",
-      alamat: "Jl. Mawar No. 10",
-      tanggalLahir: "1978-05-25",
-      jenisKelamin: "Laki-laki",
-      agama: "Islam",
-      kepalaKeluarga: true,
-    },
-    {
-      id: 2,
-      nama: "Siti Aminah",
-      nik: "3507016708820002",
-      alamat: "Jl. Mawar No. 10",
-      tanggalLahir: "1982-08-27",
-      jenisKelamin: "Perempuan",
-      agama: "Islam",
-      kepalaKeluarga: false,
-    },
-    {
-      id: 3,
-      nama: "Budi Santoso",
-      nik: "3507010102900003",
-      alamat: "Jl. Melati No. 5",
-      tanggalLahir: "1990-02-01",
-      jenisKelamin: "Laki-laki",
-      agama: "Kristen",
-      kepalaKeluarga: true,
-    },
-    // Tambahkan data dummy lainnya sesuai kebutuhan
-  ]);
+  const [pendudukData, setPendudukData] = useState([]);
 
   // Data agregat (yang ditampilkan di tabel)
   const [totalPenduduk, setTotalPenduduk] = useState([
@@ -61,33 +33,12 @@ export default function Penduduk() {
     { kategori: "Total Penduduk", total: 0 },
   ]);
 
-  const [pendudukUsia, setPendudukUsia] = useState([
-    { kategori: "0-17 Tahun", total: 0 },
-    { kategori: "18-40 Tahun", total: 0 },
-    { kategori: "41-65 Tahun", total: 0 },
-    { kategori: "65+ Tahun", total: 0 },
-  ]);
+  const [pendudukUsia, setPendudukUsia] = useState([]);
+  const [pendudukKeyakinan, setPendudukKeyakinan] = useState([]);
 
-  const [pendudukPekerjaan, setPendudukPekerjaan] = useState([
-    { kategori: "Pelajar", total: 0 },
-    { kategori: "Petani", total: 0 },
-    { kategori: "Pegawai", total: 0 },
-    { kategori: "Wirausaha", total: 0 },
-  ]);
-
-  const [pendudukKeyakinan, setPendudukKeyakinan] = useState([
-    { kategori: "Islam", total: 0 },
-    { kategori: "Kristen", total: 0 },
-    { kategori: "Hindu", total: 0 },
-    { kategori: "Budha", total: 0 },
-    { kategori: "Lainnya", total: 0 },
-  ]);
-
-  const [pendudukDusun, setPendudukDusun] = useState([
-    { kategori: "Dusun 1", total: 110 },
-    { kategori: "Dusun 2", total: 95 },
-    { kategori: "Dusun 3", total: 75 },
-  ]);
+  // State untuk loading dan error
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // State untuk form dan UI
   const [showForm, setShowForm] = useState(false);
@@ -105,14 +56,59 @@ export default function Penduduk() {
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [editTP, setEditTP] = useState(null);
-  const [editUsia, setEditUsia] = useState(null);
-  const [editPekerjaan, setEditPekerjaan] = useState(null);
-  const [editKeyakinan, setEditKeyakinan] = useState(null);
-  const [editDusun, setEditDusun] = useState(null);
-
   // Ubah state activeSection untuk mengelola tampilan halaman
   const [activeSection, setActiveSection] = useState("dashboard"); // "dashboard" atau "manage"
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Fetch all data
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Fetch penduduk data
+      const pendudukList = await PendudukService.getAllPenduduk();
+      setPendudukData(pendudukList);
+
+      // Fetch stats
+      const stats = await PendudukService.getAllStats();
+
+      // Update total penduduk
+      setTotalPenduduk([
+        { kategori: "Laki-laki", total: stats.summary.totalLakiLaki },
+        { kategori: "Perempuan", total: stats.summary.totalPerempuan },
+        {
+          kategori: "Kepala Keluarga",
+          total: stats.summary.totalKepalaKeluarga,
+        },
+        { kategori: "Total Penduduk", total: stats.summary.totalPenduduk },
+      ]);
+
+      // Update penduduk by umur
+      setPendudukUsia(
+        stats.byUmur.map((item) => ({
+          kategori: item.kategori,
+          total: item.total,
+        }))
+      );
+
+      // Update penduduk by agama
+      setPendudukKeyakinan(
+        stats.byAgama.map((item) => ({
+          kategori: item.agama,
+          total: item.total,
+        }))
+      );
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Gagal memuat data. Silakan coba lagi nanti.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Hitung umur berdasarkan tanggal lahir
   const hitungUmur = (tanggalLahir) => {
@@ -126,94 +122,6 @@ export default function Penduduk() {
     return age;
   };
 
-  // Tentukan kategori umur
-  const getKategoriUmur = (umur) => {
-    if (umur <= 17) return "0-17 Tahun";
-    if (umur <= 40) return "18-40 Tahun";
-    if (umur <= 65) return "41-65 Tahun";
-    return "65+ Tahun";
-  };
-
-  // Update data agregat berdasarkan data penduduk individual
-  useEffect(() => {
-    // Reset semua data agregat
-    const newTotalPenduduk = [
-      { kategori: "Laki-laki", total: 0 },
-      { kategori: "Perempuan", total: 0 },
-      { kategori: "Kepala Keluarga", total: 0 },
-      { kategori: "Total Penduduk", total: 0 },
-    ];
-
-    const newPendudukUsia = [
-      { kategori: "0-17 Tahun", total: 0 },
-      { kategori: "18-40 Tahun", total: 0 },
-      { kategori: "41-65 Tahun", total: 0 },
-      { kategori: "65+ Tahun", total: 0 },
-    ];
-
-    const newPendudukKeyakinan = [
-      { kategori: "Islam", total: 0 },
-      { kategori: "Kristen", total: 0 },
-      { kategori: "Hindu", total: 0 },
-      { kategori: "Budha", total: 0 },
-      { kategori: "Lainnya", total: 0 },
-    ];
-
-    // Hitung data berdasarkan penduduk individual
-    pendudukData.forEach((penduduk) => {
-      // Jenis kelamin
-      if (penduduk.jenisKelamin === "Laki-laki") {
-        newTotalPenduduk[0].total++;
-      } else {
-        newTotalPenduduk[1].total++;
-      }
-
-      // Kepala keluarga
-      if (penduduk.kepalaKeluarga) {
-        newTotalPenduduk[2].total++;
-      }
-
-      // Umur
-      const umur = hitungUmur(penduduk.tanggalLahir);
-      const kategoriUmur = getKategoriUmur(umur);
-      const idxUsia = newPendudukUsia.findIndex(
-        (item) => item.kategori === kategoriUmur
-      );
-      if (idxUsia !== -1) {
-        newPendudukUsia[idxUsia].total++;
-      }
-
-      // Agama
-      const idxAgama = newPendudukKeyakinan.findIndex(
-        (item) => item.kategori === penduduk.agama
-      );
-      if (idxAgama !== -1) {
-        newPendudukKeyakinan[idxAgama].total++;
-      } else {
-        // Jika agama tidak ada dalam kategori, masukkan ke "Lainnya"
-        newPendudukKeyakinan[4].total++;
-      }
-    });
-
-    // Total penduduk
-    newTotalPenduduk[3].total = pendudukData.length;
-
-    // Update state
-    setTotalPenduduk(newTotalPenduduk);
-    setPendudukUsia(newPendudukUsia);
-    setPendudukKeyakinan(newPendudukKeyakinan);
-  }, [pendudukData]);
-
-  // Auto update Total Penduduk
-  // useEffect(() => {
-  //   const totalSum = totalPenduduk[0].total + totalPenduduk[1].total + totalPenduduk[2].total
-  //   setTotalPenduduk((prev) => {
-  //     const updated = [...prev]
-  //     updated[3].total = totalSum
-  //     return updated
-  //   })
-  // }, [totalPenduduk[0].total, totalPenduduk[1].total, totalPenduduk[2].total])
-
   // Handle form input change
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -224,27 +132,29 @@ export default function Penduduk() {
   };
 
   // Handle form submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isEditing) {
-      // Update existing data
-      setPendudukData(
-        pendudukData.map((item) =>
-          item.id === formData.id ? { ...formData } : item
-        )
-      );
-    } else {
-      // Add new data
-      const newId =
-        pendudukData.length > 0
-          ? Math.max(...pendudukData.map((item) => item.id)) + 1
-          : 1;
-      setPendudukData([...pendudukData, { ...formData, id: newId }]);
-    }
+    try {
+      if (isEditing) {
+        // Update existing data
+        await PendudukService.updatePenduduk(formData.nik, formData);
+      } else {
+        // Add new data
+        await PendudukService.addPenduduk(formData);
+      }
 
-    // Reset form
-    resetForm();
+      // Refresh data
+      await fetchData();
+
+      // Reset form
+      resetForm();
+    } catch (error) {
+      console.error("Error saving data:", error);
+      toast.error(
+        error.response?.data?.message || "Terjadi kesalahan saat menyimpan data"
+      );
+    }
   };
 
   // Reset form
@@ -266,8 +176,8 @@ export default function Penduduk() {
   };
 
   // Edit data
-  const handleEdit = (id) => {
-    const dataToEdit = pendudukData.find((item) => item.id === id);
+  const handleEdit = (nik) => {
+    const dataToEdit = pendudukData.find((item) => item.nik === nik);
     if (dataToEdit) {
       setFormData({ ...dataToEdit });
       setIsEditing(true);
@@ -276,17 +186,20 @@ export default function Penduduk() {
   };
 
   // Delete data
-  const handleDelete = (id) => {
+  const handleDelete = async (nik) => {
     if (confirm("Apakah Anda yakin ingin menghapus data ini?")) {
-      setPendudukData(pendudukData.filter((item) => item.id !== id));
+      try {
+        await PendudukService.deletePenduduk(nik);
+        // Refresh data
+        await fetchData();
+      } catch (error) {
+        console.error("Error deleting data:", error);
+        toast.error(
+          error.response?.data?.message ||
+            "Terjadi kesalahan saat menghapus data"
+        );
+      }
     }
-  };
-
-  // Handle input change
-  const handleChange = (idx, value, setFunc, data) => {
-    const updated = [...data];
-    updated[idx].total = Number(value);
-    setFunc(updated);
   };
 
   // Get total for percentage calculations
@@ -327,13 +240,13 @@ export default function Penduduk() {
       {
         title: "Laki-laki",
         value: totalPenduduk[0].total,
-        icon: <FaUsers className="text-indigo-500" size={24} />,
+        icon: <FaMars className="text-indigo-500" size={24} />,
         color: "from-indigo-500 to-indigo-600",
       },
       {
         title: "Perempuan",
         value: totalPenduduk[1].total,
-        icon: <FaUsers className="text-pink-500" size={24} />,
+        icon: <FaVenus className="text-pink-500" size={24} />,
         color: "from-pink-500 to-pink-600",
       },
     ];
@@ -429,153 +342,6 @@ export default function Penduduk() {
     );
   };
 
-  // Render form
-  const renderForm = () => (
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 mb-6">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <FaUserPlus className="text-blue-500" size={20} />
-            </div>
-            <h2 className="font-semibold text-xl text-gray-800">
-              {isEditing ? "Edit Data Penduduk" : "Tambah Data Penduduk"}
-            </h2>
-          </div>
-          <button
-            onClick={resetForm}
-            className="text-gray-500 hover:text-gray-700"
-            title="Tutup"
-          >
-            <FaTimes size={20} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nama Lengkap
-              </label>
-              <input
-                type="text"
-                name="nama"
-                value={formData.nama}
-                onChange={handleInputChange}
-                required
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                NIK
-              </label>
-              <input
-                type="text"
-                name="nik"
-                value={formData.nik}
-                onChange={handleInputChange}
-                required
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Alamat
-              </label>
-              <input
-                type="text"
-                name="alamat"
-                value={formData.alamat}
-                onChange={handleInputChange}
-                required
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tanggal Lahir
-              </label>
-              <input
-                type="date"
-                name="tanggalLahir"
-                value={formData.tanggalLahir}
-                onChange={handleInputChange}
-                required
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Jenis Kelamin
-              </label>
-              <select
-                name="jenisKelamin"
-                value={formData.jenisKelamin}
-                onChange={handleInputChange}
-                required
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-              >
-                <option value="Laki-laki">Laki-laki</option>
-                <option value="Perempuan">Perempuan</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Agama
-              </label>
-              <select
-                name="agama"
-                value={formData.agama}
-                onChange={handleInputChange}
-                required
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-              >
-                <option value="Islam">Islam</option>
-                <option value="Kristen">Kristen</option>
-                <option value="Hindu">Hindu</option>
-                <option value="Budha">Budha</option>
-                <option value="Lainnya">Lainnya</option>
-              </select>
-            </div>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="kepalaKeluarga"
-                name="kepalaKeluarga"
-                checked={formData.kepalaKeluarga}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="kepalaKeluarga"
-                className="ml-2 block text-sm text-gray-700"
-              >
-                Kepala Keluarga
-              </label>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => resetForm()}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              {isEditing ? "Update" : "Simpan"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-
   // Render data list
   const renderDataList = () => {
     const filteredData = pendudukData.filter(
@@ -629,7 +395,7 @@ export default function Penduduk() {
               <tbody>
                 {filteredData.map((item, idx) => (
                   <tr
-                    key={item.id}
+                    key={item.id || idx}
                     className="border-b border-gray-100 hover:bg-gray-50 transition"
                   >
                     <td className="px-4 py-3">{idx + 1}</td>
@@ -649,14 +415,14 @@ export default function Penduduk() {
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => handleEdit(item.id)}
+                          onClick={() => handleEdit(item.nik)}
                           className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <FaEdit size={14} />
                         </button>
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => handleDelete(item.nik)}
                           className="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg transition-colors"
                           title="Hapus"
                         >
@@ -683,6 +449,32 @@ export default function Penduduk() {
       </div>
     );
   };
+
+  // Loading state
+  if (isLoading && activeSection === "dashboard") {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <FaSpinner className="animate-spin text-4xl text-blue-500" />
+        <span className="ml-2">Memuat data...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && activeSection === "dashboard") {
+    return (
+      <div className="text-center py-12">
+        <FaExclamationTriangle className="text-4xl text-yellow-500 mx-auto mb-4" />
+        <p className="text-red-500 mb-4">{error}</p>
+        <button
+          onClick={fetchData}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    );
+  }
 
   // Main return
   return (
@@ -724,10 +516,14 @@ export default function Penduduk() {
                 <FaUsers className="text-green-500" size={20} />
               )}
 
+              {/* Mengganti tabel pekerjaan dengan tabel jenis kelamin */}
               {renderTable(
-                "Jumlah Penduduk Berdasarkan Pekerjaan",
-                pendudukPekerjaan,
-                <FaBriefcase className="text-purple-500" size={20} />
+                "Jumlah Penduduk Berdasarkan Jenis Kelamin",
+                [
+                  { kategori: "Laki-laki", total: totalPenduduk[0].total },
+                  { kategori: "Perempuan", total: totalPenduduk[1].total },
+                ],
+                <FaUsers className="text-purple-500" size={20} />
               )}
 
               {renderTable(

@@ -1,694 +1,844 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaMoneyBillWave,
-  FaArrowDown,
-  FaArrowUp,
-  FaCalendarAlt,
-  FaTrash,
+  FaMoneyCheckAlt,
+  FaChartPie,
   FaPlus,
-  FaChevronDown,
-  FaChevronUp,
+  FaEdit,
+  FaTrash,
+  FaCalendarAlt,
+  FaSpinner,
+  FaExclamationTriangle,
 } from "react-icons/fa";
+import { Bar, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import APBDesService from "../../services/APBDesService";
+import DanaMasukForm from "./DanaMasukForm";
+import DanaKeluarForm from "./DanaKeluarForm";
+import toast from "../../../../components/Toast";
 
-export default function TabAPBDesAdmin() {
-  // Available years
-  const [dataAPBDes, setDataAPBDes] = useState([
-    { id: 1, tahun: "2023", isExpanded: true },
-    { id: 2, tahun: "2024", isExpanded: false },
-  ]);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend
+);
 
-  // Monthly data
-  const [dataBulanan, setDataBulanan] = useState([
-    {
-      id: 1,
-      tahun: "2023",
-      bulan: "Januari",
-      pendapatan: "26.79",
-      pengeluaran: "15.00",
-      jenis: "Dana Desa",
-    },
-    {
-      id: 2,
-      tahun: "2023",
-      bulan: "Februari",
-      pendapatan: "24.50",
-      pengeluaran: "18.30",
-      jenis: "Pembangunan",
-    },
-    {
-      id: 3,
-      tahun: "2023",
-      bulan: "Maret",
-      pendapatan: "28.10",
-      pengeluaran: "16.75",
-      jenis: "Operasional",
-    },
-    {
-      id: 4,
-      tahun: "2023",
-      bulan: "April",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 5,
-      tahun: "2023",
-      bulan: "Mei",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 6,
-      tahun: "2023",
-      bulan: "Juni",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 7,
-      tahun: "2023",
-      bulan: "Juli",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 8,
-      tahun: "2023",
-      bulan: "Agustus",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 9,
-      tahun: "2023",
-      bulan: "September",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 10,
-      tahun: "2023",
-      bulan: "Oktober",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 11,
-      tahun: "2023",
-      bulan: "November",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 12,
-      tahun: "2023",
-      bulan: "Desember",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 13,
-      tahun: "2024",
-      bulan: "Januari",
-      pendapatan: "30.20",
-      pengeluaran: "17.50",
-      jenis: "Dana Desa",
-    },
-    {
-      id: 14,
-      tahun: "2024",
-      bulan: "Februari",
-      pendapatan: "29.80",
-      pengeluaran: "19.40",
-      jenis: "Infrastruktur",
-    },
-    {
-      id: 15,
-      tahun: "2024",
-      bulan: "Maret",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 16,
-      tahun: "2024",
-      bulan: "April",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 17,
-      tahun: "2024",
-      bulan: "Mei",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 18,
-      tahun: "2024",
-      bulan: "Juni",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 19,
-      tahun: "2024",
-      bulan: "Juli",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 20,
-      tahun: "2024",
-      bulan: "Agustus",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 21,
-      tahun: "2024",
-      bulan: "September",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 22,
-      tahun: "2024",
-      bulan: "Oktober",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 23,
-      tahun: "2024",
-      bulan: "November",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-    {
-      id: 24,
-      tahun: "2024",
-      bulan: "Desember",
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    },
-  ]);
+export default function APBDes() {
+  // State untuk data
+  const [danaMasuk, setDanaMasuk] = useState([]);
+  const [danaKeluar, setDanaKeluar] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // New year state
-  const [newYear, setNewYear] = useState("");
-  const [showNewYearInput, setShowNewYearInput] = useState(false);
+  // State untuk form dan UI
+  const [showDanaMasukForm, setShowDanaMasukForm] = useState(false);
+  const [showDanaKeluarForm, setShowDanaKeluarForm] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(
+    new Date().getFullYear().toString()
+  );
+  const [availableYears, setAvailableYears] = useState([]);
+  const [editingItem, setEditingItem] = useState(null);
+  const [activeTab, setActiveTab] = useState("summary"); // "summary", "income", "expense"
 
-  // Fixed months array
-  const months = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-    "Desember",
-  ];
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  // Toggle year expansion
-  const toggleYearExpansion = (id) => {
-    setDataAPBDes((prev) =>
-      prev.map((year) =>
-        year.id === id ? { ...year, isExpanded: !year.isExpanded } : year
-      )
-    );
-  };
+  // Fetch data
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Fetch dana masuk and dana keluar
+      const [masukData, keluarData] = await Promise.all([
+        APBDesService.getAllDanaMasuk(),
+        APBDesService.getAllDanaKeluar(),
+      ]);
 
-  // Handle monthly data update
-  const handleMonthlyDataUpdate = (id, field, value) => {
-    setDataBulanan((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, [field]: value === "" ? null : value }
-          : item
-      )
-    );
-  };
+      setDanaMasuk(masukData);
+      setDanaKeluar(keluarData);
 
-  // Add a new year with all months
-  const addNewYear = () => {
-    if (newYear.trim() === "") return;
+      // Extract available years
+      const years = new Set();
+      masukData.forEach((item) => years.add(item.tahun));
+      keluarData.forEach((item) => years.add(item.tahun));
 
-    // Check if year already exists
-    if (dataAPBDes.some((year) => year.tahun === newYear)) {
-      alert("Tahun ini sudah ada!");
-      return;
+      // Convert to array and sort in descending order
+      const yearsArray = Array.from(years).sort((a, b) => b - a);
+      setAvailableYears(yearsArray);
+
+      // Set default selected year to the most recent year or current year
+      if (yearsArray.length > 0) {
+        setSelectedYear(yearsArray[0]);
+      } else {
+        setSelectedYear(new Date().getFullYear().toString());
+      }
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Gagal memuat data. Silakan coba lagi nanti.");
+    } finally {
+      setIsLoading(false);
     }
-
-    // Add to years list
-    const newYearId = Date.now();
-    setDataAPBDes([
-      ...dataAPBDes,
-      { id: newYearId, tahun: newYear, isExpanded: true },
-    ]);
-
-    // Add all months for the new year
-    const newMonthsData = months.map((month, index) => ({
-      id: newYearId + index + 1,
-      tahun: newYear,
-      bulan: month,
-      pendapatan: null,
-      pengeluaran: null,
-      jenis: null,
-    }));
-
-    setDataBulanan([...dataBulanan, ...newMonthsData]);
-    setNewYear("");
-    setShowNewYearInput(false);
   };
 
-  // Delete a year and its monthly data
-  const deleteYear = (yearToDelete) => {
-    if (
-      confirm(`Apakah Anda yakin ingin menghapus data tahun ${yearToDelete}?`)
-    ) {
-      setDataAPBDes((prev) =>
-        prev.filter((year) => year.tahun !== yearToDelete)
-      );
-      setDataBulanan((prev) =>
-        prev.filter((item) => item.tahun !== yearToDelete)
+  // Filter data by selected year
+  const filteredDanaMasuk = danaMasuk.filter(
+    (item) => item.tahun === selectedYear
+  );
+  const filteredDanaKeluar = danaKeluar.filter(
+    (item) => item.tahun === selectedYear
+  );
+
+  // Calculate totals
+  const totalPendapatan = filteredDanaMasuk.reduce(
+    (sum, item) => sum + Number.parseInt(item.jumlah),
+    0
+  );
+  const totalPengeluaran = filteredDanaKeluar.reduce(
+    (sum, item) => sum + Number.parseInt(item.jumlah),
+    0
+  );
+  const saldo = totalPendapatan - totalPengeluaran;
+
+  // Handle form submissions
+  const handleAddDanaMasuk = async (formData) => {
+    try {
+      await APBDesService.addDanaMasuk(formData);
+      setShowDanaMasukForm(false);
+      fetchData();
+    } catch (error) {
+      console.error("Error adding dana masuk:", error);
+      toast.error(
+        error.response?.data?.message || "Terjadi kesalahan saat menyimpan data"
       );
     }
   };
 
-  // Calculate totals for a specific year
-  const calculateYearTotals = (year) => {
-    const yearData = dataBulanan.filter((item) => item.tahun === year);
-    const totalPendapatan = yearData.reduce(
-      (sum, item) =>
-        sum + (item.pendapatan ? Number.parseFloat(item.pendapatan) : 0),
-      0
-    );
-    const totalPengeluaran = yearData.reduce(
-      (sum, item) =>
-        sum + (item.pengeluaran ? Number.parseFloat(item.pengeluaran) : 0),
-      0
-    );
+  const handleUpdateDanaMasuk = async (id, formData) => {
+    try {
+      await APBDesService.updateDanaMasuk(id, formData);
+      setShowDanaMasukForm(false);
+      setEditingItem(null);
+      fetchData();
+    } catch (error) {
+      console.error("Error updating dana masuk:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Terjadi kesalahan saat memperbarui data"
+      );
+    }
+  };
 
+  const handleDeleteDanaMasuk = async (id) => {
+    if (confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+      try {
+        await APBDesService.deleteDanaMasuk(id);
+        fetchData();
+      } catch (error) {
+        console.error("Error deleting dana masuk:", error);
+        toast.error(
+          error.response?.data?.message ||
+            "Terjadi kesalahan saat menghapus data"
+        );
+      }
+    }
+  };
+
+  const handleAddDanaKeluar = async (formData) => {
+    try {
+      await APBDesService.addDanaKeluar(formData);
+      setShowDanaKeluarForm(false);
+      fetchData();
+    } catch (error) {
+      console.error("Error adding dana keluar:", error);
+      toast.error(
+        error.response?.data?.message || "Terjadi kesalahan saat menyimpan data"
+      );
+    }
+  };
+
+  const handleUpdateDanaKeluar = async (id, formData) => {
+    try {
+      await APBDesService.updateDanaKeluar(id, formData);
+      setShowDanaKeluarForm(false);
+      setEditingItem(null);
+      fetchData();
+    } catch (error) {
+      console.error("Error updating dana keluar:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Terjadi kesalahan saat memperbarui data"
+      );
+    }
+  };
+
+  const handleDeleteDanaKeluar = async (id) => {
+    if (confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+      try {
+        await APBDesService.deleteDanaKeluar(id);
+        fetchData();
+      } catch (error) {
+        console.error("Error deleting dana keluar:", error);
+        toast.error(
+          error.response?.data?.message ||
+            "Terjadi kesalahan saat menghapus data"
+        );
+      }
+    }
+  };
+
+  // Edit handlers
+  const handleEditDanaMasuk = (item) => {
+    setEditingItem(item);
+    setShowDanaMasukForm(true);
+  };
+
+  const handleEditDanaKeluar = (item) => {
+    setEditingItem(item);
+    setShowDanaKeluarForm(true);
+  };
+
+  // Prepare chart data
+  const preparePieChartData = () => {
     return {
-      pendapatan: totalPendapatan,
-      pengeluaran: totalPengeluaran,
-      saldo: totalPendapatan - totalPengeluaran,
+      labels: ["Pendapatan", "Pengeluaran"],
+      datasets: [
+        {
+          data: [totalPendapatan, totalPengeluaran],
+          backgroundColor: ["#10b981", "#ef4444"],
+          borderColor: ["#10b981", "#ef4444"],
+          borderWidth: 1,
+        },
+      ],
     };
   };
 
-  // Calculate overall totals for summary cards
-  const calculateOverallTotals = () => {
-    const totalPendapatan = dataBulanan.reduce(
-      (sum, item) =>
-        sum + (item.pendapatan ? Number.parseFloat(item.pendapatan) : 0),
-      0
-    );
-    const totalPengeluaran = dataBulanan.reduce(
-      (sum, item) =>
-        sum + (item.pengeluaran ? Number.parseFloat(item.pengeluaran) : 0),
-      0
-    );
+  const prepareBarChartData = () => {
+    // Create an array of all months (1-12)
+    const months = Array.from({ length: 12 }, (_, i) => i + 1);
+
+    // Map income data by month
+    const incomeByMonth = new Map();
+    filteredDanaMasuk.forEach((item) => {
+      const month = Number.parseInt(item.bulan);
+      incomeByMonth.set(
+        month,
+        (incomeByMonth.get(month) || 0) + Number.parseInt(item.jumlah)
+      );
+    });
+
+    // Map expense data by month
+    const expenseByMonth = new Map();
+    filteredDanaKeluar.forEach((item) => {
+      const month = Number.parseInt(item.bulan);
+      expenseByMonth.set(
+        month,
+        (expenseByMonth.get(month) || 0) + Number.parseInt(item.jumlah)
+      );
+    });
+
+    // Prepare data for chart
+    const incomeData = months.map((month) => incomeByMonth.get(month) || 0);
+    const expenseData = months.map((month) => expenseByMonth.get(month) || 0);
 
     return {
-      pendapatan: totalPendapatan,
-      pengeluaran: totalPengeluaran,
-      saldo: totalPendapatan - totalPengeluaran,
+      labels: months.map((month) => APBDesService.getMonthName(month)),
+      datasets: [
+        {
+          label: "Pendapatan",
+          data: incomeData,
+          backgroundColor: "rgba(16, 185, 129, 0.7)",
+          borderColor: "rgba(16, 185, 129, 1)",
+          borderWidth: 1,
+        },
+        {
+          label: "Pengeluaran",
+          data: expenseData,
+          backgroundColor: "rgba(239, 68, 68, 0.7)",
+          borderColor: "rgba(239, 68, 68, 1)",
+          borderWidth: 1,
+        },
+      ],
     };
   };
 
   // Render summary cards
   const renderSummaryCards = () => {
-    const { pendapatan, pengeluaran, saldo } = calculateOverallTotals();
-
-    const cards = [
-      {
-        title: "Total Pendapatan",
-        value: `${pendapatan.toFixed(2)} Juta`,
-        icon: <FaArrowDown className="text-green-500" size={24} />,
-        color: "from-green-500 to-green-600",
-      },
-      {
-        title: "Total Pengeluaran",
-        value: `${pengeluaran.toFixed(2)} Juta`,
-        icon: <FaArrowUp className="text-red-500" size={24} />,
-        color: "from-red-500 to-red-600",
-      },
-      {
-        title: "Saldo",
-        value: `${saldo.toFixed(2)} Juta`,
-        icon: <FaMoneyBillWave className="text-blue-500" size={24} />,
-        color: "from-blue-500 to-blue-600",
-      },
-      {
-        title: "Total Tahun",
-        value: dataAPBDes.length,
-        icon: <FaCalendarAlt className="text-purple-500" size={24} />,
-        color: "from-purple-500 to-purple-600",
-      },
-    ];
-
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {cards.map((card, idx) => (
-          <div
-            key={idx}
-            className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100"
-          >
-            <div className={`h-2 bg-gradient-to-r ${card.color}`}></div>
-            <div className="p-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-gray-500 text-sm">{card.title}</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-1">
-                    {card.value}
-                  </p>
-                </div>
-                <div className="bg-gray-100 p-3 rounded-xl">{card.icon}</div>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Total Pendapatan
+            </h3>
+            <div className="bg-green-100 p-2 rounded-lg">
+              <FaMoneyBillWave className="text-green-500 text-xl" />
             </div>
           </div>
-        ))}
+          <div className="text-3xl font-bold text-gray-900 mb-1">
+            {APBDesService.formatCurrency(totalPendapatan)}
+          </div>
+          <p className="text-sm text-gray-600">Tahun {selectedYear}</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Total Pengeluaran
+            </h3>
+            <div className="bg-red-100 p-2 rounded-lg">
+              <FaMoneyCheckAlt className="text-red-500 text-xl" />
+            </div>
+          </div>
+          <div className="text-3xl font-bold text-gray-900 mb-1">
+            {APBDesService.formatCurrency(totalPengeluaran)}
+          </div>
+          <p className="text-sm text-gray-600">Tahun {selectedYear}</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Saldo</h3>
+            <div className="bg-blue-100 p-2 rounded-lg">
+              <FaChartPie className="text-blue-500 text-xl" />
+            </div>
+          </div>
+          <div
+            className={`text-3xl font-bold mb-1 ${
+              saldo >= 0 ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {APBDesService.formatCurrency(saldo)}
+          </div>
+          <p className="text-sm text-gray-600">Tahun {selectedYear}</p>
+        </div>
       </div>
     );
   };
 
-  // Render years table
-  const renderYearsTable = () => (
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 mb-6">
-      <div className="p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="bg-yellow-100 p-2 rounded-lg">
-            <FaCalendarAlt className="text-yellow-500" size={20} />
-          </div>
-          <div>
-            <h2 className="font-semibold text-xl text-gray-800">
-              Data Tahun APBDes
-            </h2>
-            <p className="text-gray-500 text-sm">
-              Daftar tahun anggaran yang tersedia.
-            </p>
+  // Render charts
+  const renderCharts = () => {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Perbandingan Pendapatan dan Pengeluaran
+          </h3>
+          <div className="h-64">
+            <Pie
+              data={preparePieChartData()}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: (context) => {
+                        const value = context.raw;
+                        return `${
+                          context.label
+                        }: ${APBDesService.formatCurrency(value)}`;
+                      },
+                    },
+                  },
+                },
+              }}
+            />
           </div>
         </div>
 
-        <div className="mb-4">
-          {showNewYearInput ? (
-            <div className="flex items-center gap-2 mb-4">
-              <input
-                type="text"
-                value={newYear}
-                onChange={(e) => setNewYear(e.target.value)}
-                placeholder="Masukkan tahun (contoh: 2025)"
-                className="flex-1 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-              />
-              <button
-                onClick={addNewYear}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Simpan
-              </button>
-              <button
-                onClick={() => {
-                  setShowNewYearInput(false);
-                  setNewYear("");
-                }}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors"
-              >
-                Batal
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowNewYearInput(true)}
-              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors mb-4"
-            >
-              <FaPlus size={14} />
-              <span>Tambah Tahun Baru</span>
-            </button>
-          )}
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Pendapatan dan Pengeluaran Bulanan
+          </h3>
+          <div className="h-64">
+            <Bar
+              data={prepareBarChartData()}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "top",
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: (context) => {
+                        const value = context.raw;
+                        return `${
+                          context.dataset.label
+                        }: ${APBDesService.formatCurrency(value)}`;
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      callback: (value) => APBDesService.formatCurrency(value),
+                    },
+                  },
+                },
+              }}
+            />
+          </div>
         </div>
-
-        {dataAPBDes.map((year) => {
-          const { pendapatan, pengeluaran, saldo } = calculateYearTotals(
-            year.tahun
-          );
-
-          return (
-            <div
-              key={year.id}
-              className="mb-6 border border-gray-200 rounded-xl overflow-hidden"
-            >
-              <div
-                className="flex items-center justify-between bg-gray-50 p-4 cursor-pointer"
-                onClick={() => toggleYearExpansion(year.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="bg-yellow-100 p-2 rounded-lg">
-                    <FaCalendarAlt className="text-yellow-500" size={16} />
-                  </div>
-                  <h3 className="font-semibold text-lg">Tahun {year.tahun}</h3>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="hidden md:flex items-center gap-6">
-                    <div className="text-sm">
-                      <span className="text-gray-500">Pendapatan:</span>
-                      <span className="ml-2 font-medium text-green-600">
-                        {pendapatan.toFixed(2)} Juta
-                      </span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-gray-500">Pengeluaran:</span>
-                      <span className="ml-2 font-medium text-red-600">
-                        {pengeluaran.toFixed(2)} Juta
-                      </span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-gray-500">Saldo:</span>
-                      <span
-                        className={`ml-2 font-medium ${
-                          saldo >= 0 ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {saldo.toFixed(2)} Juta
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteYear(year.tahun);
-                      }}
-                      className="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg transition-colors"
-                      title="Hapus Tahun"
-                    >
-                      <FaTrash size={14} />
-                    </button>
-                    {year.isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-                  </div>
-                </div>
-              </div>
-
-              {year.isExpanded && (
-                <div className="p-4">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm text-gray-600">
-                      <thead>
-                        <tr className="border-b border-gray-200">
-                          <th className="px-4 py-3 text-left font-medium">#</th>
-                          <th className="px-4 py-3 text-left font-medium">
-                            Bulan
-                          </th>
-                          <th className="px-4 py-3 text-center font-medium">
-                            Jenis
-                          </th>
-                          <th className="px-4 py-3 text-center font-medium">
-                            Pendapatan (Juta)
-                          </th>
-                          <th className="px-4 py-3 text-center font-medium">
-                            Pengeluaran (Juta)
-                          </th>
-                          <th className="px-4 py-3 text-center font-medium">
-                            Saldo (Juta)
-                          </th>
-                          <th className="px-4 py-3 text-center font-medium">
-                            Aksi
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {dataBulanan
-                          .filter((item) => item.tahun === year.tahun)
-                          .map((row, idx) => {
-                            const pendapatan = row.pendapatan
-                              ? Number.parseFloat(row.pendapatan)
-                              : 0;
-                            const pengeluaran = row.pengeluaran
-                              ? Number.parseFloat(row.pengeluaran)
-                              : 0;
-                            const saldo = pendapatan - pengeluaran;
-
-                            return (
-                              <tr
-                                key={row.id}
-                                className="border-b border-gray-100 hover:bg-gray-50 transition"
-                              >
-                                <td className="px-4 py-3">{idx + 1}</td>
-                                <td className="px-4 py-3 font-medium">
-                                  {row.bulan}
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <input
-                                    type="text"
-                                    value={row.jenis === null ? "" : row.jenis}
-                                    onChange={(e) =>
-                                      handleMonthlyDataUpdate(
-                                        row.id,
-                                        "jenis",
-                                        e.target.value
-                                      )
-                                    }
-                                    placeholder="Opsional"
-                                    className="w-32 text-center border border-gray-300 rounded-lg p-1 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-                                  />
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <input
-                                    type="text"
-                                    value={
-                                      row.pendapatan === null
-                                        ? ""
-                                        : row.pendapatan
-                                    }
-                                    onChange={(e) =>
-                                      handleMonthlyDataUpdate(
-                                        row.id,
-                                        "pendapatan",
-                                        e.target.value
-                                      )
-                                    }
-                                    placeholder="0.00"
-                                    className="w-24 text-center border border-gray-300 rounded-lg p-1 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-                                  />
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <input
-                                    type="text"
-                                    value={
-                                      row.pengeluaran === null
-                                        ? ""
-                                        : row.pengeluaran
-                                    }
-                                    onChange={(e) =>
-                                      handleMonthlyDataUpdate(
-                                        row.id,
-                                        "pengeluaran",
-                                        e.target.value
-                                      )
-                                    }
-                                    placeholder="0.00"
-                                    className="w-24 text-center border border-gray-300 rounded-lg p-1 focus:ring-2 focus:ring-blue-300 focus:outline-none"
-                                  />
-                                </td>
-                                <td
-                                  className={`px-4 py-3 text-center font-medium ${
-                                    saldo >= 0
-                                      ? "text-green-600"
-                                      : "text-red-600"
-                                  }`}
-                                >
-                                  {saldo.toFixed(2)}
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <button
-                                    onClick={() => {
-                                      handleMonthlyDataUpdate(
-                                        row.id,
-                                        "pendapatan",
-                                        null
-                                      );
-                                      handleMonthlyDataUpdate(
-                                        row.id,
-                                        "pengeluaran",
-                                        null
-                                      );
-                                      handleMonthlyDataUpdate(
-                                        row.id,
-                                        "jenis",
-                                        null
-                                      );
-                                    }}
-                                    className="bg-gray-500 hover:bg-gray-600 text-white p-1.5 rounded-lg transition-colors"
-                                    title="Reset Data"
-                                  >
-                                    <FaTrash size={14} />
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                      </tbody>
-                      <tfoot>
-                        <tr className="bg-gray-50 font-medium">
-                          <td colSpan={3} className="px-4 py-3 text-right">
-                            Total:
-                          </td>
-                          <td className="px-4 py-3 text-center text-green-600">
-                            {pendapatan.toFixed(2)}
-                          </td>
-                          <td className="px-4 py-3 text-center text-red-600">
-                            {pengeluaran.toFixed(2)}
-                          </td>
-                          <td
-                            className={`px-4 py-3 text-center ${
-                              saldo >= 0 ? "text-green-600" : "text-red-600"
-                            }`}
-                          >
-                            {saldo.toFixed(2)}
-                          </td>
-                          <td className="px-4 py-3"></td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
       </div>
-    </div>
-  );
+    );
+  };
+
+  // Render dana masuk table
+  const renderDanaMasukTable = () => {
+    return (
+      <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <FaMoneyBillWave className="text-green-500 text-xl" />
+              </div>
+              <h2 className="font-semibold text-xl text-gray-800">
+                Data Pendapatan
+              </h2>
+            </div>
+            <button
+              onClick={() => {
+                setEditingItem(null);
+                setShowDanaMasukForm(true);
+              }}
+              className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              <FaPlus size={16} />
+              <span>Tambah Pendapatan</span>
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm text-gray-600">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 bg-green-50 rounded-tl-lg">
+                    ID
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 bg-green-50">
+                    Tahun
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 bg-green-50">
+                    Bulan
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-700 bg-green-50">
+                    Jumlah
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 bg-green-50">
+                    Sumber
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 bg-green-50">
+                    Keterangan
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-700 bg-green-50 rounded-tr-lg">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredDanaMasuk.length > 0 ? (
+                  filteredDanaMasuk.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-gray-50 transition-colors duration-150"
+                    >
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        {item.id}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        {item.tahun}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-800 font-medium">
+                        {APBDesService.getMonthName(item.bulan)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-green-600 font-mono font-medium text-right">
+                        {APBDesService.formatCurrency(item.jumlah)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        {item.sumber}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-800 max-w-xs truncate">
+                        {item.keterangan}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => handleEditDanaMasuk(item)}
+                            className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors shadow-sm"
+                            title="Edit"
+                          >
+                            <FaEdit className="text-blue-600" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDanaMasuk(item.id)}
+                            className="p-1.5 bg-red-100 rounded-md hover:bg-red-200 transition-colors shadow-sm"
+                            title="Hapus"
+                          >
+                            <FaTrash className="text-red-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-4 py-8 text-center text-gray-500 italic"
+                    >
+                      Tidak ada data pendapatan untuk tahun {selectedYear}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="px-4 py-3 font-medium text-right bg-green-50 rounded-bl-lg"
+                  >
+                    Total:
+                  </td>
+                  <td className="px-4 py-3 font-medium text-right bg-green-50 text-green-600 font-mono">
+                    {APBDesService.formatCurrency(totalPendapatan)}
+                  </td>
+                  <td
+                    colSpan={3}
+                    className="px-4 py-3 bg-green-50 rounded-br-lg"
+                  ></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Render dana keluar table
+  const renderDanaKeluarTable = () => {
+    return (
+      <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-red-100 p-2 rounded-lg">
+                <FaMoneyCheckAlt className="text-red-500 text-xl" />
+              </div>
+              <h2 className="font-semibold text-xl text-gray-800">
+                Data Pengeluaran
+              </h2>
+            </div>
+            <button
+              onClick={() => {
+                setEditingItem(null);
+                setShowDanaKeluarForm(true);
+              }}
+              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              <FaPlus size={16} />
+              <span>Tambah Pengeluaran</span>
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm text-gray-600">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 bg-red-50 rounded-tl-lg">
+                    ID
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 bg-red-50">
+                    Tahun
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 bg-red-50">
+                    Bulan
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-700 bg-red-50">
+                    Jumlah
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 bg-red-50">
+                    Kategori
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 bg-red-50">
+                    Keterangan
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-700 bg-red-50 rounded-tr-lg">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredDanaKeluar.length > 0 ? (
+                  filteredDanaKeluar.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-gray-50 transition-colors duration-150"
+                    >
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        {item.id}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        {item.tahun}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-800 font-medium">
+                        {APBDesService.getMonthName(item.bulan)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-red-600 font-mono font-medium text-right">
+                        {APBDesService.formatCurrency(item.jumlah)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-800">
+                        <span className="px-2 py-1 bg-gray-100 rounded-full text-xs font-medium">
+                          {item.kategori}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-800 max-w-xs truncate">
+                        {item.keterangan}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => handleEditDanaKeluar(item)}
+                            className="p-1.5 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors shadow-sm"
+                            title="Edit"
+                          >
+                            <FaEdit className="text-blue-600" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDanaKeluar(item.id)}
+                            className="p-1.5 bg-red-100 rounded-md hover:bg-red-200 transition-colors shadow-sm"
+                            title="Hapus"
+                          >
+                            <FaTrash className="text-red-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-4 py-8 text-center text-gray-500 italic"
+                    >
+                      Tidak ada data pengeluaran untuk tahun {selectedYear}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="px-4 py-3 font-medium text-right bg-red-50 rounded-bl-lg"
+                  >
+                    Total:
+                  </td>
+                  <td className="px-4 py-3 font-medium text-right bg-red-50 text-red-600 font-mono">
+                    {APBDesService.formatCurrency(totalPengeluaran)}
+                  </td>
+                  <td
+                    colSpan={3}
+                    className="px-4 py-3 bg-red-50 rounded-br-lg"
+                  ></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <FaSpinner className="animate-spin text-4xl text-blue-500" />
+        <span className="ml-2">Memuat data...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <FaExclamationTriangle className="text-4xl text-yellow-500 mx-auto mb-4" />
+        <p className="text-red-500 mb-4">{error}</p>
+        <button
+          onClick={fetchData}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {renderSummaryCards()}
-      {renderYearsTable()}
+    <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Manajemen APBDes</h1>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <FaCalendarAlt className="text-gray-500" />
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {availableYears.length > 0 ? (
+                  availableYears.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))
+                ) : (
+                  <option value={new Date().getFullYear()}>
+                    {new Date().getFullYear()}
+                  </option>
+                )}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="bg-white rounded-2xl shadow-md p-4 mb-6">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setActiveTab("summary")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                activeTab === "summary"
+                  ? "bg-blue-500 text-white font-medium shadow-sm"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <FaChartPie
+                className={
+                  activeTab === "summary" ? "text-white" : "text-blue-500"
+                }
+              />
+              <span>Ringkasan</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("income")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                activeTab === "income"
+                  ? "bg-green-500 text-white font-medium shadow-sm"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <FaMoneyBillWave
+                className={
+                  activeTab === "income" ? "text-white" : "text-green-500"
+                }
+              />
+              <span>Pendapatan</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("expense")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                activeTab === "expense"
+                  ? "bg-red-500 text-white font-medium shadow-sm"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <FaMoneyCheckAlt
+                className={
+                  activeTab === "expense" ? "text-white" : "text-red-500"
+                }
+              />
+              <span>Pengeluaran</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Content based on active tab */}
+        {activeTab === "summary" && (
+          <div className="space-y-6">
+            {renderSummaryCards()}
+            {renderCharts()}
+          </div>
+        )}
+
+        {activeTab === "income" && (
+          <div className="space-y-6">{renderDanaMasukTable()}</div>
+        )}
+
+        {activeTab === "expense" && (
+          <div className="space-y-6">{renderDanaKeluarTable()}</div>
+        )}
+
+        {/* Forms */}
+        <div
+          className={`${
+            showDanaMasukForm || showDanaKeluarForm
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          } transition-opacity duration-300`}
+        >
+          {showDanaMasukForm && (
+            <DanaMasukForm
+              onSubmit={
+                editingItem
+                  ? (formData) =>
+                      handleUpdateDanaMasuk(editingItem.id, formData)
+                  : handleAddDanaMasuk
+              }
+              onCancel={() => {
+                setShowDanaMasukForm(false);
+                setEditingItem(null);
+              }}
+              initialData={editingItem}
+              isEditing={!!editingItem}
+            />
+          )}
+
+          {showDanaKeluarForm && (
+            <DanaKeluarForm
+              onSubmit={
+                editingItem
+                  ? (formData) =>
+                      handleUpdateDanaKeluar(editingItem.id, formData)
+                  : handleAddDanaKeluar
+              }
+              onCancel={() => {
+                setShowDanaKeluarForm(false);
+                setEditingItem(null);
+              }}
+              initialData={editingItem}
+              isEditing={!!editingItem}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

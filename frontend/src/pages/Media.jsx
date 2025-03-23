@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FaImage,
   FaVideo,
@@ -13,10 +13,11 @@ import {
   FaSpinner,
   FaExclamationTriangle,
   FaFileAlt,
+  FaTimesCircle,
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import MediaServiceUser from "./user/MediaServices";
+import MediaService from "../pages/admin/services/MediaServiceAdm";
 
 export default function Media() {
   // State untuk data
@@ -29,37 +30,41 @@ export default function Media() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaError, setMediaError] = useState(false);
 
   // State untuk tahun
   const [years, setYears] = useState([]);
   const [selectedYear, setSelectedYear] = useState("");
+
+  // Tambahkan state untuk pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; // 8 items per page (2 rows of 4)
 
   // Fetch data on component mount
   useEffect(() => {
     fetchMediaData();
   }, []);
 
-  // Fetch media data
+  // Perbaiki fungsi fetchMediaData untuk menangani tahun dengan benar
   const fetchMediaData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await MediaServiceUser.getAllMedia();
+      const data = await MediaService.getAllMedia();
       setMediaData(data);
 
       // Extract unique years from data
       if (data.length > 0) {
+        // Pendekatan baru untuk ekstraksi tahun menggunakan fungsi helper
         const uniqueYears = [
-          ...new Set(
-            data.map((item) => {
-              const date = new Date(item.created_at);
-              return date.getFullYear();
-            })
-          ),
+          ...new Set(data.map((item) => MediaService.extractYear(item))),
         ].sort((a, b) => b - a); // Sort years in descending order
 
         setYears(uniqueYears);
-        setSelectedYear(uniqueYears[0]?.toString() || "");
+        if (uniqueYears.length > 0) {
+          setSelectedYear(uniqueYears[0].toString());
+        }
       }
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -72,8 +77,12 @@ export default function Media() {
   // Filter data based on active tab, search query, and selected year
   const filteredData = mediaData.filter((item) => {
     // Filter by year
-    const itemYear = new Date(item.created_at).getFullYear().toString();
-    const matchesYear = selectedYear ? itemYear === selectedYear : true;
+    let matchesYear = true;
+    if (selectedYear) {
+      // Gunakan fungsi helper untuk ekstraksi tahun
+      const itemYear = MediaService.extractYear(item);
+      matchesYear = itemYear === selectedYear;
+    }
 
     // Filter by search query
     const matchesSearch =
@@ -90,6 +99,21 @@ export default function Media() {
     return matchesYear && matchesSearch && matchesFilter;
   });
 
+  // Get paginated data
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
+
   // Count by type
   const countImages = mediaData.filter((item) => item.tipe === "foto").length;
   const countVideos = mediaData.filter((item) => item.tipe === "video").length;
@@ -99,13 +123,143 @@ export default function Media() {
   const handlePreview = (item) => {
     setCurrentItem(item);
     setShowPreviewModal(true);
+    setMediaLoading(true);
+    setMediaError(false);
   };
 
-  // Get thumbnail for video
-  const getVideoThumbnail = (item) => {
-    // In a real app, you might have a thumbnail field or generate one
-    // For now, we'll use a placeholder
-    return "/placeholder.svg?height=300&width=400";
+  // Get video thumbnail
+  const getVideoThumbnail = useCallback((item) => {
+    return MediaService.getVideoThumbnail(item);
+  }, []);
+
+  // Handle download - perbaikan untuk langsung mengunduh file
+  const handleDownload = (e, fileUrl, filename) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      // Buat elemen anchor tersembunyi
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = filename || "download"; // Gunakan nama file jika tersedia
+
+      // Penting: jangan gunakan target="_blank" karena bisa menyebabkan masalah "#blocked"
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Gagal mengunduh file. Silakan coba lagi.");
+    }
+  };
+
+  // Render media content based on type
+  const renderMediaContent = () => {
+    if (!currentItem) return null;
+    const mediaUrl = MediaService.getMediaUrl(currentItem.file);
+
+    if (currentItem.tipe === "foto") {
+      return (
+        <div className="flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden">
+          {mediaLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
+              <FaSpinner className="animate-spin text-4xl text-white" />
+            </div>
+          )}
+          <img
+            src={mediaUrl || "/placeholder.svg?height=600&width=800"}
+            alt={currentItem.nama}
+            className="max-w-full max-h-[70vh] object-contain"
+            onLoad={() => setMediaLoading(false)}
+            onError={(e) => {
+              setMediaLoading(false);
+              setMediaError(true);
+              e.target.onerror = null;
+              e.target.src = "/placeholder.svg?height=600&width=800";
+            }}
+          />
+        </div>
+      );
+    } else if (currentItem.tipe === "video") {
+      return (
+        <div className="relative bg-black rounded-lg overflow-hidden">
+          {mediaLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
+              <FaSpinner className="animate-spin text-4xl text-white" />
+            </div>
+          )}
+          <video
+            src={mediaUrl}
+            controls
+            autoPlay
+            className="w-full max-h-[70vh]"
+            poster={getVideoThumbnail(currentItem)}
+            onLoadedData={() => setMediaLoading(false)}
+            onError={() => {
+              setMediaLoading(false);
+              setMediaError(true);
+            }}
+          >
+            Browser Anda tidak mendukung pemutaran video.
+          </video>
+          {mediaError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
+              <FaExclamationTriangle className="text-red-500 text-5xl mb-4" />
+              <p className="text-gray-700 mb-4">Video tidak dapat dimuat</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.open(mediaUrl, "_blank")}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Buka di Tab Baru
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    } else if (currentItem.tipe === "dokumen") {
+      return (
+        <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+          {mediaLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
+              <FaSpinner className="animate-spin text-4xl text-white" />
+            </div>
+          )}
+          <iframe
+            src={mediaUrl}
+            className="w-full h-[70vh]"
+            title={currentItem.nama}
+            onLoad={() => setMediaLoading(false)}
+            onError={() => {
+              setMediaLoading(false);
+              setMediaError(true);
+            }}
+          />
+          {mediaError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
+              <FaExclamationTriangle className="text-red-500 text-5xl mb-4" />
+              <p className="text-gray-700 mb-4">Dokumen tidak dapat dimuat</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.open(mediaUrl, "_blank")}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Buka di Tab Baru
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col items-center justify-center h-64 bg-gray-100 rounded-lg">
+        <FaExclamationTriangle className="text-yellow-500 text-5xl mb-4" />
+        <p className="text-gray-700">Format media tidak didukung</p>
+      </div>
+    );
   };
 
   return (
@@ -299,64 +453,53 @@ export default function Media() {
                 </button>
               </div>
             ) : filteredData.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredData.map((media) => (
-                  <div
-                    key={media.id}
-                    className="group bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                  >
-                    {/* Media Title */}
-                    <div className="p-3 border-b">
-                      <h3 className="font-medium text-gray-800 truncate">
-                        {media.nama}
-                      </h3>
-                      <div className="flex justify-between items-center mt-1">
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                          <FaCalendarAlt />
-                          <span>
-                            {MediaServiceUser.formatDate(media.created_at)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs">
-                          {media.tipe === "foto" ? (
-                            <span className="bg-gray-100 bg-opacity-20 text-[#FE7C66] px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <FaImage /> Foto
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {paginatedData.map((media) => (
+                    <div
+                      key={media.id}
+                      className="group bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      {/* Media Title */}
+                      <div className="p-3 border-b">
+                        <h3 className="font-medium text-gray-800 truncate">
+                          {media.nama}
+                        </h3>
+                        <div className="flex justify-between items-center mt-1">
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <FaCalendarAlt />
+                            <span>
+                              {MediaService.formatDate(media.created_at)}
                             </span>
-                          ) : media.tipe === "video" ? (
-                            <span className="bg-gray-100 bg-opacity-20 text-[#5DE1C4] px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <FaVideo /> Video
-                            </span>
-                          ) : (
-                            <span className="bg-gray-100 bg-opacity-20 text-[#6CABCA] px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <FaFileAlt /> Dokumen
-                            </span>
-                          )}
+                          </div>
+                          <div className="flex items-center gap-1 text-xs">
+                            {media.tipe === "foto" ? (
+                              <span className="bg-gray-100 bg-opacity-20 text-[#FE7C66] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <FaImage /> Foto
+                              </span>
+                            ) : media.tipe === "video" ? (
+                              <span className="bg-gray-100 bg-opacity-20 text-[#5DE1C4] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <FaVideo /> Video
+                              </span>
+                            ) : (
+                              <span className="bg-gray-100 bg-opacity-20 text-[#6CABCA] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <FaFileAlt /> Dokumen
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Media Thumbnail */}
-                    <div className="relative aspect-[4/3] overflow-hidden">
-                      {media.tipe === "foto" ? (
-                        <img
-                          src={
-                            MediaServiceUser.getMediaUrl(media.file) ||
-                            "/placeholder.svg?height=300&width=400"
-                          }
-                          alt={media.nama}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src =
-                              "/placeholder.svg?height=300&width=400";
-                          }}
-                        />
-                      ) : media.tipe === "video" ? (
-                        <>
+                      {/* Media Thumbnail */}
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        {media.tipe === "foto" ? (
                           <img
                             src={
-                              getVideoThumbnail(media) ||
+                              MediaService.getMediaUrl(media.file) ||
                               "/placeholder.svg?height=300&width=400" ||
+                              "/placeholder.svg" ||
+                              "/placeholder.svg" ||
+                              "/placeholder.svg" ||
                               "/placeholder.svg"
                             }
                             alt={media.nama}
@@ -367,53 +510,115 @@ export default function Media() {
                                 "/placeholder.svg?height=300&width=400";
                             }}
                           />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-black bg-opacity-50 rounded-full p-3 text-white">
-                              <FaPlay />
+                        ) : media.tipe === "video" ? (
+                          <>
+                            <img
+                              src={
+                                getVideoThumbnail(media) || "/placeholder.svg"
+                              }
+                              alt={media.nama}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src =
+                                  "/placeholder.svg?height=300&width=400";
+                              }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-black bg-opacity-50 rounded-full p-3 text-white">
+                                <FaPlay />
+                              </div>
                             </div>
+                          </>
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+                            <FaFileAlt className="text-[#6CABCA] text-5xl mb-2" />
+                            <span className="text-sm text-gray-600">
+                              Dokumen PDF
+                            </span>
                           </div>
-                        </>
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100">
-                          <FaFileAlt className="text-[#6CABCA] text-5xl mb-2" />
-                          <span className="text-sm text-gray-600">
-                            Dokumen PDF
-                          </span>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Hover Overlay */}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handlePreview(media)}
-                            className="bg-white p-2 rounded-full shadow-md hover:bg-[#6CABCA] hover:text-white transition-colors"
-                            title="Lihat Detail"
-                          >
-                            <FaEye />
-                          </button>
-                          <a
-                            href={MediaServiceUser.getMediaUrl(media.file)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-white p-2 rounded-full shadow-md hover:bg-[#B9FF66] hover:text-gray-800 transition-colors"
-                            title="Unduh"
-                          >
-                            <FaDownload />
-                          </a>
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handlePreview(media)}
+                              className="bg-white p-2 rounded-full shadow-md hover:bg-[#6CABCA] hover:text-white transition-colors"
+                              title="Lihat Detail"
+                            >
+                              <FaEye />
+                            </button>
+                            <button
+                              onClick={(e) =>
+                                handleDownload(
+                                  e,
+                                  MediaService.getMediaUrl(media.file),
+                                  media.file.split("/").pop()
+                                )
+                              }
+                              className="bg-white p-2 rounded-full shadow-md hover:bg-[#B9FF66] hover:text-gray-800 transition-colors"
+                              title="Unduh"
+                            >
+                              <FaDownload />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Media Description */}
-                    <div className="p-3">
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {media.deskripsi}
-                      </p>
+                      {/* Media Description */}
+                      <div className="p-3">
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {media.deskripsi}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center mt-8">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          handlePageChange(Math.max(currentPage - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 rounded-md bg-gray-100 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        &laquo; Prev
+                      </button>
+
+                      {Array.from({ length: totalPages }).map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handlePageChange(index + 1)}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            currentPage === index + 1
+                              ? "bg-[#6CABCA] text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() =>
+                          handlePageChange(
+                            Math.min(currentPage + 1, totalPages)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 rounded-md bg-gray-100 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next &raquo;
+                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-12">
                 <FaPhotoVideo className="text-gray-300 text-5xl mx-auto mb-3" />
@@ -427,26 +632,37 @@ export default function Media() {
         </div>
       </div>
 
-      {/* Preview Modal */}
+      {/* Preview Modal - Dengan background blur dan max-height */}
       {showPreviewModal && currentItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8">
+          {/* Backdrop with blur */}
+          <div
+            className="fixed inset-0 backdrop-blur-sm bg-black/40"
+            onClick={() => setShowPreviewModal(false)}
+          ></div>
+
+          {/* Modal content */}
+          <div
+            className="relative w-full max-w-5xl mx-4 bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
+              <h3 className="text-xl font-bold text-gray-800 truncate">
                 {currentItem.tipe === "foto" ? (
                   <>
                     <FaImage className="inline-block mr-2 text-[#FE7C66]" />{" "}
-                    Foto
+                    Foto: {currentItem.nama}
                   </>
                 ) : currentItem.tipe === "video" ? (
                   <>
                     <FaVideo className="inline-block mr-2 text-[#5DE1C4]" />{" "}
-                    Video
+                    Video: {currentItem.nama}
                   </>
                 ) : (
                   <>
                     <FaFileAlt className="inline-block mr-2 text-[#6CABCA]" />{" "}
-                    Dokumen
+                    Dokumen: {currentItem.nama}
                   </>
                 )}
               </h3>
@@ -454,76 +670,14 @@ export default function Media() {
                 onClick={() => setShowPreviewModal(false)}
                 className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <FaTimesCircle className="text-gray-600" />
               </button>
             </div>
 
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                {currentItem.nama}
-              </h2>
-
-              <div className="bg-black rounded-lg overflow-hidden mb-4 flex items-center justify-center">
-                {currentItem.tipe === "foto" ? (
-                  <img
-                    src={
-                      MediaServiceUser.getMediaUrl(currentItem.file) ||
-                      "/placeholder.svg?height=600&width=800"
-                    }
-                    alt={currentItem.nama}
-                    className="max-w-full max-h-[70vh] object-contain"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "/placeholder.svg?height=600&width=800";
-                    }}
-                  />
-                ) : currentItem.tipe === "video" ? (
-                  <video
-                    src={MediaServiceUser.getMediaUrl(currentItem.file)}
-                    controls
-                    autoPlay
-                    className="max-w-full max-h-[70vh]"
-                    poster={getVideoThumbnail(currentItem)}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.parentNode.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-full bg-gray-800 p-8">
-                          <div class="text-red-500 text-5xl mb-4"><i class="fas fa-exclamation-circle"></i></div>
-                          <p class="text-white text-center">Video tidak dapat dimuat</p>
-                        </div>
-                      `;
-                    }}
-                  >
-                    Browser Anda tidak mendukung pemutaran video.
-                  </video>
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-8 bg-gray-100 w-full h-[50vh]">
-                    <FaFileAlt className="text-[#6CABCA] text-5xl mb-4" />
-                    <p className="text-gray-700 mb-4">Dokumen PDF</p>
-                    <a
-                      href={MediaServiceUser.getMediaUrl(currentItem.file)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 bg-[#6CABCA] text-white rounded-lg hover:bg-opacity-90 transition"
-                    >
-                      Buka Dokumen
-                    </a>
-                  </div>
-                )}
-              </div>
+            {/* Content - scrollable */}
+            <div className="p-6 overflow-auto">
+              {/* Media Content */}
+              <div className="mb-4">{renderMediaContent()}</div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700 mb-4">{currentItem.deskripsi}</p>
@@ -532,27 +686,35 @@ export default function Media() {
                   <p className="flex items-center gap-1">
                     <FaCalendarAlt className="text-[#6CABCA]" />
                     <span className="font-medium">Tanggal:</span>{" "}
-                    {MediaServiceUser.formatDate(currentItem.created_at)}
+                    {MediaService.formatDate(currentItem.created_at)}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Tutup
-              </button>
-              <a
-                href={MediaServiceUser.getMediaUrl(currentItem.file)}
-                download
-                className="px-4 py-2 bg-[#B9FF66] text-gray-800 rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
-              >
-                <FaDownload />
-                <span>Unduh</span>
-              </a>
+            {/* Footer - sticky */}
+            <div className="mt-auto p-4 border-t bg-white sticky bottom-0">
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Tutup
+                </button>
+                <button
+                  onClick={(e) =>
+                    handleDownload(
+                      e,
+                      MediaService.getMediaUrl(currentItem.file),
+                      currentItem.file.split("/").pop()
+                    )
+                  }
+                  className="px-4 py-2 bg-[#B9FF66] text-gray-800 rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
+                >
+                  <FaDownload />
+                  <span>Unduh</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -32,6 +32,19 @@ api.interceptors.response.use(
   }
 );
 
+// Fungsi untuk mengekstrak nama file dari path
+const extractFilename = (path) => {
+  if (!path) return null;
+
+  // Jika path berisi 'uploads/berita/', ekstrak hanya nama filenya
+  if (path.includes("uploads/berita/")) {
+    return path.split("/").pop();
+  }
+
+  // Jika tidak, kembalikan path asli
+  return path;
+};
+
 const BeritaService = {
   // GET methods
   getAllBerita: async () => {
@@ -174,8 +187,11 @@ const BeritaService = {
       return imagePath;
     }
 
-    // Jika path relatif, tambahkan base URL
-    return `${API_URL}${imagePath}`;
+    // Ekstrak nama file jika path berisi 'uploads/berita/'
+    const filename = extractFilename(imagePath);
+
+    // Construct the URL to the image
+    return `../../public/berita/${filename}`;
   },
 };
 

@@ -15,8 +15,8 @@ export default function Infografis() {
         return <Penduduk />;
       case "apbdes":
         return <APBDes />;
-      case "fasilitas":
-        return <Fasilitas />;
+      // case "fasilitas":
+      //   return <Fasilitas />;
       default:
         return <Penduduk />;
     }
@@ -42,7 +42,7 @@ export default function Infografis() {
 // Hero Section modular
 const HeroSection = ({ activeTab, setActiveTab }) => {
   const buttonStyle = (tabName) =>
-    `border border-gray-300 font-medium px-5 py-2 md:px-7 md:py-5 rounded-lg shadow-md transition ${
+    `border border-gray-300 font-medium px-5 py-2 md:px-7 md:py-5 max-w-32 rounded-lg shadow-md transition ${
       activeTab === tabName
         ? "bg-lime-400 text-black"
         : "bg-white hover:bg-lime-200 text-black"
@@ -88,12 +88,12 @@ const HeroSection = ({ activeTab, setActiveTab }) => {
           >
             APBDes
           </button>
-          <button
+          {/* <button
             className={buttonStyle("fasilitas")}
             onClick={() => setActiveTab("fasilitas")}
           >
             Fasilitas
-          </button>
+          </button> */}
         </div>
       </div>
     </section>

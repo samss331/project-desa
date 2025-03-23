@@ -11,8 +11,12 @@ import {
   FaEye,
   FaChartBar,
   FaSpinner,
+  FaDownload,
+  FaTimesCircle,
+  FaExclamationTriangle,
 } from "react-icons/fa";
-import MediaServiceAdmin from "../services/MediaServiceAdm";
+import MediaService from "../services/MediaServiceAdm";
+import toast from "../../../components/Toast";
 
 const MediaAdmin = () => {
   // State untuk data
@@ -29,6 +33,14 @@ const MediaAdmin = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaError, setMediaError] = useState(false);
+
+  // Add a new state for thumbnail loading
+  // Add this to the state declarations at the top of the component
+
+  // State for thumbnail generation loading
+  const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -36,6 +48,7 @@ const MediaAdmin = () => {
     tipe: "foto",
     deskripsi: "",
     file: null,
+    thumbnail: null, // Tambahkan state untuk thumbnail
   });
 
   // Fetch data on component mount
@@ -48,7 +61,7 @@ const MediaAdmin = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await MediaServiceAdmin.getAllMedia();
+      const data = await MediaService.getAllMedia();
       setMediaData(data);
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -80,6 +93,7 @@ const MediaAdmin = () => {
       tipe: "foto",
       deskripsi: "",
       file: null,
+      thumbnail: null, // Reset thumbnail
     });
     setShowAddModal(true);
   };
@@ -93,6 +107,7 @@ const MediaAdmin = () => {
         tipe: item.tipe,
         deskripsi: item.deskripsi,
         file: null, // Reset file input
+        thumbnail: null, // Reset thumbnail input
       });
       setShowEditModal(true);
     }
@@ -111,103 +126,470 @@ const MediaAdmin = () => {
     if (item) {
       setCurrentItem(item);
       setShowPreviewModal(true);
+      setMediaLoading(true);
+      setMediaError(false);
     }
   };
 
+  // Handle download - perbaikan untuk langsung mengunduh file
+  const handleDownload = (e, fileUrl, filename) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      // Buat elemen anchor tersembunyi
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = filename || "download"; // Gunakan nama file jika tersedia
+
+      // Penting: jangan gunakan target="_blank" karena bisa menyebabkan masalah "#blocked"
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.info("Gagal mengunduh file. Silakan coba lagi.");
+    }
+  };
+
+  // Add a new function to extract the first frame from a video
+  // Add this function after the handleDownload function and before saveNewItem
+
+  // Function to extract the first frame from a video
+  const extractThumbnailFromVideo = (videoFile) => {
+    return new Promise((resolve, reject) => {
+      try {
+        // Create a video element
+        const video = document.createElement("video");
+        video.preload = "metadata";
+        video.muted = true;
+        video.playsInline = true;
+
+        // Create a URL for the video file
+        const videoUrl = URL.createObjectURL(videoFile);
+        video.src = videoUrl;
+
+        // When video metadata is loaded, seek to the first frame
+        video.onloadedmetadata = () => {
+          video.currentTime = 0.1; // Seek to 0.1 seconds to ensure we get a frame
+        };
+
+        // When the video has seeked to the specified time
+        video.onseeked = () => {
+          try {
+            // Create a canvas element
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw the video frame on the canvas
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert canvas to blob
+            canvas.toBlob(
+              (blob) => {
+                // Clean up
+                URL.revokeObjectURL(videoUrl);
+
+                // Create a file from the blob
+                const thumbnailFile = new File(
+                  [blob],
+                  `auto_thumbnail_${Date.now()}.jpg`,
+                  {
+                    type: "image/jpeg",
+                  }
+                );
+
+                resolve(thumbnailFile);
+              },
+              "image/jpeg",
+              0.8
+            ); // JPEG format with 80% quality
+          } catch (err) {
+            console.error("Error creating thumbnail:", err);
+            reject(err);
+          }
+        };
+
+        // Handle errors
+        video.onerror = (err) => {
+          console.error("Error loading video:", err);
+          URL.revokeObjectURL(videoUrl);
+          reject(err);
+        };
+
+        // Start loading the video
+        video.load();
+      } catch (err) {
+        console.error("Error in thumbnail extraction:", err);
+        reject(err);
+      }
+    });
+  };
+
+  // Modify the saveNewItem function to include automatic thumbnail extraction
+  // Replace the saveNewItem function with this updated version
+
+  // Perbaiki fungsi saveNewItem untuk menangani upload file dengan benar
   const saveNewItem = async () => {
     try {
       // Validasi form
       if (!formData.nama || !formData.deskripsi) {
-        alert("Nama dan deskripsi wajib diisi!");
+        toast.warning("Nama dan deskripsi wajib diisi!");
         return;
       }
 
       if (!formData.file) {
-        alert("File media wajib diunggah!");
+        toast.warning("File media wajib diunggah!");
         return;
       }
 
+      // Validate file type based on selected media type
+      const fileExt = formData.file.name.split(".").pop().toLowerCase();
+
+      // Define allowed extensions for each type
+      const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
+      const videoExtensions = ["mp4", "webm", "ogg", "mkv"];
+      const pdfExtensions = ["pdf"];
+
+      let isValidFileType = false;
+
+      if (formData.tipe === "foto" && imageExtensions.includes(fileExt)) {
+        isValidFileType = true;
+      } else if (
+        formData.tipe === "video" &&
+        videoExtensions.includes(fileExt)
+      ) {
+        isValidFileType = true;
+      } else if (
+        formData.tipe === "dokumen" &&
+        pdfExtensions.includes(fileExt)
+      ) {
+        isValidFileType = true;
+      }
+
+      if (!isValidFileType) {
+        toast.warning(
+          `Format file tidak sesuai dengan tipe media ${formData.tipe} yang dipilih!`
+        );
+        return;
+      }
+
+      // Validasi thumbnail jika ada dan tipe media adalah video
+      if (formData.tipe === "video" && formData.thumbnail) {
+        const thumbnailExt = formData.thumbnail.name
+          .split(".")
+          .pop()
+          .toLowerCase();
+        if (!imageExtensions.includes(thumbnailExt)) {
+          toast.warning(
+            "Format thumbnail harus berupa gambar (JPG, JPEG, PNG, GIF, WEBP)"
+          );
+          return;
+        }
+      }
+
+      // Create a FormData object for file upload
+      const mediaFormData = new FormData();
+      mediaFormData.append("nama", formData.nama);
+      mediaFormData.append("tipe", formData.tipe);
+      mediaFormData.append("deskripsi", formData.deskripsi);
+      mediaFormData.append("file", formData.file);
+
+      // Jika tipe media adalah video dan tidak ada thumbnail yang diupload,
+      // ekstrak frame pertama dari video sebagai thumbnail
+      if (formData.tipe === "video") {
+        let thumbnailFile = formData.thumbnail;
+
+        if (!thumbnailFile) {
+          try {
+            // Show thumbnail loading state
+            setIsThumbnailLoading(true);
+            thumbnailFile = await extractThumbnailFromVideo(formData.file);
+            "Auto-generated thumbnail:", thumbnailFile;
+          } catch (err) {
+            console.error("Failed to extract thumbnail:", err);
+            // Continue without thumbnail if extraction fails
+          } finally {
+            setIsThumbnailLoading(false);
+          }
+        }
+
+        // Tambahkan thumbnail jika ada
+        if (thumbnailFile) {
+          mediaFormData.append("thumbnail", thumbnailFile);
+        }
+      } else if (formData.tipe === "video" && formData.thumbnail) {
+        // Jika ada thumbnail yang diupload manual
+        mediaFormData.append("thumbnail", formData.thumbnail);
+      }
+
       // Send to API
-      await MediaServiceAdmin.addMedia(formData);
+      const result = await MediaService.addMedia(mediaFormData);
+      "Media added successfully:", result;
 
       // Refresh data
       await fetchMediaData();
       setShowAddModal(false);
     } catch (err) {
       console.error("Error saving media:", err);
-      alert("Terjadi kesalahan saat menyimpan media.");
+      toast.error("Terjadi kesalahan saat menyimpan media.");
     }
   };
 
+  // Modify the saveEditedItem function to include automatic thumbnail extraction
+  // Replace the saveEditedItem function with this updated version
+
+  // Perbaiki fungsi saveEditedItem untuk menangani update file dengan benar
   const saveEditedItem = async () => {
     try {
       // Validasi form
       if (!formData.nama || !formData.deskripsi) {
-        alert("Nama dan deskripsi wajib diisi!");
+        toast.warning("Nama dan deskripsi wajib diisi!");
         return;
       }
 
+      // Validate file type if a new file is uploaded
+      if (formData.file) {
+        const fileExt = formData.file.name.split(".").pop().toLowerCase();
+
+        // Define allowed extensions for each type
+        const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
+        const videoExtensions = ["mp4", "webm", "ogg", "mkv"];
+        const pdfExtensions = ["pdf"];
+
+        let isValidFileType = false;
+
+        if (formData.tipe === "foto" && imageExtensions.includes(fileExt)) {
+          isValidFileType = true;
+        } else if (
+          formData.tipe === "video" &&
+          videoExtensions.includes(fileExt)
+        ) {
+          isValidFileType = true;
+        } else if (
+          formData.tipe === "dokumen" &&
+          pdfExtensions.includes(fileExt)
+        ) {
+          isValidFileType = true;
+        }
+
+        if (!isValidFileType) {
+          toast.error(
+            `Format file tidak sesuai dengan tipe media ${formData.tipe} yang dipilih!`
+          );
+          return;
+        }
+      }
+
+      // Validasi thumbnail jika ada dan tipe media adalah video
+      if (formData.tipe === "video" && formData.thumbnail) {
+        const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
+        const thumbnailExt = formData.thumbnail.name
+          .split(".")
+          .pop()
+          .toLowerCase();
+        if (!imageExtensions.includes(thumbnailExt)) {
+          toast.warning(
+            "Format thumbnail harus berupa gambar (JPG, JPEG, PNG, GIF, WEBP)"
+          );
+          return;
+        }
+      }
+
+      // Create a FormData object for file upload
+      const mediaFormData = new FormData();
+      mediaFormData.append("nama", formData.nama);
+      mediaFormData.append("tipe", formData.tipe);
+      mediaFormData.append("deskripsi", formData.deskripsi);
+
+      // Hanya tambahkan file jika ada file baru
+      if (formData.file) {
+        mediaFormData.append("file", formData.file);
+
+        // Jika tipe media adalah video, file baru diupload, dan tidak ada thumbnail baru yang diupload,
+        // ekstrak frame pertama dari video sebagai thumbnail
+        if (
+          formData.tipe === "video" &&
+          !formData.thumbnail &&
+          !currentItem.thumbnail
+        ) {
+          try {
+            // Show thumbnail loading state
+            setIsThumbnailLoading(true);
+            const thumbnailFile = await extractThumbnailFromVideo(
+              formData.file
+            );
+            "Auto-generated thumbnail:", thumbnailFile;
+
+            if (thumbnailFile) {
+              mediaFormData.append("thumbnail", thumbnailFile);
+            }
+          } catch (err) {
+            console.error("Failed to extract thumbnail:", err);
+            // Continue without thumbnail if extraction fails
+          } finally {
+            setIsThumbnailLoading(false);
+          }
+        }
+      }
+
+      // Tambahkan thumbnail jika ada dan tipe media adalah video
+      if (formData.tipe === "video" && formData.thumbnail) {
+        mediaFormData.append("thumbnail", formData.thumbnail);
+      }
+
       // Send to API
-      await MediaServiceAdmin.updateMedia(currentItem.id, formData);
+      await MediaService.updateMedia(currentItem.id, mediaFormData);
+      ("Media updated successfully");
 
       // Refresh data
       await fetchMediaData();
       setShowEditModal(false);
     } catch (err) {
       console.error("Error updating media:", err);
-      alert("Terjadi kesalahan saat memperbarui media.");
+      toast.error("Terjadi kesalahan saat memperbarui media.");
     }
   };
 
   const confirmDelete = async () => {
     try {
       // Send to API
-      await MediaServiceAdmin.deleteMedia(currentItem.id);
+      await MediaService.deleteMedia(currentItem.id);
+      ("Media deleted successfully");
 
       // Refresh data
       await fetchMediaData();
       setShowDeleteModal(false);
     } catch (err) {
       console.error("Error deleting media:", err);
-      alert("Terjadi kesalahan saat menghapus media.");
+      toast.error("Terjadi kesalahan saat menghapus media.");
     }
   };
 
   // Get icon based on media type
   const getMediaIcon = (type) => {
-    switch (type.toLowerCase()) {
-      case "foto":
-        return <FaImage className="text-blue-500" />;
-      case "video":
-        return <FaVideo className="text-red-500" />;
-      case "dokumen":
-        return <FaFileAlt className="text-yellow-500" />;
-      default:
-        return <FaFileAlt className="text-gray-500" />;
-    }
+    const iconMap = {
+      foto: <FaImage className="text-blue-500" />,
+      video: <FaVideo className="text-red-500" />,
+      dokumen: <FaFileAlt className="text-yellow-500" />,
+    };
+
+    return (
+      iconMap[type.toLowerCase()] || <FaFileAlt className="text-gray-500" />
+    );
   };
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
+  // Render media content based on type - menggunakan metode mapping
+  const renderMediaContent = () => {
+    if (!currentItem) return null;
 
-    try {
-      const date = new Date(dateString);
+    const mediaUrl = MediaService.getMediaUrl(currentItem.file);
 
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        return dateString;
-      }
+    const mediaTypeMap = {
+      foto: (
+        <div className="flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden">
+          {mediaLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
+              <FaSpinner className="animate-spin text-4xl text-white" />
+            </div>
+          )}
+          <img
+            src={mediaUrl || "/placeholder.svg?height=600&width=800"}
+            alt={currentItem.nama}
+            className="max-w-full max-h-[70vh] object-contain"
+            onLoad={() => setMediaLoading(false)}
+            onError={(e) => {
+              setMediaLoading(false);
+              setMediaError(true);
+              e.target.onerror = null;
+              e.target.src = "/placeholder.svg?height=600&width=800";
+            }}
+          />
+        </div>
+      ),
+      video: (
+        <div className="relative bg-black rounded-lg overflow-hidden">
+          {mediaLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
+              <FaSpinner className="animate-spin text-4xl text-white" />
+            </div>
+          )}
+          <video
+            src={mediaUrl}
+            controls
+            autoPlay
+            className="w-full max-h-[70vh]"
+            poster={MediaService.getVideoThumbnail(currentItem)}
+            onLoadedData={() => setMediaLoading(false)}
+            onError={() => {
+              setMediaLoading(false);
+              setMediaError(true);
+            }}
+          >
+            Browser Anda tidak mendukung pemutaran video.
+          </video>
+          {mediaError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
+              <FaExclamationTriangle className="text-red-500 text-5xl mb-4" />
+              <p className="text-gray-700 mb-4">Video tidak dapat dimuat</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.open(mediaUrl, "_blank")}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Buka di Tab Baru
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ),
+      dokumen: (
+        <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+          {mediaLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
+              <FaSpinner className="animate-spin text-4xl text-white" />
+            </div>
+          )}
+          <iframe
+            src={mediaUrl}
+            className="w-full h-[70vh]"
+            title={currentItem.nama}
+            onLoad={() => setMediaLoading(false)}
+            onError={() => {
+              setMediaLoading(false);
+              setMediaError(true);
+            }}
+          />
+          {mediaError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
+              <FaExclamationTriangle className="text-red-500 text-5xl mb-4" />
+              <p className="text-gray-700 mb-4">Dokumen tidak dapat dimuat</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.open(mediaUrl, "_blank")}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Buka di Tab Baru
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ),
+    };
 
-      return date.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-    } catch (err) {
-      console.error("Error formatting date:", dateString, err);
-      return dateString;
-    }
+    // Return the appropriate media content based on type, or a default message
+    return (
+      mediaTypeMap[currentItem.tipe] || (
+        <div className="flex flex-col items-center justify-center h-64 bg-gray-100 rounded-lg">
+          <FaExclamationTriangle className="text-yellow-500 text-5xl mb-4" />
+          <p className="text-gray-700">Format media tidak didukung</p>
+        </div>
+      )
+    );
   };
 
   return (
@@ -462,10 +844,17 @@ const MediaAdmin = () => {
         </div>
       </div>
 
-      {/* Add Modal */}
+      {/* Add Modal - Dengan background blur */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8">
+          {/* Backdrop with blur */}
+          <div
+            className="fixed inset-0 backdrop-blur-sm bg-black/40"
+            onClick={() => setShowAddModal(false)}
+          ></div>
+
+          {/* Modal content */}
+          <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
                 Tambah Media Baru
@@ -565,6 +954,35 @@ const MediaAdmin = () => {
                     : "Format yang didukung: PDF"}
                 </p>
               </div>
+
+              {/* Tambahkan field thumbnail untuk video */}
+              {formData.tipe === "video" && (
+                <div>
+                  <label
+                    htmlFor="upload-thumbnail"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Upload Thumbnail Video (Opsional)
+                  </label>
+                  <input
+                    id="upload-thumbnail"
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                    onChange={(e) =>
+                      setFormData({ ...formData, thumbnail: e.target.files[0] })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Format yang didukung: JPG, JPEG, PNG, GIF, WEBP
+                  </p>
+                  <p className="text-xs text-blue-500 mt-1">
+                    <span className="font-medium">Catatan:</span> Jika tidak
+                    diisi, sistem akan otomatis mengambil frame pertama dari
+                    video sebagai thumbnail.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-2">
@@ -585,10 +1003,17 @@ const MediaAdmin = () => {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Modal - Dengan background blur */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8">
+          {/* Backdrop with blur */}
+          <div
+            className="fixed inset-0 backdrop-blur-sm bg-black/40"
+            onClick={() => setShowEditModal(false)}
+          ></div>
+
+          {/* Modal content */}
+          <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">Edit Media</h3>
               <p className="text-gray-600 text-sm">
@@ -684,6 +1109,57 @@ const MediaAdmin = () => {
                   Kosongkan jika tidak ingin mengubah file.
                 </p>
               </div>
+
+              {/* Tambahkan field thumbnail untuk video */}
+              {formData.tipe === "video" && (
+                <div>
+                  <label
+                    htmlFor="edit-thumbnail"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Upload Thumbnail Video (Opsional)
+                  </label>
+                  <input
+                    id="edit-thumbnail"
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                    onChange={(e) =>
+                      setFormData({ ...formData, thumbnail: e.target.files[0] })
+                    }
+                    className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Kosongkan jika tidak ingin mengubah thumbnail.
+                  </p>
+                  <p className="text-xs text-blue-500 mt-1">
+                    <span className="font-medium">Catatan:</span> Jika tidak
+                    diisi dan video diubah, sistem akan otomatis mengambil frame
+                    pertama dari video sebagai thumbnail.
+                  </p>
+                  {currentItem?.thumbnail && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-500">
+                        Thumbnail saat ini:
+                      </p>
+                      <div className="mt-1 w-24 h-24 bg-gray-100 rounded-md overflow-hidden">
+                        <img
+                          src={
+                            MediaService.getMediaUrl(currentItem.thumbnail) ||
+                            "/placeholder.svg"
+                          }
+                          alt="Thumbnail"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src =
+                              "/placeholder.svg?height=96&width=96";
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Tombol Aksi */}
@@ -705,10 +1181,17 @@ const MediaAdmin = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal - Dengan background blur */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8">
+          {/* Backdrop with blur */}
+          <div
+            className="fixed inset-0 backdrop-blur-sm bg-black/40"
+            onClick={() => setShowDeleteModal(false)}
+          ></div>
+
+          {/* Modal content */}
+          <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-xl p-6">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
                 Konfirmasi Hapus
@@ -737,112 +1220,93 @@ const MediaAdmin = () => {
         </div>
       )}
 
-      {/* Preview Modal */}
-      {showPreviewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800">
+      {/* Preview Modal - Dengan background blur dan max-height */}
+      {showPreviewModal && currentItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto py-8">
+          {/* Backdrop with blur */}
+          <div
+            className="fixed inset-0 backdrop-blur-sm bg-black/40"
+            onClick={() => setShowPreviewModal(false)}
+          ></div>
+
+          {/* Modal content */}
+          <div
+            className="relative w-full max-w-5xl mx-4 bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
+              <h3 className="text-xl font-bold text-gray-800 truncate">
                 {getMediaIcon(currentItem?.tipe)} {currentItem?.nama}
               </h3>
               <button
                 onClick={() => setShowPreviewModal(false)}
                 className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <FaTimesCircle className="text-gray-600" />
               </button>
             </div>
 
-            <div className="mb-4">
-              {currentItem?.tipe === "foto" && (
-                <img
-                  src={
-                    MediaServiceAdmin.getMediaUrl(currentItem?.file) ||
-                    "/placeholder.svg"
-                  }
-                  alt={currentItem?.nama}
-                  className="w-full h-auto rounded-lg"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/placeholder.svg";
-                  }}
-                />
-              )}
-              {currentItem?.tipe === "video" && (
-                <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg">
-                  <video
-                    src={MediaServiceAdmin.getMediaUrl(currentItem?.file)}
-                    controls
-                    className="w-full h-full rounded-lg"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.parentNode.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-full">
-                          <FaVideo class="text-red-500 text-5xl" />
-                          <p class="text-gray-500 mt-4">Video tidak dapat dimuat</p>
-                        </div>
-                      `;
-                    }}
-                  >
-                    Browser Anda tidak mendukung pemutaran video.
-                  </video>
-                </div>
-              )}
-              {currentItem?.tipe === "dokumen" && (
-                <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
-                  <FaFileAlt className="text-yellow-500 text-5xl" />
-                  <p className="text-gray-500 mt-4">Dokumen Preview</p>
-                  <a
-                    href={MediaServiceAdmin.getMediaUrl(currentItem?.file)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
-                  >
-                    Buka Dokumen
-                  </a>
-                </div>
-              )}
-            </div>
+            {/* Content - scrollable */}
+            <div className="p-6 overflow-auto">
+              {/* Media Content */}
+              <div className="mb-4">{renderMediaContent()}</div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-700 mb-4">{currentItem?.deskripsi}</p>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-500">Tipe</p>
-                  <p className="font-medium">{currentItem?.tipe}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Tanggal Dibuat</p>
-                  <p className="font-medium">
-                    {currentItem?.created_at
-                      ? formatDate(currentItem.created_at)
-                      : "-"}
-                  </p>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-700 mb-4">{currentItem?.deskripsi}</p>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-500">Tipe</p>
+                    <p className="font-medium">{currentItem?.tipe}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Tanggal Dibuat</p>
+                    <p className="font-medium">
+                      {currentItem?.created_at
+                        ? MediaService.formatDate(currentItem.created_at)
+                        : "-"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Tutup
-              </button>
+            {/* Footer - sticky */}
+            <div className="mt-auto p-4 border-t bg-white sticky bottom-0">
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Tutup
+                </button>
+                <button
+                  onClick={(e) =>
+                    handleDownload(
+                      e,
+                      MediaService.getMediaUrl(currentItem?.file),
+                      currentItem?.file.split("/").pop()
+                    )
+                  }
+                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
+                >
+                  <FaDownload />
+                  <span>Unduh</span>
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Thumbnail Generation Loading Overlay */}
+      {isThumbnailLoading && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl text-center">
+            <FaSpinner className="animate-spin text-purple-500 text-4xl mx-auto mb-4" />
+            <p className="text-gray-800 font-medium">
+              Menghasilkan thumbnail dari video...
+            </p>
+            <p className="text-gray-600 text-sm mt-2">Mohon tunggu sebentar</p>
           </div>
         </div>
       )}

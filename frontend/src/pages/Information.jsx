@@ -13,7 +13,7 @@ import {
   FaTag,
   FaChevronLeft,
   FaChevronRight,
-  FaNewspaper, // Import FaNewspaper
+  FaNewspaper,
 } from "react-icons/fa";
 import BeritaService from "./user/BeritaService";
 
@@ -141,10 +141,8 @@ const Information = () => {
     // Store the selected berita in localStorage
     localStorage.setItem("selectedBerita", JSON.stringify(berita));
     // Navigate to detail page
-    navigate("/Detail");
+    navigate(`/berita-detail/${berita.id}`);
   };
-
-  console.log(featuredBerita);
 
   return (
     <div>
@@ -186,7 +184,10 @@ const Information = () => {
                   >
                     {berita.foto ? (
                       <img
-                        src={`../../public/berita/${berita.foto}`}
+                        src={
+                          BeritaService.getImageUrl(berita.foto) ||
+                          "/placeholder.svg"
+                        }
                         alt={berita.judul}
                         className="w-full h-full object-cover"
                       />
@@ -287,7 +288,10 @@ const Information = () => {
                       {berita.foto ? (
                         <img
                           className="w-full h-52 sm:h-52 object-cover rounded-2xl cursor-pointer"
-                          src={`../../public/berita/${berita.foto}`}
+                          src={
+                            BeritaService.getImageUrl(berita.foto) ||
+                            "/placeholder.svg"
+                          }
                           alt={berita.judul}
                           onClick={() => navigateToDetail(berita)}
                         />
