@@ -1,12 +1,12 @@
 import multer from "multer";
 import path from "path";
 
-console.log("File upload middleware dijalankan");
+("File upload middleware dijalankan");
 
 // Konfigurasi penyimpanan file
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "D:/PROJECT/TIGAEMPAT/frontend/public/berita");
+    cb(null, "D:/PROJECT/DONEEEE/frontend/public/berita");
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));

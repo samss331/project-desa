@@ -10,7 +10,7 @@ const addMedia = async (nama, tipe, file, deskripsi, thumbnail) => {
       );
     return { id: result.insertId, nama, tipe, file, deskripsi, thumbnail };
   } catch (error) {
-    console.log("repo", error);
+    "repo", error;
   }
 };
 

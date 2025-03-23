@@ -319,7 +319,7 @@ const BerandaAdmin = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
+        {/* <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-800">
@@ -338,7 +338,7 @@ const BerandaAdmin = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* alert Section */}
         {dashboardData?.alerts && dashboardData.alerts.length > 0 && (
