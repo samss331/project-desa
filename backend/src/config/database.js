@@ -15,7 +15,7 @@ db.connect((err) => {
     console.error("Koneksi ke database gagal:", err);
     return;
   }
-  console.log("Terhubung ke Database");
+  ("Terhubung ke Database");
 });
 
 export default db;

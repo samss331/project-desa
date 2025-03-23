@@ -20,7 +20,7 @@ const addMedia = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.log("controller", error);
+    "controller", error;
     res.status(400).json({ success: false, message: error.message });
   }
 };
