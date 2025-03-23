@@ -25,6 +25,7 @@ import {
 import APBDesService from "../../services/APBDesService";
 import DanaMasukForm from "./DanaMasukForm";
 import DanaKeluarForm from "./DanaKeluarForm";
+import toast from "../../../../components/Toast";
 
 ChartJS.register(
   CategoryScale,
@@ -121,7 +122,7 @@ export default function APBDes() {
       fetchData();
     } catch (error) {
       console.error("Error adding dana masuk:", error);
-      alert(
+      toast.error(
         error.response?.data?.message || "Terjadi kesalahan saat menyimpan data"
       );
     }
@@ -135,7 +136,7 @@ export default function APBDes() {
       fetchData();
     } catch (error) {
       console.error("Error updating dana masuk:", error);
-      alert(
+      toast.error(
         error.response?.data?.message ||
           "Terjadi kesalahan saat memperbarui data"
       );
@@ -149,7 +150,7 @@ export default function APBDes() {
         fetchData();
       } catch (error) {
         console.error("Error deleting dana masuk:", error);
-        alert(
+        toast.error(
           error.response?.data?.message ||
             "Terjadi kesalahan saat menghapus data"
         );
@@ -164,7 +165,7 @@ export default function APBDes() {
       fetchData();
     } catch (error) {
       console.error("Error adding dana keluar:", error);
-      alert(
+      toast.error(
         error.response?.data?.message || "Terjadi kesalahan saat menyimpan data"
       );
     }
@@ -178,7 +179,7 @@ export default function APBDes() {
       fetchData();
     } catch (error) {
       console.error("Error updating dana keluar:", error);
-      alert(
+      toast.error(
         error.response?.data?.message ||
           "Terjadi kesalahan saat memperbarui data"
       );
@@ -192,7 +193,7 @@ export default function APBDes() {
         fetchData();
       } catch (error) {
         console.error("Error deleting dana keluar:", error);
-        alert(
+        toast.error(
           error.response?.data?.message ||
             "Terjadi kesalahan saat menghapus data"
         );

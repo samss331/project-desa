@@ -48,7 +48,7 @@ api.interceptors.response.use(
 const findFileField = (item) => {
   // Check for the 'file' field first (as seen in the database)
   if (item.file) {
-    console.log(`Found file in field: file with value: ${item.file}`);
+    `Found file in field: file with value: ${item.file}`;
     return item.file;
   }
 
@@ -68,13 +68,13 @@ const findFileField = (item) => {
   // Check each possible field name
   for (const field of possibleFileFields) {
     if (item[field]) {
-      console.log(`Found file in field: ${field} with value: ${item[field]}`);
+      `Found file in field: ${field} with value: ${item[field]}`;
       return item[field];
     }
   }
 
   // If no field is found, log all available fields for debugging
-  console.log("Available fields in item:", Object.keys(item));
+  "Available fields in item:", Object.keys(item);
   return null;
 };
 
@@ -93,8 +93,8 @@ const SuratService = {
         ? resKeluar.data
         : [];
 
-      console.log("Surat Masuk Data:", suratMasukData);
-      console.log("Surat Keluar Data:", suratKeluarData);
+      "Surat Masuk Data:", suratMasukData;
+      "Surat Keluar Data:", suratKeluarData;
 
       // Transform data for display
       const transformedMasuk = suratMasukData.map((item) => {
@@ -132,7 +132,7 @@ const SuratService = {
       });
 
       const combinedData = [...transformedMasuk, ...transformedKeluar];
-      console.log("Combined Data:", combinedData);
+      "Combined Data:", combinedData;
       return combinedData;
     } catch (error) {
       console.error("Error fetching all surat:", error);
@@ -145,7 +145,7 @@ const SuratService = {
       const response = await api.get("/surat/suratMasuk");
       const suratMasukData = Array.isArray(response.data) ? response.data : [];
 
-      console.log("Surat Masuk Data:", suratMasukData);
+      "Surat Masuk Data:", suratMasukData;
 
       // Transform data for display
       return suratMasukData.map((item) => {
@@ -174,7 +174,7 @@ const SuratService = {
       const response = await api.get("/surat/suratKeluar");
       const suratKeluarData = Array.isArray(response.data) ? response.data : [];
 
-      console.log("Surat Keluar Data:", suratKeluarData);
+      "Surat Keluar Data:", suratKeluarData;
 
       // Transform data for display
       return suratKeluarData.map((item) => {
@@ -300,11 +300,9 @@ const SuratService = {
       }
 
       // Debug: Log what we're sending to the server
-      console.log("FormData fields being sent:");
+      ("FormData fields being sent:");
       for (const pair of formData.entries()) {
-        console.log(
-          `${pair[0]}: ${typeof pair[1] === "object" ? "File object" : pair[1]}`
-        );
+        `${pair[0]}: ${typeof pair[1] === "object" ? "File object" : pair[1]}`;
       }
 
       // Check if the file field exists and rename it to match server expectation
@@ -312,9 +310,7 @@ const SuratService = {
         const fileObject = formData.get("file");
         formData.delete("file");
         formData.append("file_surat", fileObject);
-        console.log(
-          "Renamed 'file' field to 'file_surat' to match server expectation"
-        );
+        ("Renamed 'file' field to 'file_surat' to match server expectation");
       }
 
       // Use axios directly with the token in headers
@@ -350,11 +346,9 @@ const SuratService = {
       }
 
       // Debug: Log what we're sending to the server
-      console.log("FormData fields being sent:");
+      ("FormData fields being sent:");
       for (const pair of formData.entries()) {
-        console.log(
-          `${pair[0]}: ${typeof pair[1] === "object" ? "File object" : pair[1]}`
-        );
+        `${pair[0]}: ${typeof pair[1] === "object" ? "File object" : pair[1]}`;
       }
 
       // Check if the file field exists and rename it to match server expectation
@@ -362,9 +356,7 @@ const SuratService = {
         const fileObject = formData.get("file");
         formData.delete("file");
         formData.append("file_surat", fileObject);
-        console.log(
-          "Renamed 'file' field to 'file_surat' to match server expectation"
-        );
+        ("Renamed 'file' field to 'file_surat' to match server expectation");
       }
 
       // Use axios directly with the token in headers
@@ -405,9 +397,7 @@ const SuratService = {
         const fileObject = formData.get("file");
         formData.delete("file");
         formData.append("file_surat", fileObject);
-        console.log(
-          "Renamed 'file' field to 'file_surat' to match server expectation"
-        );
+        ("Renamed 'file' field to 'file_surat' to match server expectation");
       }
 
       const response = await axios.put(
@@ -440,9 +430,7 @@ const SuratService = {
         const fileObject = formData.get("file");
         formData.delete("file");
         formData.append("file_surat", fileObject);
-        console.log(
-          "Renamed 'file' field to 'file_surat' to match server expectation"
-        );
+        ("Renamed 'file' field to 'file_surat' to match server expectation");
       }
 
       const response = await axios.put(
@@ -483,7 +471,6 @@ const SuratService = {
             headers: { Authorization: `Bearer ${token}` },
             data: { filePath: surat.file },
           });
-          console.log(`Requested deletion of file: ${surat.file}`);
         } catch (fileError) {
           console.error("Error deleting file:", fileError);
           // Continue with surat deletion even if file deletion fails
@@ -526,7 +513,6 @@ const SuratService = {
             headers: { Authorization: `Bearer ${token}` },
             data: { filePath: surat.file },
           });
-          console.log(`Requested deletion of file: ${surat.file}`);
         } catch (fileError) {
           console.error("Error deleting file:", fileError);
           // Continue with surat deletion even if file deletion fails
@@ -553,21 +539,16 @@ const SuratService = {
   // File methods - accessible by both admin and user
   getFileUrl: (fileName) => {
     if (!fileName) {
-      console.log("No filename provided to getFileUrl");
       return null;
     }
 
-    console.log("Getting file URL for:", fileName); // Debug log
-
     // If it's already a full URL, return as is
     if (fileName.startsWith("http://") || fileName.startsWith("https://")) {
-      console.log("File is already a full URL, returning as is:", fileName);
       return fileName;
     }
 
     // For files in the berita directory (as seen in your setup)
     const fileUrl = `/berita/${fileName.split("/").pop()}`;
-    console.log("Constructed file URL:", fileUrl);
     return fileUrl;
   },
 
@@ -576,7 +557,6 @@ const SuratService = {
     if (!fileName) return null;
 
     try {
-      console.log("Downloading file:", fileName);
       const fileUrl = SuratService.getFileUrl(fileName);
 
       // Fetch the file as a blob

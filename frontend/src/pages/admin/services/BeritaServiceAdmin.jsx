@@ -360,7 +360,7 @@ const BeritaServiceAdmin = {
         // Request to delete the associated file
         try {
           await secureApi.delete(`/berita/delete-file/${filename}`);
-          console.log(`File ${filename} deleted successfully`);
+          `File ${filename} deleted successfully`;
         } catch (fileError) {
           console.error(`Error deleting file ${filename}:`, fileError);
           // Continue even if file deletion fails

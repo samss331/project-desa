@@ -56,7 +56,7 @@ export default function InfografisAdmin() {
               />
               <span>APBDes</span>
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveTab("fasilitas")}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
                 activeTab === "fasilitas"
@@ -70,7 +70,7 @@ export default function InfografisAdmin() {
                 }
               />
               <span>Fasilitas</span>
-            </button>
+            </button> */}
           </div>
         </div>
 

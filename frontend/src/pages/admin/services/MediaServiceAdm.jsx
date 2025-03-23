@@ -299,12 +299,12 @@ const MediaService = {
     // If there's a thumbnail field, use it
     if (item.thumbnail) {
       const thumbnailUrl = MediaService.getMediaUrl(item.thumbnail);
-      console.log("Using thumbnail:", thumbnailUrl);
+      "Using thumbnail:", thumbnailUrl;
       return thumbnailUrl;
     }
 
     // Otherwise, use a placeholder
-    console.log("No thumbnail found, using placeholder");
+    ("No thumbnail found, using placeholder");
     return "/placeholder.svg?height=300&width=400";
   },
 };

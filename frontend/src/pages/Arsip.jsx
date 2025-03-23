@@ -16,6 +16,7 @@ import {
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import SuratService from "../pages/admin/services/SuratServiceAdmin";
+import toast from "../components/Toast";
 
 export default function ArsipSurat() {
   const [suratData, setSuratData] = useState({});
@@ -149,7 +150,7 @@ export default function ArsipSurat() {
       if (item.file) {
         // Get the file URL
         const fileUrl = SuratService.getFileUrl(item.file);
-        console.log("File URL for preview:", fileUrl);
+        "File URL for preview:", fileUrl;
 
         // Check if file exists
         const fileExists = await SuratService.checkFileExists(item.file);
@@ -162,7 +163,7 @@ export default function ArsipSurat() {
           setPdfError(true);
         }
       } else {
-        console.log("No file attached to this item");
+        ("No file attached to this item");
         setPdfError(true);
       }
     } catch (error) {
@@ -179,18 +180,18 @@ export default function ArsipSurat() {
   // Handle file download
   const handleDownload = async (fileName) => {
     if (!fileName) {
-      alert("File tidak tersedia untuk diunduh");
+      toast.info("File tidak tersedia untuk diunduh");
       return;
     }
 
     try {
       const success = await SuratService.downloadFile(fileName);
       if (!success) {
-        alert("Terjadi kesalahan saat mengunduh file");
+        toast.error("Terjadi kesalahan saat mengunduh file");
       }
     } catch (error) {
       console.error("Error downloading file:", error);
-      alert("Terjadi kesalahan saat mengunduh file");
+      toast.error("Terjadi kesalahan saat mengunduh file");
     }
   };
 

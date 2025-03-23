@@ -16,6 +16,7 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import PengumumanServiceAdmin from "../services/PengumumanServiceAdmin";
+import toast from "../../../components/Toast";
 
 const PengumumanAdmin = () => {
   // State for data
@@ -167,7 +168,9 @@ const PengumumanAdmin = () => {
 
   const saveNewItem = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk menambahkan pengumuman");
+      toast.warning(
+        "Anda harus login sebagai admin untuk menambahkan pengumuman"
+      );
       return;
     }
 
@@ -179,7 +182,7 @@ const PengumumanAdmin = () => {
         !formData.tanggalMulai ||
         !formData.tanggalSelesai
       ) {
-        alert("Semua data wajib diisi!");
+        toast.warning("Semua data wajib diisi!");
         return;
       }
 
@@ -199,7 +202,7 @@ const PengumumanAdmin = () => {
       setShowAddModal(false);
     } catch (err) {
       console.error("Error saving data:", err);
-      alert(
+      toast.error(
         err.response?.data?.message ||
           "Terjadi kesalahan saat menyimpan pengumuman."
       );
@@ -208,7 +211,7 @@ const PengumumanAdmin = () => {
 
   const saveEditedItem = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk mengedit pengumuman");
+      toast.warning("Anda harus login sebagai admin untuk mengedit pengumuman");
       return;
     }
 
@@ -232,7 +235,7 @@ const PengumumanAdmin = () => {
       setShowEditModal(false);
     } catch (err) {
       console.error("Error updating data:", err);
-      alert(
+      toast.error(
         err.response?.data?.message ||
           "Terjadi kesalahan saat memperbarui pengumuman."
       );
@@ -241,7 +244,9 @@ const PengumumanAdmin = () => {
 
   const confirmDelete = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk menghapus pengumuman");
+      toast.warning(
+        "Anda harus login sebagai admin untuk menghapus pengumuman"
+      );
       return;
     }
 
@@ -254,7 +259,7 @@ const PengumumanAdmin = () => {
       setShowDeleteModal(false);
     } catch (err) {
       console.error("Error deleting data:", err);
-      alert(
+      toast.error(
         err.response?.data?.message ||
           "Terjadi kesalahan saat menghapus pengumuman."
       );
@@ -306,7 +311,9 @@ const PengumumanAdmin = () => {
   // Handle reactivating an expired announcement
   const handleReactivate = async (id) => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk mengaktifkan pengumuman");
+      toast.warning(
+        "Anda harus login sebagai admin untuk mengaktifkan pengumuman"
+      );
       return;
     }
 
@@ -330,7 +337,7 @@ const PengumumanAdmin = () => {
       setShowPreviewModal(false);
     } catch (err) {
       console.error("Error reactivating announcement:", err);
-      alert("Terjadi kesalahan saat mengaktifkan kembali pengumuman.");
+      toast.error("Terjadi kesalahan saat mengaktifkan kembali pengumuman.");
     }
   };
 
@@ -616,7 +623,7 @@ const PengumumanAdmin = () => {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
@@ -791,7 +798,7 @@ const PengumumanAdmin = () => {
 
       {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
@@ -920,7 +927,7 @@ const PengumumanAdmin = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-gray-800">
@@ -952,7 +959,7 @@ const PengumumanAdmin = () => {
 
       {/* Preview Modal */}
       {showPreviewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-gray-800">

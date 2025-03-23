@@ -340,7 +340,7 @@ const BerandaAdmin = () => {
           </div>
         </div>
 
-        {/* Alert Section */}
+        {/* alert Section */}
         {dashboardData?.alerts && dashboardData.alerts.length > 0 && (
           <div className="mb-6">
             {dashboardData.alerts.map((alert) => (

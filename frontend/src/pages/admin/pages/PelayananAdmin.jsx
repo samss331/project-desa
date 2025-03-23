@@ -14,6 +14,7 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import PelayananServiceAdmin from "../services/PelayananServiceAdmin";
+import toast from "../../../components/Toast";
 
 const PelayananAdmin = () => {
   // State untuk data
@@ -114,7 +115,7 @@ const PelayananAdmin = () => {
     try {
       // Validasi form
       if (!formData.nama_layanan || !formData.link_google_form) {
-        alert("Nama layanan dan link Google Form wajib diisi!");
+        toast.warning("Nama layanan dan link Google Form wajib diisi!");
         return;
       }
 
@@ -126,7 +127,7 @@ const PelayananAdmin = () => {
       setShowAddModal(false);
     } catch (err) {
       console.error("Error saving pelayanan:", err);
-      alert("Terjadi kesalahan saat menyimpan pelayanan.");
+      toast.error("Terjadi kesalahan saat menyimpan pelayanan.");
     }
   };
 
@@ -134,7 +135,7 @@ const PelayananAdmin = () => {
     try {
       // Validasi form
       if (!formData.nama_layanan || !formData.link_google_form) {
-        alert("Nama layanan dan link Google Form wajib diisi!");
+        toast.warning("Nama layanan dan link Google Form wajib diisi!");
         return;
       }
 
@@ -146,7 +147,7 @@ const PelayananAdmin = () => {
       setShowEditModal(false);
     } catch (err) {
       console.error("Error updating pelayanan:", err);
-      alert("Terjadi kesalahan saat memperbarui pelayanan.");
+      toast.error("Terjadi kesalahan saat memperbarui pelayanan.");
     }
   };
 
@@ -160,13 +161,13 @@ const PelayananAdmin = () => {
       setShowDeleteModal(false);
     } catch (err) {
       console.error("Error deleting pelayanan:", err);
-      alert("Terjadi kesalahan saat menghapus pelayanan.");
+      toast.error("Terjadi kesalahan saat menghapus pelayanan.");
     }
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert("Link berhasil disalin!");
+    toast.success("Link berhasil disalin!");
   };
 
   // Get icon based on category

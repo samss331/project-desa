@@ -19,6 +19,7 @@ import {
 // Ubah import PopupForm untuk mengarah ke file .jsx bukan .tsx
 import PopupForm from "./PopupForm.jsx";
 import PendudukService from "../../services/PendudukService";
+import toast from "../../../../components/Toast.jsx";
 
 export default function Penduduk() {
   // Data penduduk individual
@@ -150,7 +151,7 @@ export default function Penduduk() {
       resetForm();
     } catch (error) {
       console.error("Error saving data:", error);
-      alert(
+      toast.error(
         error.response?.data?.message || "Terjadi kesalahan saat menyimpan data"
       );
     }
@@ -193,7 +194,7 @@ export default function Penduduk() {
         await fetchData();
       } catch (error) {
         console.error("Error deleting data:", error);
-        alert(
+        toast.error(
           error.response?.data?.message ||
             "Terjadi kesalahan saat menghapus data"
         );

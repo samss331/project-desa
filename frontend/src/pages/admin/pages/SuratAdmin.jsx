@@ -17,6 +17,7 @@ import {
 } from "react-icons/fa";
 import SuratService from "../services/SuratServiceAdmin";
 import SuratForm from "../components/SuratForm";
+import toast from "../../../components/Toast";
 
 function SuratAdmin() {
   const [suratData, setSuratData] = useState([]);
@@ -80,9 +81,9 @@ function SuratAdmin() {
     setIsLoading(true);
     setError(null);
     try {
-      console.log("Fetching all surat...");
+      ("Fetching all surat...");
       const data = await SuratService.getAllSurat();
-      console.log("Fetched data:", data);
+      "Fetched data:", data;
       setSuratData(data);
     } catch (err) {
       console.error("Error in fetchAllSurat:", err);
@@ -217,13 +218,13 @@ function SuratAdmin() {
 
     const item = suratData.find((item) => item.id === id);
     if (item) {
-      console.log("Preview item:", item);
+      "Preview item:", item;
 
       try {
         if (item.file) {
           // Get the file URL
           const fileUrl = SuratService.getFileUrl(item.file);
-          console.log("File URL for preview:", fileUrl);
+          "File URL for preview:", fileUrl;
 
           // Check if file exists
           const fileExists = await SuratService.checkFileExists(item.file);
@@ -236,7 +237,7 @@ function SuratAdmin() {
             setPdfError(true);
           }
         } else {
-          console.log("No file attached to this item");
+          ("No file attached to this item");
           setPdfError(true);
         }
       } catch (error) {
@@ -254,25 +255,25 @@ function SuratAdmin() {
   // Handle file download
   const handleDownload = async (fileName) => {
     if (!fileName) {
-      alert("File tidak tersedia untuk diunduh");
+      toast.info("File tidak tersedia untuk diunduh");
       return;
     }
 
     try {
       const success = await SuratService.downloadFile(fileName);
       if (!success) {
-        alert("Terjadi kesalahan saat mengunduh file");
+        toast.error("Terjadi kesalahan saat mengunduh file");
       }
     } catch (error) {
       console.error("Error downloading file:", error);
-      alert("Terjadi kesalahan saat mengunduh file");
+      toast.error("Terjadi kesalahan saat mengunduh file");
     }
   };
 
   // API calls for CRUD operations
   const saveNewItem = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk menambahkan surat");
+      toast.warning("Anda harus login sebagai admin untuk menambahkan surat");
       return;
     }
 
@@ -287,7 +288,7 @@ function SuratAdmin() {
         !formData.pengirim ||
         !formData.jenis
       ) {
-        alert(
+        toast.warning(
           "Nomor surat, perihal, tanggal, pengirim/penerima, dan jenis surat wajib diisi!"
         );
         setIsActionLoading(false);
@@ -325,11 +326,11 @@ function SuratAdmin() {
       }
 
       setShowAddModal(false);
-      alert("Surat berhasil ditambahkan");
+      toast.success("Surat berhasil ditambahkan");
     } catch (err) {
       console.error("Error saving data:", err);
-      alert(
-        "Terjadi kesalahan saat menyimpan surat. Pastikan API endpoint tersedia."
+      toast.info(
+        "Terjadi kesalahan saat menyimpan surat. silahkan coba login kembalu"
       );
     } finally {
       setIsActionLoading(false);
@@ -338,7 +339,8 @@ function SuratAdmin() {
 
   const saveEditedItem = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk mengedit surat");
+      toast.console.warning();
+      ("Anda harus login sebagai admin untuk mengedit surat");
       return;
     }
 
@@ -375,10 +377,10 @@ function SuratAdmin() {
       }
 
       setShowEditModal(false);
-      alert("Surat berhasil diperbarui");
+      toast.error("Surat berhasil diperbarui");
     } catch (err) {
       console.error("Error updating data:", err);
-      alert("Terjadi kesalahan saat memperbarui");
+      toast.error("Terjadi kesalahan saat memperbarui");
     } finally {
       setIsActionLoading(false);
     }
@@ -386,7 +388,7 @@ function SuratAdmin() {
 
   const confirmDelete = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk menghapus surat");
+      toast.warning("Anda harus login sebagai admin untuk menghapus surat");
       return;
     }
 
@@ -414,10 +416,10 @@ function SuratAdmin() {
       }
 
       setShowDeleteModal(false);
-      alert("Surat berhasil dihapus");
+      toast.success("Surat berhasil dihapus");
     } catch (err) {
       console.error("Error deleting data:", err);
-      alert("Terjadi kesalahan saat menghapus");
+      toast.error("Terjadi kesalahan saat menghapus");
     } finally {
       setIsActionLoading(false);
     }

@@ -100,7 +100,7 @@ const DashboardService = {
       };
 
       // Generate alerts
-      const alerts = generateAlerts(pengumumanData, beritaData);
+      const alerts = generatealerts(pengumumanData, beritaData);
 
       return {
         berita: beritaSummary,
@@ -171,7 +171,7 @@ function processSuratByMonth(suratData) {
 }
 
 // Helper function to generate alerts
-function generateAlerts(pengumumanData, beritaData) {
+function generatealerts(pengumumanData, beritaData) {
   const alerts = [];
 
   // Check for expiring announcements

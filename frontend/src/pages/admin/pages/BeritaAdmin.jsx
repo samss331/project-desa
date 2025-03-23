@@ -19,6 +19,7 @@ import {
   FaTrashAlt,
 } from "react-icons/fa";
 import BeritaServiceAdmin from "../services/BeritaServiceAdmin";
+import toast from "../../../components/Toast";
 
 const BeritaAdmin = () => {
   // State untuk data
@@ -252,7 +253,7 @@ const BeritaAdmin = () => {
 
   const saveNewItem = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk menambahkan berita");
+      toast.info("Anda harus login sebagai admin untuk menambahkan berita");
       return;
     }
 
@@ -266,7 +267,7 @@ const BeritaAdmin = () => {
         !formData.tanggalTerbit ||
         !formData.penulis
       ) {
-        alert("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
+        toast.info("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
         setIsActionLoading(false);
         return;
       }
@@ -291,7 +292,7 @@ const BeritaAdmin = () => {
       setShowAddModal(false);
     } catch (err) {
       console.error("Error saving berita:", err);
-      alert("Terjadi kesalahan saat menyimpan berita.");
+      toast.error("Terjadi kesalahan saat menyimpan berita.");
     } finally {
       setIsActionLoading(false);
     }
@@ -299,7 +300,7 @@ const BeritaAdmin = () => {
 
   const saveEditedItem = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk mengedit berita");
+      toast.warning("Anda harus login sebagai admin untuk mengedit berita");
       return;
     }
 
@@ -313,7 +314,7 @@ const BeritaAdmin = () => {
         !formData.tanggalTerbit ||
         !formData.penulis
       ) {
-        alert("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
+        toast.info("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
         setIsActionLoading(false);
         return;
       }
@@ -339,7 +340,7 @@ const BeritaAdmin = () => {
       setShowEditModal(false);
     } catch (err) {
       console.error("Error updating berita:", err);
-      alert("Terjadi kesalahan saat memperbarui berita.");
+      toast.error("Terjadi kesalahan saat memperbarui berita.");
     } finally {
       setIsActionLoading(false);
     }
@@ -347,7 +348,7 @@ const BeritaAdmin = () => {
 
   const confirmDelete = async () => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk menghapus berita");
+      toast.warning("Anda harus login sebagai admin untuk menghapus berita");
       return;
     }
 
@@ -362,7 +363,7 @@ const BeritaAdmin = () => {
       setShowDeleteModal(false);
     } catch (err) {
       console.error("Error deleting berita:", err);
-      alert("Terjadi kesalahan saat menghapus berita.");
+      toast.error("Terjadi kesalahan saat menghapus berita.");
     } finally {
       setIsActionLoading(false);
     }
@@ -370,7 +371,9 @@ const BeritaAdmin = () => {
 
   const togglePublishStatus = async (id) => {
     if (!token) {
-      alert("Anda harus login sebagai admin untuk mengubah status berita");
+      toast.warning(
+        "Anda harus login sebagai admin untuk mengubah status berita"
+      );
       return;
     }
 
@@ -397,14 +400,14 @@ const BeritaAdmin = () => {
       }
 
       // Show success message
-      alert(
+      toast.success(
         `Berita berhasil ${
           newStatus === "Dipublikasi" ? "dipublikasikan" : "diubah ke draft"
         }`
       );
     } catch (err) {
       console.error("Error toggling publish status:", err);
-      alert("Terjadi kesalahan saat mengubah status publikasi berita.");
+      toast.error("Terjadi kesalahan saat mengubah status publikasi berita.");
     }
   };
 

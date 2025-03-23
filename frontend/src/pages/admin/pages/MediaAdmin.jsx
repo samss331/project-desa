@@ -16,6 +16,7 @@ import {
   FaExclamationTriangle,
 } from "react-icons/fa";
 import MediaService from "../services/MediaServiceAdm";
+import toast from "../../../components/Toast";
 
 const MediaAdmin = () => {
   // State untuk data
@@ -147,7 +148,7 @@ const MediaAdmin = () => {
       document.body.removeChild(link);
     } catch (error) {
       console.error("Download error:", error);
-      alert("Gagal mengunduh file. Silakan coba lagi.");
+      toast.info("Gagal mengunduh file. Silakan coba lagi.");
     }
   };
 
@@ -235,12 +236,12 @@ const MediaAdmin = () => {
     try {
       // Validasi form
       if (!formData.nama || !formData.deskripsi) {
-        alert("Nama dan deskripsi wajib diisi!");
+        toast.warning("Nama dan deskripsi wajib diisi!");
         return;
       }
 
       if (!formData.file) {
-        alert("File media wajib diunggah!");
+        toast.warning("File media wajib diunggah!");
         return;
       }
 
@@ -269,7 +270,7 @@ const MediaAdmin = () => {
       }
 
       if (!isValidFileType) {
-        alert(
+        toast.warning(
           `Format file tidak sesuai dengan tipe media ${formData.tipe} yang dipilih!`
         );
         return;
@@ -282,7 +283,7 @@ const MediaAdmin = () => {
           .pop()
           .toLowerCase();
         if (!imageExtensions.includes(thumbnailExt)) {
-          alert(
+          toast.warning(
             "Format thumbnail harus berupa gambar (JPG, JPEG, PNG, GIF, WEBP)"
           );
           return;
@@ -306,7 +307,7 @@ const MediaAdmin = () => {
             // Show thumbnail loading state
             setIsThumbnailLoading(true);
             thumbnailFile = await extractThumbnailFromVideo(formData.file);
-            console.log("Auto-generated thumbnail:", thumbnailFile);
+            "Auto-generated thumbnail:", thumbnailFile;
           } catch (err) {
             console.error("Failed to extract thumbnail:", err);
             // Continue without thumbnail if extraction fails
@@ -326,14 +327,14 @@ const MediaAdmin = () => {
 
       // Send to API
       const result = await MediaService.addMedia(mediaFormData);
-      console.log("Media added successfully:", result);
+      "Media added successfully:", result;
 
       // Refresh data
       await fetchMediaData();
       setShowAddModal(false);
     } catch (err) {
       console.error("Error saving media:", err);
-      alert("Terjadi kesalahan saat menyimpan media.");
+      toast.error("Terjadi kesalahan saat menyimpan media.");
     }
   };
 
@@ -345,7 +346,7 @@ const MediaAdmin = () => {
     try {
       // Validasi form
       if (!formData.nama || !formData.deskripsi) {
-        alert("Nama dan deskripsi wajib diisi!");
+        toast.warning("Nama dan deskripsi wajib diisi!");
         return;
       }
 
@@ -375,7 +376,7 @@ const MediaAdmin = () => {
         }
 
         if (!isValidFileType) {
-          alert(
+          toast.error(
             `Format file tidak sesuai dengan tipe media ${formData.tipe} yang dipilih!`
           );
           return;
@@ -390,7 +391,7 @@ const MediaAdmin = () => {
           .pop()
           .toLowerCase();
         if (!imageExtensions.includes(thumbnailExt)) {
-          alert(
+          toast.warning(
             "Format thumbnail harus berupa gambar (JPG, JPEG, PNG, GIF, WEBP)"
           );
           return;
@@ -420,7 +421,7 @@ const MediaAdmin = () => {
             const thumbnailFile = await extractThumbnailFromVideo(
               formData.file
             );
-            console.log("Auto-generated thumbnail:", thumbnailFile);
+            "Auto-generated thumbnail:", thumbnailFile;
 
             if (thumbnailFile) {
               mediaFormData.append("thumbnail", thumbnailFile);
@@ -441,14 +442,14 @@ const MediaAdmin = () => {
 
       // Send to API
       await MediaService.updateMedia(currentItem.id, mediaFormData);
-      console.log("Media updated successfully");
+      ("Media updated successfully");
 
       // Refresh data
       await fetchMediaData();
       setShowEditModal(false);
     } catch (err) {
       console.error("Error updating media:", err);
-      alert("Terjadi kesalahan saat memperbarui media.");
+      toast.error("Terjadi kesalahan saat memperbarui media.");
     }
   };
 
@@ -456,14 +457,14 @@ const MediaAdmin = () => {
     try {
       // Send to API
       await MediaService.deleteMedia(currentItem.id);
-      console.log("Media deleted successfully");
+      ("Media deleted successfully");
 
       // Refresh data
       await fetchMediaData();
       setShowDeleteModal(false);
     } catch (err) {
       console.error("Error deleting media:", err);
-      alert("Terjadi kesalahan saat menghapus media.");
+      toast.error("Terjadi kesalahan saat menghapus media.");
     }
   };
 

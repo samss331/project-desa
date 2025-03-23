@@ -58,13 +58,13 @@ const HeroSection = () => {
             {/* Optional: Tombol CTA */}
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <a
-                href="#info"
+                href="/ProfilDesa"
                 className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 Jelajahi
               </a>
               <a
-                href="/layanan"
+                href="/Pelayanan"
                 className="px-6 py-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-medium rounded-full transition-all duration-300 border border-white/30"
               >
                 Layanan Desa
@@ -103,8 +103,8 @@ const InfoSection = () => {
             Dapatkan Informasi Terbaru terkait desa
           </h2>
           <p className="text-gray-500 mt-3 text-justify md:text-left">
-            We build readymade websites, mobile applications, and elaborate
-            online business services.
+            Desa digital sebagai sarana penunjang kebutuhan informasi dan
+            pelayanan masyarakat.
           </p>
         </div>
         <div className="flex flex-col justify-center items-center w-full md:w-3/5 md:flex md:flex-row space-x-6 space-y-6 relative z-10">
