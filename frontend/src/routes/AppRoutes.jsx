@@ -39,7 +39,7 @@ const AppRoutes = () => {
   return (
     <AuthProvider>
       <Router>
-        {process.env.NODE_ENV === "development" && <AuthDebug />}
+        {process.env.NODE_ENV === "development"}
         <Routes>
           {/* ===================== HALAMAN UMUM ===================== */}
           <Route path="/" element={<Home />} />
