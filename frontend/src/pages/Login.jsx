@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { X } from "lucide-react";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { login } from "./user/authService";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,8 +15,21 @@ const Login = () => {
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Check if form is valid to enable button
-  const isFormValid = email.trim() !== "" && password.trim() !== "";
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { checkAuthStatus } = useAuth();
+
+  // Get redirect URL from query params
+  const searchParams = new URLSearchParams(location.search);
+  const redirectUrl = searchParams.get("redirect") || "/admin/beranda";
+
+  // Check if already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate(redirectUrl);
+    }
+  }, [navigate, redirectUrl]);
 
   // Load saved email when component mounts
   useEffect(() => {
@@ -25,6 +39,9 @@ const Login = () => {
       setRememberMe(true);
     }
   }, []);
+
+  // Check if form is valid to enable button
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -42,7 +59,11 @@ const Login = () => {
       }
 
       if (result.success) {
-        window.location.href = "/admin/beranda"; // Redirect setelah login sukses
+        // Update auth context state
+        checkAuthStatus();
+
+        // Use React Router navigation instead of window.location
+        navigate(redirectUrl);
       }
     } catch (err) {
       setError(err.message);
