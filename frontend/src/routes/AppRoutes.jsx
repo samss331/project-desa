@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "../context/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
+import AuthDebug from "../components/AuthDebug";
 
 // Halaman Umum
 import Home from "../pages/Home";
@@ -38,7 +39,7 @@ const AppRoutes = () => {
   return (
     <AuthProvider>
       <Router>
-        {process.env.NODE_ENV === "development"}
+        {process.env.NODE_ENV === "development" && <AuthDebug />}
         <Routes>
           {/* ===================== HALAMAN UMUM ===================== */}
           <Route path="/" element={<Home />} />
@@ -55,6 +56,10 @@ const AppRoutes = () => {
 
           {/* ===================== HALAMAN ADMIN DENGAN LAYOUT ===================== */}
           {/* Redirect /admin to /admin/beranda */}
+          <Route
+            path="/admin"
+            element={<Navigate to="/admin/beranda" replace />}
+          />
 
           {/* Protect the entire admin section */}
           <Route
