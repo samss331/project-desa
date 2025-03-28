@@ -166,10 +166,10 @@ const InfoSection = () => {
                     strokeWidth={1}
                     className="p-4 mt-4 w-36 h-28 bg-green-100 rounded-2xl"
                   />
-                  <h3 className="text-xl font-semibold mt-3">Fasilitas</h3>
+                  <h3 className="text-xl font-semibold mt-3">Pelayanan</h3>
                   <p className="text-gray-500">
-                    Lihat data statistik terkait fasilitas yang ada di desa
-                    bahontobungku
+                    Dapatkan pelayanan secara digital melalui website digital
+                    desa
                   </p>
                 </div>
               </Card>
