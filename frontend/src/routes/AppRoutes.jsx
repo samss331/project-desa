@@ -1,64 +1,142 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider } from "../context/AuthContext";
+import ProtectedRoute from "../components/ProtectedRoute";
 
-// Halaman Umum
-import Home from "../pages/Home";
-import ProfilDesa from "../pages/ProfilDesa";
-import Infografis from "../pages/Infografis";
-import Login from "../pages/Login";
-import Reset from "../pages/ResetPassword";
-import Pelayanan from "../pages/Pelayanan";
-import Media from "../pages/Media";
-import Arsip from "../pages/Arsip";
-import Information from "../pages/Information";
-import BeritaDetail from "../pages/BeritaDetail";
-import Map from "../pages/Map";
-// Admin Layout (Parent Admin)
+// Admin pages
 import DashboardAdmin from "../pages/admin/DashboardAdmin";
-
-// Halaman Admin (Children Pages)
-import BerandaAdmin from "../pages/admin/pages/BerandaAdmin";
 import BeritaAdmin from "../pages/admin/pages/BeritaAdmin";
-import PengumumanAdmin from "../pages/admin/pages/PengumumanAdmin";
-import InfografisAdmin from "../pages/admin/pages/InfografisAdmin";
 import MediaAdmin from "../pages/admin/pages/MediaAdmin";
-import SuratAdmin from "../pages/admin/pages/SuratAdmin";
+import InfografisAdmin from "../pages/admin/pages/InfografisAdmin";
 import PelayananAdmin from "../pages/admin/pages/PelayananAdmin";
+import PengumumanAdmin from "../pages/admin/pages/PengumumanAdmin";
+import SuratAdmin from "../pages/admin/pages/SuratAdmin";
 import SettingAdmin from "../pages/admin/pages/SettingAdmin";
+import LogoutAdmin from "../pages/admin/pages/LogoutAdmin";
 
-const AppRoutes = () => {
+// Public pages
+import Home from "../pages/Home";
+import Login from "../pages/Login";
+import Article from "../pages/Article";
+import BeritaDetail from "../pages/BeritaDetail";
+import Information from "../pages/Information";
+import Infografis from "../pages/Infografis";
+import Media from "../pages/Media";
+import Pelayanan from "../pages/Pelayanan";
+import ProfilDesa from "../pages/ProfilDesa";
+import Map from "../pages/Map";
+import Arsip from "../pages/Arsip";
+import ResetPassword from "../pages/ResetPassword";
+
+export default function AppRoutes() {
   return (
-    <Router>
-      <Routes>
-        {/* ===================== HALAMAN UMUM ===================== */}
-        <Route path="/" element={<Home />} />
-        <Route path="/ProfilDesa" element={<ProfilDesa />} />
-        <Route path="/Infografis" element={<Infografis />} />
-        <Route path="/Login" element={<Login />} />
-        <Route path="/ResetPassword" element={<Reset />} />
-        <Route path="/Pelayanan" element={<Pelayanan />} />
-        <Route path="/Media" element={<Media />} />
-        <Route path="/Arsip" element={<Arsip />} />
-        <Route path="/Information" element={<Information />} />
-        <Route path="/berita-detail/:id" element={<BeritaDetail />} />
-        <Route path="/Map" element={<Map />} />
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/article" element={<Article />} />
+          <Route path="/berita/:id" element={<BeritaDetail />} />
+          <Route path="/information" element={<Information />} />
+          <Route path="/infografis" element={<Infografis />} />
+          <Route path="/media" element={<Media />} />
+          <Route path="/pelayanan" element={<Pelayanan />} />
+          <Route path="/profil-desa" element={<ProfilDesa />} />
+          <Route path="/map" element={<Map />} />
+          <Route path="/arsip" element={<Arsip />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* ===================== HALAMAN ADMIN DENGAN LAYOUT ===================== */}
-        <Route path="/admin" element={<DashboardAdmin />}>
-          <Route path="beranda" element={<BerandaAdmin />} />
-          <Route path="berita" element={<BeritaAdmin />} />
-          <Route path="pengumuman" element={<PengumumanAdmin />} />
-          <Route path="infografis" element={<InfografisAdmin />} />
-          <Route path="media" element={<MediaAdmin />} />
-          <Route path="surat" element={<SuratAdmin />} />
-          <Route path="pelayanan" element={<PelayananAdmin />} />
-          <Route path="setting" element={<SettingAdmin />} />
-        </Route>
+          {/* Protected Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <Navigate to="/admin/dashboard" replace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/berita"
+            element={
+              <ProtectedRoute>
+                <BeritaAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/media"
+            element={
+              <ProtectedRoute>
+                <MediaAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/infografis"
+            element={
+              <ProtectedRoute>
+                <InfografisAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/pelayanan"
+            element={
+              <ProtectedRoute>
+                <PelayananAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/pengumuman"
+            element={
+              <ProtectedRoute>
+                <PengumumanAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/surat"
+            element={
+              <ProtectedRoute>
+                <SuratAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/setting"
+            element={
+              <ProtectedRoute>
+                <SettingAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/logout"
+            element={
+              <ProtectedRoute>
+                <LogoutAdmin />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* ===================== HALAMAN NOT FOUND ===================== */}
-        <Route path="*" element={<h1>404 - Page Not Found</h1>} />
-      </Routes>
-    </Router>
+          {/* Catch all route - 404 */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
-};
-
-export default AppRoutes;
+}
