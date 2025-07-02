@@ -28,7 +28,7 @@ const getPendudukByNik = async (nik) => {
   try {
     const result = await pendudukRepo.getPendudukByNik(nik)
     if (!result) {
-      return { success: false, message: "Data tidak ditemukan" }
+      return null
     }
     return new PendudukDTO(
       result.id,
@@ -42,7 +42,6 @@ const getPendudukByNik = async (nik) => {
       result.namaKepalaKeluarga,
     )
   } catch (error) {
-
     throw new Error("Gagal mengambil data penduduk berdasarkan NIK")
   }
 }
@@ -57,7 +56,6 @@ const addPenduduk = async (
   id_kepalakeluarga,
   isKepalaKeluarga = false,
 ) => {
-
   if (!nama || !nik || !alamat || !tanggalLahir || !jenisKelamin || !agama) {
     throw new Error("Semua data wajib diisi!")
   }
@@ -89,7 +87,6 @@ const addPenduduk = async (
       }
     }
 
-    console.log("Adding penduduk with kepalaKeluargaId:", kepalaKeluargaId)
     const result = await pendudukRepo.addPenduduk(
       nama,
       nik,
@@ -109,6 +106,7 @@ const addPenduduk = async (
       result.jenisKelamin,
       result.agama,
       result.id_kepalakeluarga,
+      result.namaKepalaKeluarga,
     )
   } catch (error) {
     throw new Error("Gagal menambahkan data penduduk: " + error.message)

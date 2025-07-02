@@ -6,7 +6,6 @@ const getAllKepalaKeluarga = async () => {
     const results = await kepalaKeluargaRepo.getAllKepalaKeluarga()
     return results.map((kk) => new KepalaKeluargaDTO(kk.id, kk.nama, kk.nik))
   } catch (error) {
-    console.error("Error in service getAllKepalaKeluarga:", error)
     throw new Error("Gagal mengambil data kepala keluarga: " + error.message)
   }
 }

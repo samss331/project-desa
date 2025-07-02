@@ -19,7 +19,6 @@ const getAllKepalaKeluarga = async (req, res) => {
     const data = await kepalaKeluargaService.getAllKepalaKeluarga()
     res.json({ success: true, data })
   } catch (error) {
-    console.error("Error in getAllKepalaKeluarga:", error)
     res.status(500).json({ success: false, message: error.message })
   }
 }
