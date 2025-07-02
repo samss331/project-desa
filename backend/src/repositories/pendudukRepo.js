@@ -18,24 +18,32 @@ const getPendudukByNik = async (nik) => {
     }
 };
 
-const addPenduduk = async (nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga) => {
-    try {
-        const [results] = await db.
-        promise().
-        query("INSERT INTO PENDUDUK (nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga) VALUES (?, ?, ?, ?, ?, ?, ?)", [nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga]);
-        return (results.insertId, nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga);
-    } catch (error) {   
-        throw error;   
-    } 
-};
-
-const updateDataPenduduk = async (oldNik, nama, newNik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga) => {
-    try {
-        const [results] = await db.promise().query("UPDATE PENDUDUK SET nama = ?, nik = ?, alamat = ?, tanggalLahir = ?, jenisKelamin = ?, agama = ?, kepalaKeluarga = ? where nik =?", 
-            [nama, newNik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga, oldNik]);
-        return results;
+const addPenduduk = async (nama, nik, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga) => {
+   try {
+      const [results] = await db
+        .promise()
+        .query(
+          "INSERT INTO penduduk (nama, nik, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [nama, nik, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga],
+        )
+      return { id: results.insertId, nama, nik, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga }
     } catch (error) {
-        throw error;
+       throw error
+    }
+}
+
+
+const updateDataPenduduk = async (oldNik,nama,newNik,alamat,tanggalLahir,jenisKelamin,agama,id_kepalakeluarga) => {
+    try {
+      const [results] = await db
+        .promise()
+        .query( 
+          "UPDATE penduduk SET nama = ?, nik = ?, alamat = ?, tanggalLahir = ?, jenisKelamin = ?, agama = ?, id_kepalakeluarga = ? WHERE nik = ?",
+          [nama, newNik, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga, oldNik],
+        )
+      return results
+    } catch (error) {
+      throw error
     }
 }
 
@@ -56,15 +64,6 @@ const getTotalPenduduk = async () => {
         throw error;
     }
 }
-
-const getTotalKepalaKeluarga = async () => {
-    try {
-        const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM PENDUDUK WHERE kepalaKeluarga = 1");
-        return results[0].total;
-    } catch (error) {
-        throw error;
-    }
-};
 
 const getTotalLakiLaki = async () => {
     try {
@@ -114,4 +113,52 @@ const getPendudukByUmur = async () => {
     }
 };
 
-export default {getAllPenduduk, getPendudukByNik, addPenduduk, updateDataPenduduk, deleteDataPenduduk, getPendudukByAgama, getPendudukByUmur, getTotalKepalaKeluarga, getTotalLakiLaki, getTotalPenduduk, getTotalPerempuan};
+
+const getPendudukByKepalaKeluarga = async (id_kepalakeluarga) => {
+  try {
+    const [results] = await db.promise().query(
+      `
+            SELECT p.*, kk.nama as namaKepalaKeluarga 
+            FROM penduduk p 
+            LEFT JOIN kepalakeluarga kk ON p.id_kepalakeluarga = kk.id 
+            WHERE p.id_kepalakeluarga = ?
+        `,
+      [id_kepalakeluarga],
+    )
+    return results
+  } catch (error) {
+    throw error
+  }
+}
+
+const searchPendudukByKepalaKeluarga = async (searchTerm) => {
+  try {
+    const [results] = await db.promise().query(
+      `
+            SELECT p.*, kk.nama as namaKepalaKeluarga 
+            FROM penduduk p 
+            LEFT JOIN kepalakeluarga kk ON p.id_kepalakeluarga = kk.id 
+            WHERE kk.nama LIKE ? OR kk.nik LIKE ?
+        `,
+      [`%${searchTerm}%`, `%${searchTerm}%`],
+    )
+    return results
+  } catch (error) {
+    throw error
+  }
+}
+
+export default {
+  getAllPenduduk,
+  getPendudukByNik,
+  addPenduduk,
+  updateDataPenduduk,
+  deleteDataPenduduk,
+  getPendudukByAgama,
+  getPendudukByUmur,
+  getTotalLakiLaki,
+  getTotalPenduduk,
+  getTotalPerempuan,
+  getPendudukByKepalaKeluarga,
+  searchPendudukByKepalaKeluarga,
+}

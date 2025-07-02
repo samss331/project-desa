@@ -23,25 +23,48 @@ const getPendudukByNik = async (req, res) => {
 };
 
 const addPenduduk = async (req, res) => {
-    const { nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga } = req.body;
-    try {
-        const result = await pendudukServices.addPenduduk(nama, nik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga);
-        res.status(201).json({ success: true, message: "Data berhasil ditambahkan", data: result });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
-    }
-};
+  console.log("addPenduduk controller called")
+  console.log("Request body:", req.body)
+
+  const { nama, nik, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga, isKepalaKeluarga } = req.body
+
+  try {
+    const result = await pendudukServices.addPenduduk(
+      nama,
+      nik,
+      alamat,
+      tanggalLahir,
+      jenisKelamin,
+      agama,
+      id_kepalakeluarga,
+      isKepalaKeluarga,
+    )
+
+    console.log("Service result:", result)
+    res.status(201).json({ success: true, message: "Data berhasil ditambahkan", data: result })
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message })
+  }
+}
 
 const updateDataPenduduk = async (req, res) => {
-    const { oldNik, newNik, nama, alamat, tanggalLahir , jenisKelamin, agama, kepalaKeluarga} = req.body;
-    try {
-        const result = await pendudukServices.updateDataPenduduk(oldNik, nama, newNik, alamat, tanggalLahir, jenisKelamin, agama, kepalaKeluarga);
-        res.json(result);
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
-    }
-};
-
+  const { oldNik, newNik, nama, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga } = req.body
+  try {
+    const result = await pendudukServices.updateDataPenduduk(
+      oldNik,
+      nama,
+      newNik,
+      alamat,
+      tanggalLahir,
+      jenisKelamin,
+      agama,
+      id_kepalakeluarga,
+    )
+    res.json(result)
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message })
+  }
+}
 const deleteDataPenduduk = async (req, res) => {
     const { nik } = req.params;
     try {
@@ -58,15 +81,6 @@ const deleteDataPenduduk = async (req, res) => {
 const getTotalPenduduk = async (req, res) => {
     try {
         const result = await pendudukServices.getTotalPenduduk();
-        res.json({ success: true, data: result });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-const getTotalKepalaKeluarga = async (req, res) => {
-    try {
-        const result = await pendudukServices.getTotalKepalaKeluarga();
         res.json({ success: true, data: result });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -109,7 +123,40 @@ const getPendudukByUmur = async (req, res) => {
     }
 };
 
-export default { getAllPenduduk, getPendudukByNik, addPenduduk, 
-    updateDataPenduduk, deleteDataPenduduk, getPendudukByAgama, 
-    getPendudukByUmur, getTotalKepalaKeluarga, getTotalLakiLaki, 
-    getTotalPenduduk, getTotalPerempuan };
+const getPendudukByKepalaKeluarga = async (req, res) => {
+  const { id_kepalakeluarga } = req.params
+  try {
+    const results = await pendudukServices.getPendudukByKepalaKeluarga(id_kepalakeluarga)
+    res.json({ success: true, data: results })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+}
+
+const searchPendudukByKepalaKeluarga = async (req, res) => {
+  const { search } = req.query
+  try {
+    if (!search) {
+      return res.status(400).json({ success: false, message: "Parameter search diperlukan" })
+    }
+    const results = await pendudukServices.searchPendudukByKepalaKeluarga(search)
+    res.json({ success: true, data: results })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+}
+
+export default {
+  getAllPenduduk,
+  getPendudukByNik,
+  addPenduduk,
+  updateDataPenduduk,
+  deleteDataPenduduk,
+  getPendudukByAgama,
+  getPendudukByUmur,
+  getTotalLakiLaki,
+  getTotalPenduduk,
+  getTotalPerempuan,
+  getPendudukByKepalaKeluarga,
+  searchPendudukByKepalaKeluarga,
+}
