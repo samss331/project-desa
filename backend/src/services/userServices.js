@@ -1,7 +1,7 @@
 import tokenHelpers from "../helpers/token.js";
 import passHelpers from "../helpers/pass.js";
 import userRepositories from "../repositories/userRepositories.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { UserDTO } from "../dto/dto.js";
 
 const loginAdmin = async (email, password) => {
