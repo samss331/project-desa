@@ -24,6 +24,7 @@ import MediaAdmin from "../pages/admin/pages/MediaAdmin";
 import SuratAdmin from "../pages/admin/pages/SuratAdmin";
 import PelayananAdmin from "../pages/admin/pages/PelayananAdmin";
 import SettingAdmin from "../pages/admin/pages/SettingAdmin";
+import AparatAdmin from "../pages/admin/pages/AparatAdmin";
 
 const AppRoutes = () => {
   return (
@@ -45,6 +46,7 @@ const AppRoutes = () => {
         {/* ===================== HALAMAN ADMIN DENGAN LAYOUT ===================== */}
         <Route path="/admin" element={<DashboardAdmin />}>
           <Route path="beranda" element={<BerandaAdmin />} />
+          <Route path="aparat" element={<AparatAdmin />} />
           <Route path="berita" element={<BeritaAdmin />} />
           <Route path="pengumuman" element={<PengumumanAdmin />} />
           <Route path="infografis" element={<InfografisAdmin />} />

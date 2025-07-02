@@ -16,6 +16,7 @@ import {
   FaCog,
   FaSignOutAlt,
   FaSearch,
+  FaUserTie,
 } from "react-icons/fa";
 import LogoutAdminDialog from "./LogoutAdminDialog";
 
@@ -41,6 +42,7 @@ export default function ModernSidebarAdmin() {
   // Menu items array for easier management
   const menuItems = [
     { path: "/admin/beranda", icon: <FaHome />, label: "Dashboard" },
+    { path: "/admin/aparat", icon: <FaUserTie />, label: "Aparat" },
     { path: "/admin/infografis", icon: <FaChartPie />, label: "Infografis" },
     { path: "/admin/pelayanan", icon: <FaLink />, label: "Pelayanan" },
     { path: "/admin/media", icon: <FaPhotoVideo />, label: "Media" },
@@ -69,7 +71,7 @@ export default function ModernSidebarAdmin() {
         id="sidebar"
         className={`fixed top-0 left-0 h-full bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-900 text-white transition-all duration-300 ease-in-out z-10 ${
           collapsed ? "w-20" : "w-72"
-        } shadow-2xl`}
+        } shadow-2xl overflow-y-auto`}
       >
         {/* Header with logo */}
         <div className="relative p-4 border-b border-indigo-800/30">
@@ -183,7 +185,7 @@ export default function ModernSidebarAdmin() {
 
         {/* Footer */}
         <div
-          className={`absolute bottom-0 left-0 right-0 p-4 border-t border-indigo-800/30 ${
+          className={`p-4 border-t border-indigo-800/30 ${
             collapsed ? "flex justify-center" : ""
           }`}
         >
