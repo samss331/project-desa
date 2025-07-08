@@ -116,6 +116,17 @@ class KepalaKeluargaDTO {
   }
 }
 
+class AparaturDTO {
+  constructor(id, nama, nip, jabatan, foto = null, status = null) {
+    this.id = id
+    this.nama = nama
+    this.nip = nip
+    this.jabatan = jabatan
+    this.foto = foto
+    this.status = status
+  }
+}
+
 export {
   UserDTO,
   PendudukDTO,
@@ -128,4 +139,5 @@ export {
   MediaDTO,
   PelayananDTO,
   KepalaKeluargaDTO,
+  AparaturDTO,
 }
