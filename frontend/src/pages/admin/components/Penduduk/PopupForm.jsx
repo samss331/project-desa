@@ -1,5 +1,7 @@
 "use client";
 import { FaUserPlus, FaTimes } from "react-icons/fa";
+import { useState } from "react";
+import PendudukService from "../../services/PendudukService";
 
 const PopupForm = ({
   formData,
@@ -7,7 +9,42 @@ const PopupForm = ({
   handleSubmit,
   resetForm,
   isEditing,
+  kepalaKeluargaList = [],
+  fetchKepalaKeluarga, // pastikan prop ini diteruskan dari parent
 }) => {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingKepalaKeluarga, setPendingKepalaKeluarga] = useState(null);
+
+  // Handler untuk checkbox kepala keluarga
+  const handleKepalaKeluargaChange = (e) => {
+    const checked = e.target.checked;
+    // Jika sedang edit dan uncheck, tampilkan konfirmasi
+    if (isEditing && formData.kepalaKeluarga && !checked) {
+      setPendingKepalaKeluarga(false);
+      setShowConfirm(true);
+    } else {
+      handleInputChange({ target: { name: "kepalaKeluarga", value: checked } });
+    }
+  };
+
+  // Konfirmasi perubahan status
+  const handleConfirm = async (confirm) => {
+    setShowConfirm(false);
+    if (confirm) {
+      // Hapus data kepala keluarga dari tabel kepala keluarga
+      try {
+        await PendudukService.deleteKepalaKeluargaByNik(formData.nik);
+        if (fetchKepalaKeluarga) fetchKepalaKeluarga(); // refetch dropdown
+      } catch (err) {
+        alert("Gagal menghapus data kepala keluarga!");
+      }
+      handleInputChange({ target: { name: "kepalaKeluarga", value: false } });
+    } else {
+      handleInputChange({ target: { name: "kepalaKeluarga", value: true } });
+    }
+    setPendingKepalaKeluarga(null);
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 mb-6">
       <div className="p-6">
@@ -122,7 +159,7 @@ const PopupForm = ({
                 id="kepalaKeluarga"
                 name="kepalaKeluarga"
                 checked={formData.kepalaKeluarga}
-                onChange={handleInputChange}
+                onChange={handleKepalaKeluargaChange}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label
@@ -133,6 +170,29 @@ const PopupForm = ({
               </label>
             </div>
           </div>
+
+          {/* Tambahkan dropdown kepala keluarga jika bukan kepala keluarga */}
+          {!formData.kepalaKeluarga && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Pilih Kepala Keluarga
+              </label>
+              <select
+                name="selectedKK"
+                value={formData.selectedKK}
+                onChange={handleInputChange}
+                required
+                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
+              >
+                <option value="">-- Pilih Kepala Keluarga --</option>
+                {kepalaKeluargaList.map((kk) => (
+                  <option key={kk.id} value={kk.id}>
+                    {kk.nama} ({kk.nik})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <button
@@ -150,6 +210,34 @@ const PopupForm = ({
             </button>
           </div>
         </form>
+        {/* Modal konfirmasi */}
+        {showConfirm && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+            <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
+              <h2 className="text-lg font-semibold mb-4">
+                Konfirmasi Perubahan Status
+              </h2>
+              <p className="mb-4">
+                Anda yakin ingin mengubah status menjadi anggota keluarga? Data
+                kepala keluarga akan dihapus dan tidak bisa dikembalikan.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => handleConfirm(false)}
+                  className="px-4 py-2 bg-gray-200 rounded"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={() => handleConfirm(true)}
+                  className="px-4 py-2 bg-red-500 text-white rounded"
+                >
+                  Ya, Ubah
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
