@@ -329,6 +329,14 @@ CREATE TABLE `user` (
 INSERT INTO `user` (`id`, `nama`, `email`, `password`) VALUES
 (1, 'admin', 'bahontobungku@gmail.com', '$2b$10$0lhM4fnWmiuHUIK.KW0pJONH/ovPl4yQVErHW24NrCCc6w4xrBMAO');
 
+-- Tambahan untuk fitur manajemen admin/user (role & last_login)
+ALTER TABLE `user`
+  ADD COLUMN `role` ENUM('superadmin', 'admin') NOT NULL DEFAULT 'admin',
+  ADD COLUMN `last_login` DATETIME DEFAULT NULL;
+
+-- Pastikan ada minimal satu superadmin (update user utama)
+UPDATE `user` SET `role` = 'superadmin' WHERE `email` = 'bahontobungku@gmail.com';
+
 --
 -- Indexes for dumped tables
 --
