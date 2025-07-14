@@ -1,6 +1,6 @@
 "use client";
 import { FaUserPlus, FaTimes } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PendudukService from "../../services/PendudukService";
 
 const PopupForm = ({
@@ -14,6 +14,19 @@ const PopupForm = ({
 }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingKepalaKeluarga, setPendingKepalaKeluarga] = useState(null);
+  const [isFetchingKepalaKeluarga, setIsFetchingKepalaKeluarga] =
+    useState(false);
+
+  // Listen perubahan kepalaKeluargaList, reset selectedKK jika tidak valid
+  useEffect(() => {
+    if (
+      !formData.kepalaKeluarga &&
+      formData.selectedKK &&
+      !kepalaKeluargaList.some((kk) => kk.id === formData.selectedKK)
+    ) {
+      handleInputChange({ target: { name: "selectedKK", value: "" } });
+    }
+  }, [kepalaKeluargaList]);
 
   // Handler untuk checkbox kepala keluarga
   const handleKepalaKeluargaChange = (e) => {
@@ -31,13 +44,15 @@ const PopupForm = ({
   const handleConfirm = async (confirm) => {
     setShowConfirm(false);
     if (confirm) {
+      setIsFetchingKepalaKeluarga(true);
       // Hapus data kepala keluarga dari tabel kepala keluarga
       try {
         await PendudukService.deleteKepalaKeluargaByNik(formData.nik);
-        if (fetchKepalaKeluarga) fetchKepalaKeluarga(); // refetch dropdown
+        if (fetchKepalaKeluarga) await fetchKepalaKeluarga(); // refetch dropdown
       } catch (err) {
         alert("Gagal menghapus data kepala keluarga!");
       }
+      setIsFetchingKepalaKeluarga(false);
       handleInputChange({ target: { name: "kepalaKeluarga", value: false } });
     } else {
       handleInputChange({ target: { name: "kepalaKeluarga", value: true } });
@@ -183,8 +198,13 @@ const PopupForm = ({
                 onChange={handleInputChange}
                 required
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
+                disabled={isFetchingKepalaKeluarga}
               >
-                <option value="">-- Pilih Kepala Keluarga --</option>
+                <option value="">
+                  {isFetchingKepalaKeluarga
+                    ? "Memuat..."
+                    : "-- Pilih Kepala Keluarga --"}
+                </option>
                 {kepalaKeluargaList.map((kk) => (
                   <option key={kk.id} value={kk.id}>
                     {kk.nama} ({kk.nik})
