@@ -3,6 +3,17 @@ import { FaUserPlus, FaTimes } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import PendudukService from "../../services/PendudukService";
 
+// Helper untuk format tanggal ke yyyy-MM-dd
+function toDateInputValue(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 const PopupForm = ({
   formData,
   handleInputChange,
@@ -16,17 +27,25 @@ const PopupForm = ({
   const [pendingKepalaKeluarga, setPendingKepalaKeluarga] = useState(null);
   const [isFetchingKepalaKeluarga, setIsFetchingKepalaKeluarga] =
     useState(false);
+  const [searchKK, setSearchKK] = useState("");
 
-  // Listen perubahan kepalaKeluargaList, reset selectedKK jika tidak valid
+  // Reset searchKK saat formData.kepalaKeluarga berubah (form dibuka ulang)
+  useEffect(() => {
+    setSearchKK("");
+  }, [formData.kepalaKeluarga]);
+
+  // Listen perubahan kepalaKeluargaList, reset selectedKK jika tidak valid atau sama dengan nik sendiri
   useEffect(() => {
     if (
       !formData.kepalaKeluarga &&
       formData.selectedKK &&
-      !kepalaKeluargaList.some((kk) => kk.id === formData.selectedKK)
+      kepalaKeluargaList.find(
+        (kk) => kk.id === formData.selectedKK && kk.nik === formData.nik
+      )
     ) {
       handleInputChange({ target: { name: "selectedKK", value: "" } });
     }
-  }, [kepalaKeluargaList]);
+  }, [kepalaKeluargaList, formData.nik]);
 
   // Handler untuk checkbox kepala keluarga
   const handleKepalaKeluargaChange = (e) => {
@@ -128,11 +147,12 @@ const PopupForm = ({
               </label>
               <input
                 type="date"
+                id="tanggalLahir"
                 name="tanggalLahir"
-                value={formData.tanggalLahir}
+                value={toDateInputValue(formData.tanggalLahir)}
                 onChange={handleInputChange}
-                required
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
+                required
               />
             </div>
             <div>
@@ -192,6 +212,15 @@ const PopupForm = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Pilih Kepala Keluarga
               </label>
+              {/* Input search kepala keluarga */}
+              <input
+                type="text"
+                placeholder="Cari nama/NIK kepala keluarga..."
+                value={searchKK}
+                onChange={(e) => setSearchKK(e.target.value)}
+                className="mb-2 w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
+                disabled={isFetchingKepalaKeluarga}
+              />
               <select
                 name="selectedKK"
                 value={formData.selectedKK}
@@ -205,11 +234,20 @@ const PopupForm = ({
                     ? "Memuat..."
                     : "-- Pilih Kepala Keluarga --"}
                 </option>
-                {kepalaKeluargaList.map((kk) => (
-                  <option key={kk.id} value={kk.id}>
-                    {kk.nama} ({kk.nik})
-                  </option>
-                ))}
+                {kepalaKeluargaList
+                  .filter((kk) => kk.nik !== formData.nik)
+                  .filter((kk) => {
+                    const q = searchKK.toLowerCase();
+                    return (
+                      kk.nama.toLowerCase().includes(q) ||
+                      kk.nik.toLowerCase().includes(q)
+                    );
+                  })
+                  .map((kk) => (
+                    <option key={kk.id} value={kk.id}>
+                      {kk.nama} ({kk.nik})
+                    </option>
+                  ))}
               </select>
             </div>
           )}

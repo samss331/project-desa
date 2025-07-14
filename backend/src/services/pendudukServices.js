@@ -133,6 +133,13 @@ const updateDataPenduduk = async (
     throw new Error("Data dengan NIK tersebut tidak ditemukan");
   }
 
+  // Validasi: tidak boleh memilih diri sendiri sebagai kepala keluarga
+  if (id_kepalakeluarga && existingPenduduk.id == id_kepalakeluarga) {
+    throw new Error(
+      "Tidak boleh memilih diri sendiri sebagai kepala keluarga!"
+    );
+  }
+
   // Cek status lama: apakah sebelumnya kepala keluarga?
   const wasKepalaKeluarga = !existingPenduduk.id_kepalakeluarga;
   // Cek status baru: apakah sekarang kepala keluarga?
