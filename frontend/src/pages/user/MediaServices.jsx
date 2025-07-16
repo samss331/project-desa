@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000"; // Sesuaikan dengan URL API Anda
+const API_URL = import.meta.env.VITE_API_URL; // Sesuaikan dengan URL API Anda
 
 // Buat axios instance dengan default config
 const api = axios.create({

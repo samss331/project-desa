@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // You should replace this with your actual API URL
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Fungsi untuk login
 export const login = async (email, password) => {
