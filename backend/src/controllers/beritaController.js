@@ -2,23 +2,21 @@ import beritaService from "../services/beritaServices.js";
 
 const addBerita = async (req, res) => {
   try {
-    const { judul, isi, tanggalTerbit, penulis, status } = req.body;
+    const { judul, isi, tanggal_terbit, penulis, status } = req.body;
     const foto = req.file;
     const result = await beritaService.addBerita(
       judul,
       foto,
       isi,
-      tanggalTerbit,
+      tanggal_terbit,
       penulis,
       status || "Draft"
     );
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Berita berhasil ditambahkan",
-        data: result,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Berita berhasil ditambahkan",
+      data: result,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -61,14 +59,14 @@ const getBeritaById = async (req, res) => {
 const updateBerita = async (req, res) => {
   try {
     const { id } = req.params;
-    const { judul, isi, tanggalTerbit, penulis, status } = req.body;
+    const { judul, isi, tanggal_terbit, penulis, status } = req.body;
     const foto = req.file;
     const result = await beritaService.updateBerita(
       id,
       judul,
       foto,
       isi,
-      tanggalTerbit,
+      tanggal_terbit,
       penulis,
       status
     );

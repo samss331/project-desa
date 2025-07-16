@@ -2,7 +2,7 @@ import tokenHelpers from "../helpers/token.js";
 import passHelpers from "../helpers/pass.js";
 import userRepositories from "../repositories/userRepositories.js";
 import bcrypt from "bcryptjs";
-import { UserDTO } from "../dto/dto.js";
+import { userDTO } from "../dto/dto.js";
 
 const loginAdmin = async (email, password) => {
   const user = await userRepositories.getUserByEmail(email);
@@ -44,7 +44,7 @@ const updateAdmin = async (nama, email, password) => {
   if (!updated) throw new Error("Gagal memperbarui data admin!");
 
   const user = await userRepositories.getUserByEmail(email);
-  return new UserDTO(user.id, user.nama, user.email, null);
+  return new userDTO(user.id, user.nama, user.email, null);
 };
 
 const resetPassword = async (email) => {
@@ -64,13 +64,13 @@ const registerUser = async (nama, email, password, role = "admin") => {
   if (!nama || !email || !password) throw new Error("Semua field wajib diisi!");
   const hashedPw = await passHelpers.hashPw(password);
   const userId = await userRepositories.addUser(nama, email, hashedPw, role);
-  return new UserDTO(userId, nama, email, null, role, null);
+  return new userDTO(userId, nama, email, null, role, null);
 };
 
 const getAllUsers = async () => {
   const users = await userRepositories.getAllUsers();
   return users.map(
-    (u) => new UserDTO(u.id, u.nama, u.email, null, u.role, u.last_login)
+    (u) => new userDTO(u.id, u.nama, u.email, null, u.role, u.last_login)
   );
 };
 

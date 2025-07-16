@@ -48,8 +48,9 @@ const updateMedia = async (req, res) => {
   try {
     const { id } = req.params;
     const { nama, tipe, deskripsi } = req.body;
-    const file = req.file ? req.file : null;
-    const thumbnail = req.thumbnail ? req.thumbnail : null;
+    const file = req.files && req.files.file ? req.files.file[0] : null;
+    const thumbnail =
+      req.files && req.files.thumbnail ? req.files.thumbnail[0] : null;
     const updated = await mediaService.updateMedia(
       id,
       nama,

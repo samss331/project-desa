@@ -1,5 +1,5 @@
 import beritaRepository from "../repositories/beritaRepo.js";
-import { BeritaDTO } from "../dto/dto.js";
+import { beritaDTO } from "../dto/dto.js";
 import fs from "fs";
 import path from "path";
 
@@ -7,11 +7,11 @@ const addBerita = async (
   judul,
   foto,
   isi,
-  tanggalTerbit,
+  tanggal_terbit,
   penulis,
   status = "Draft"
 ) => {
-  if (!judul || !isi || !tanggalTerbit || !penulis) {
+  if (!judul || !isi || !tanggal_terbit || !penulis) {
     throw new Error("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
   }
 
@@ -22,18 +22,19 @@ const addBerita = async (
     judul,
     fotoPath,
     isi,
-    tanggalTerbit,
+    tanggal_terbit,
     penulis,
     status
   );
-  return new BeritaDTO(
+  return new beritaDTO(
     result.id,
     result.judul,
     result.foto,
     result.isi,
-    result.tanggalTerbit,
+    result.tanggal_terbit,
     result.penulis,
-    result.status
+    result.status,
+    result.kategori
   );
 };
 
@@ -41,12 +42,12 @@ const getAllBerita = async () => {
   const result = await beritaRepository.getAllBerita();
   return result.map(
     (b) =>
-      new BeritaDTO(
+      new beritaDTO(
         b.id,
         b.judul,
         b.foto,
         b.isi,
-        b.tanggalTerbit,
+        b.tanggal_terbit,
         b.penulis,
         b.status,
         b.kategori
@@ -58,12 +59,12 @@ const getBeritaByStatus = async (status) => {
   const result = await beritaRepository.getBeritaByStatus(status);
   return result.map(
     (b) =>
-      new BeritaDTO(
+      new beritaDTO(
         b.id,
         b.judul,
         b.foto,
         b.isi,
-        b.tanggalTerbit,
+        b.tanggal_terbit,
         b.penulis,
         b.status,
         b.kategori
@@ -76,12 +77,12 @@ const getBeritaById = async (id) => {
   if (!result) {
     throw new Error("Berita tidak ditemukan");
   }
-  return new BeritaDTO(
+  return new beritaDTO(
     result.id,
     result.judul,
     result.foto,
     result.isi,
-    result.tanggalTerbit,
+    result.tanggal_terbit,
     result.penulis,
     result.status,
     result.kategori
@@ -93,7 +94,7 @@ const updateBerita = async (
   judul,
   foto,
   isi,
-  tanggalTerbit,
+  tanggal_terbit,
   penulis,
   status
 ) => {
@@ -126,7 +127,7 @@ const updateBerita = async (
     judul,
     fotoPath,
     isi,
-    tanggalTerbit,
+    tanggal_terbit,
     penulis,
     status
   );

@@ -1,5 +1,5 @@
 import pendudukRepo from "../repositories/pendudukRepo.js";
-import { PendudukDTO } from "../dto/dto.js";
+import { pendudukDTO } from "../dto/dto.js";
 import kepalaKeluargaRepo from "../repositories/kepalaKeluargaRepo.js";
 
 const getAllPenduduk = async () => {
@@ -7,16 +7,16 @@ const getAllPenduduk = async () => {
     const results = await pendudukRepo.getAllPenduduk();
     return results.map(
       (p) =>
-        new PendudukDTO(
+        new pendudukDTO(
           p.id,
           p.nama,
           p.nik,
           p.alamat,
-          p.tanggalLahir,
-          p.jenisKelamin,
+          p.tanggal_lahir,
+          p.jenis_kelamin,
           p.agama,
-          p.id_kepalakeluarga,
-          p.namaKepalaKeluarga
+          p.id_kepala_keluarga,
+          p.nama_kepala_keluarga
         )
     );
   } catch (error) {
@@ -30,16 +30,16 @@ const getPendudukByNik = async (nik) => {
     if (!result) {
       return null;
     }
-    return new PendudukDTO(
+    return new pendudukDTO(
       result.id,
       result.nama,
       result.nik,
       result.alamat,
-      result.tanggalLahir,
-      result.jenisKelamin,
+      result.tanggal_lahir,
+      result.jenis_kelamin,
       result.agama,
-      result.id_kepalakeluarga,
-      result.namaKepalaKeluarga
+      result.id_kepala_keluarga,
+      result.nama_kepala_keluarga
     );
   } catch (error) {
     throw new Error("Gagal mengambil data penduduk berdasarkan NIK");
@@ -50,13 +50,13 @@ const addPenduduk = async (
   nama,
   nik,
   alamat,
-  tanggalLahir,
-  jenisKelamin,
+  tanggal_lahir,
+  jenis_kelamin,
   agama,
-  id_kepalakeluarga,
+  id_kepala_keluarga,
   isKepalaKeluarga = false
 ) => {
-  if (!nama || !nik || !alamat || !tanggalLahir || !jenisKelamin || !agama) {
+  if (!nama || !nik || !alamat || !tanggal_lahir || !jenis_kelamin || !agama) {
     throw new Error("Semua data wajib diisi!");
   }
 
@@ -67,7 +67,7 @@ const addPenduduk = async (
   }
 
   try {
-    let kepalaKeluargaId = id_kepalakeluarga;
+    let kepalaKeluargaId = id_kepala_keluarga;
 
     // Jika checkbox kepala keluarga dicentang, buat data kepala keluarga baru
     if (isKepalaKeluarga) {
@@ -79,14 +79,14 @@ const addPenduduk = async (
 
       await kepalaKeluargaRepo.addKepalaKeluarga(nama, nik);
       kepalaKeluargaId = null; // <--- Perbaikan: harus null untuk kepala keluarga
-    } else if (id_kepalakeluarga) {
-      // Jika tidak sebagai kepala keluarga, validasi id_kepalakeluarga yang dipilih
+    } else if (id_kepala_keluarga) {
+      // Jika tidak sebagai kepala keluarga, validasi id_kepala_keluarga yang dipilih
       const existingKK = await kepalaKeluargaRepo.getKepalaKeluargaById(
-        id_kepalakeluarga
+        id_kepala_keluarga
       );
       if (!existingKK) {
         throw new Error(
-          `Kepala keluarga dengan ID ${id_kepalakeluarga} tidak ditemukan!`
+          `Kepala keluarga dengan ID ${id_kepala_keluarga} tidak ditemukan!`
         );
       }
     }
@@ -95,22 +95,22 @@ const addPenduduk = async (
       nama,
       nik,
       alamat,
-      tanggalLahir,
-      jenisKelamin,
+      tanggal_lahir,
+      jenis_kelamin,
       agama,
       kepalaKeluargaId
     );
 
-    return new PendudukDTO(
+    return new pendudukDTO(
       result.id,
       result.nama,
       result.nik,
       result.alamat,
-      result.tanggalLahir,
-      result.jenisKelamin,
+      result.tanggal_lahir,
+      result.jenis_kelamin,
       result.agama,
-      result.id_kepalakeluarga,
-      result.namaKepalaKeluarga
+      result.id_kepala_keluarga,
+      result.nama_kepala_keluarga
     );
   } catch (error) {
     throw new Error("Gagal menambahkan data penduduk: " + error.message);
@@ -122,10 +122,10 @@ const updateDataPenduduk = async (
   nama,
   newNik,
   alamat,
-  tanggalLahir,
-  jenisKelamin,
+  tanggal_lahir,
+  jenis_kelamin,
   agama,
-  id_kepalakeluarga,
+  id_kepala_keluarga,
   isKepalaKeluarga
 ) => {
   const existingPenduduk = await pendudukRepo.getPendudukByNik(oldNik);
@@ -134,14 +134,14 @@ const updateDataPenduduk = async (
   }
 
   // Validasi: tidak boleh memilih diri sendiri sebagai kepala keluarga
-  if (id_kepalakeluarga && existingPenduduk.id == id_kepalakeluarga) {
+  if (id_kepala_keluarga && existingPenduduk.id == id_kepala_keluarga) {
     throw new Error(
       "Tidak boleh memilih diri sendiri sebagai kepala keluarga!"
     );
   }
 
   // Cek status lama: apakah sebelumnya kepala keluarga?
-  const wasKepalaKeluarga = !existingPenduduk.id_kepalakeluarga;
+  const wasKepalaKeluarga = !existingPenduduk.id_kepala_keluarga;
   // Cek status baru: apakah sekarang kepala keluarga?
   const nowKepalaKeluarga = !!isKepalaKeluarga;
 
@@ -152,16 +152,16 @@ const updateDataPenduduk = async (
     if (kk) {
       await kepalaKeluargaRepo.deleteKepalaKeluarga(kk.id);
     }
-    // Update penduduk: set id_kepalakeluarga sesuai input
+    // Update penduduk: set id_kepala_keluarga sesuai input
     await pendudukRepo.updateDataPenduduk(
       oldNik,
       nama,
       newNik,
       alamat,
-      tanggalLahir,
-      jenisKelamin,
+      tanggal_lahir,
+      jenis_kelamin,
       agama,
-      id_kepalakeluarga
+      id_kepala_keluarga
     );
     return {
       success: true,
@@ -177,14 +177,14 @@ const updateDataPenduduk = async (
     if (!existingKK) {
       await kepalaKeluargaRepo.addKepalaKeluarga(nama, newNik);
     }
-    // Update penduduk: set id_kepalakeluarga = NULL
+    // Update penduduk: set id_kepala_keluarga = NULL
     await pendudukRepo.updateDataPenduduk(
       oldNik,
       nama,
       newNik,
       alamat,
-      tanggalLahir,
-      jenisKelamin,
+      tanggal_lahir,
+      jenis_kelamin,
       agama,
       null
     );
@@ -202,14 +202,14 @@ const updateDataPenduduk = async (
     if (kk) {
       await kepalaKeluargaRepo.updateKepalaKeluarga(kk.id, nama, newNik);
     }
-    // Update penduduk: id_kepalakeluarga tetap null
+    // Update penduduk: id_kepala_keluarga tetap null
     await pendudukRepo.updateDataPenduduk(
       oldNik,
       nama,
       newNik,
       alamat,
-      tanggalLahir,
-      jenisKelamin,
+      tanggal_lahir,
+      jenis_kelamin,
       agama,
       null
     );
@@ -218,16 +218,16 @@ const updateDataPenduduk = async (
 
   // Jika tetap anggota
   if (!wasKepalaKeluarga && !nowKepalaKeluarga) {
-    // Update penduduk: id_kepalakeluarga sesuai input
+    // Update penduduk: id_kepala_keluarga sesuai input
     await pendudukRepo.updateDataPenduduk(
       oldNik,
       nama,
       newNik,
       alamat,
-      tanggalLahir,
-      jenisKelamin,
+      tanggal_lahir,
+      jenis_kelamin,
       agama,
-      id_kepalakeluarga
+      id_kepala_keluarga
     );
     return { success: true, message: "Data anggota keluarga diperbarui." };
   }
@@ -300,23 +300,23 @@ const getPendudukByUmur = async () => {
   }
 };
 
-const getPendudukByKepalaKeluarga = async (id_kepalakeluarga) => {
+const getPendudukByKepalaKeluarga = async (id_kepala_keluarga) => {
   try {
     const results = await pendudukRepo.getPendudukByKepalaKeluarga(
-      id_kepalakeluarga
+      id_kepala_keluarga
     );
     return results.map(
       (p) =>
-        new PendudukDTO(
+        new pendudukDTO(
           p.id,
           p.nama,
           p.nik,
           p.alamat,
-          p.tanggalLahir,
-          p.jenisKelamin,
+          p.tanggal_lahir,
+          p.jenis_kelamin,
           p.agama,
-          p.id_kepalakeluarga,
-          p.namaKepalaKeluarga
+          p.id_kepala_keluarga,
+          p.nama_kepala_keluarga
         )
     );
   } catch (error) {
@@ -333,16 +333,16 @@ const searchPendudukByKepalaKeluarga = async (searchTerm) => {
     );
     return results.map(
       (p) =>
-        new PendudukDTO(
+        new pendudukDTO(
           p.id,
           p.nama,
           p.nik,
           p.alamat,
-          p.tanggalLahir,
-          p.jenisKelamin,
+          p.tanggal_lahir,
+          p.jenis_kelamin,
           p.agama,
-          p.id_kepalakeluarga,
-          p.namaKepalaKeluarga
+          p.id_kepala_keluarga,
+          p.nama_kepala_keluarga
         )
     );
   } catch (error) {

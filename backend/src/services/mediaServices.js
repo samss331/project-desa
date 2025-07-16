@@ -1,5 +1,5 @@
 import mediaRepo from "../repositories/mediaRepo.js";
-import { MediaDTO } from "../dto/dto.js";
+import { mediaDTO } from "../dto/dto.js";
 
 const allowedTypes = {
   foto: ["image/jpeg", "image/png", "image/jpg"],
@@ -38,7 +38,7 @@ const addMedia = async (nama, tipe, file, deskripsi, thumbnail) => {
       thumbnail ? thumbnail.filename : null
     );
 
-    return new MediaDTO(
+    return new mediaDTO(
       result.id,
       result.nama,
       result.tipe,
@@ -56,7 +56,7 @@ const getAllMedia = async () => {
   const results = await mediaRepo.getAllMedia();
   return results.map(
     (media) =>
-      new MediaDTO(
+      new mediaDTO(
         media.id,
         media.nama,
         media.tipe,
@@ -72,7 +72,7 @@ const getMediaById = async (id) => {
   if (!result) {
     throw new Error("Media tidak ditemukan!");
   }
-  return new MediaDTO(
+  return new mediaDTO(
     result.id,
     result.nama,
     result.tipe,
@@ -97,7 +97,7 @@ const updateMedia = async (id, nama, tipe, file, deskripsi, thumbnail) => {
     deskripsi,
     thumbnail ? thumbnail.filename : existing.thumbnail
   );
-  return new MediaDTO(
+  return new mediaDTO(
     updated.id,
     updated.nama,
     updated.tipe,

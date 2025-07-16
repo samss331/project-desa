@@ -29,10 +29,10 @@ const addPenduduk = async (req, res) => {
     nama,
     nik,
     alamat,
-    tanggalLahir,
-    jenisKelamin,
+    tanggal_lahir,
+    jenis_kelamin,
     agama,
-    id_kepalakeluarga,
+    id_kepala_keluarga,
     isKepalaKeluarga,
   } = req.body;
 
@@ -41,20 +41,18 @@ const addPenduduk = async (req, res) => {
       nama,
       nik,
       alamat,
-      tanggalLahir,
-      jenisKelamin,
+      tanggal_lahir,
+      jenis_kelamin,
       agama,
-      id_kepalakeluarga,
+      id_kepala_keluarga,
       isKepalaKeluarga
     );
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Data berhasil ditambahkan",
-        data: result,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Data berhasil ditambahkan",
+      data: result,
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -66,10 +64,10 @@ const updateDataPenduduk = async (req, res) => {
     newNik,
     nama,
     alamat,
-    tanggalLahir,
-    jenisKelamin,
+    tanggal_lahir,
+    jenis_kelamin,
     agama,
-    id_kepalakeluarga,
+    id_kepala_keluarga,
     isKepalaKeluarga,
   } = req.body;
   try {
@@ -78,10 +76,10 @@ const updateDataPenduduk = async (req, res) => {
       nama,
       newNik,
       alamat,
-      tanggalLahir,
-      jenisKelamin,
+      tanggal_lahir,
+      jenis_kelamin,
       agama,
-      id_kepalakeluarga,
+      id_kepala_keluarga,
       isKepalaKeluarga
     );
     res.json(result);
@@ -158,10 +156,10 @@ const getPendudukByUmur = async (req, res) => {
 };
 
 const getPendudukByKepalaKeluarga = async (req, res) => {
-  const { id_kepalakeluarga } = req.params;
+  const { id_kepala_keluarga } = req.params;
   try {
     const results = await pendudukServices.getPendudukByKepalaKeluarga(
-      id_kepalakeluarga
+      id_kepala_keluarga
     );
     res.json({ success: true, data: results });
   } catch (error) {

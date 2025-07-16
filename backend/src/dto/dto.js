@@ -1,4 +1,4 @@
-class UserDTO {
+class userDTO {
   constructor(id, nama, email, token, role, last_login) {
     this.id = id;
     this.nama = nama;
@@ -9,7 +9,7 @@ class UserDTO {
   }
 }
 
-class PendudukDTO {
+class pendudukDTO {
   constructor(
     id,
     nama,
@@ -33,45 +33,45 @@ class PendudukDTO {
   }
 }
 
-class SuratMasukDTO {
-  constructor(id, nomorSurat, pengirim, perihal, tanggalTerima, file) {
+class surat_masukDTO {
+  constructor(id, nomor_surat, pengirim, perihal, tanggal_terima, file) {
     this.id = id;
-    this.nomorSurat = nomorSurat;
+    this.nomor_surat = nomor_surat;
     this.pengirim = pengirim;
     this.perihal = perihal;
-    this.tanggalTerima = tanggalTerima;
+    this.tanggal_terima = tanggal_terima;
     this.file = file;
   }
 }
 
-class SuratKeluarDTO {
-  constructor(id, nomorSurat, penerima, perihal, tanggalKirim, file) {
+class surat_keluarDTO {
+  constructor(id, nomor_surat, penerima, perihal, tanggal_kirim, file) {
     this.id = id;
-    this.nomorSurat = nomorSurat;
+    this.nomor_surat = nomor_surat;
     this.penerima = penerima;
     this.perihal = perihal;
-    this.tanggalKirim = tanggalKirim;
+    this.tanggal_kirim = tanggal_kirim;
     this.file = file;
   }
 }
 
-class PengumumanDTO {
-  constructor(id, judul, isi, tanggalMulai, tanggalSelesai) {
+class pengumumanDTO {
+  constructor(id, judul, isi, tanggal_mulai, tanggal_selesai) {
     this.id = id;
     this.judul = judul;
     this.isi = isi;
-    this.tanggalMulai = tanggalMulai;
-    this.tanggalSelesai = tanggalSelesai;
+    this.tanggal_mulai = tanggal_mulai;
+    this.tanggal_selesai = tanggal_selesai;
   }
 }
 
-class BeritaDTO {
+class beritaDTO {
   constructor(
     id,
     judul,
     foto,
     isi,
-    tanggalTerbit,
+    tanggal_terbit,
     penulis,
     status = "Dipublikasi",
     kategori = "Umum"
@@ -80,14 +80,14 @@ class BeritaDTO {
     this.judul = judul;
     this.foto = foto;
     this.isi = isi;
-    this.tanggalTerbit = tanggalTerbit;
+    this.tanggal_terbit = tanggal_terbit;
     this.penulis = penulis;
     this.status = status;
     this.kategori = kategori;
   }
 }
 
-class DanaMasukDTO {
+class dana_masukDTO {
   constructor(id, tahun, bulan, jumlah, sumber, keterangan) {
     this.id = id;
     this.tahun = tahun;
@@ -98,7 +98,7 @@ class DanaMasukDTO {
   }
 }
 
-class DanaKeluarDTO {
+class dana_keluarDTO {
   constructor(id, tahun, bulan, jumlah, kategori, keterangan) {
     this.id = id;
     this.tahun = tahun;
@@ -109,7 +109,7 @@ class DanaKeluarDTO {
   }
 }
 
-class MediaDTO {
+class mediaDTO {
   constructor(id, nama, tipe, file, deskripsi, thumbnail) {
     this.id = id;
     this.nama = nama;
@@ -120,7 +120,7 @@ class MediaDTO {
   }
 }
 
-class PelayananDTO {
+class pelayananDTO {
   constructor(nama_layanan, kategori, deskripsi, link_google_form) {
     this.nama_layanan = nama_layanan;
     this.kategori = kategori;
@@ -129,7 +129,7 @@ class PelayananDTO {
   }
 }
 
-class KepalaKeluargaDTO {
+class kepala_keluargaDTO {
   constructor(id, nama, nik) {
     this.id = id;
     this.nama = nama;
@@ -138,15 +138,15 @@ class KepalaKeluargaDTO {
 }
 
 export {
-  UserDTO,
-  PendudukDTO,
-  SuratMasukDTO,
-  SuratKeluarDTO,
-  PengumumanDTO,
-  BeritaDTO,
-  DanaMasukDTO,
-  DanaKeluarDTO,
-  MediaDTO,
-  PelayananDTO,
-  KepalaKeluargaDTO,
+  userDTO,
+  pendudukDTO,
+  surat_masukDTO,
+  surat_keluarDTO,
+  pengumumanDTO,
+  beritaDTO,
+  dana_masukDTO,
+  dana_keluarDTO,
+  mediaDTO,
+  pelayananDTO,
+  kepala_keluargaDTO,
 };

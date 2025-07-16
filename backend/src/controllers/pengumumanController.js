@@ -2,20 +2,18 @@ import pengumumanServices from "../services/pengumumanServices.js";
 
 const addPengumuman = async (req, res) => {
   try {
-    const { judul, isi, tanggalMulai, tanggalSelesai } = req.body;
+    const { judul, isi, tanggal_mulai, tanggal_selesai } = req.body;
     const result = await pengumumanServices.addPengumuman(
       judul,
       isi,
-      tanggalMulai,
-      tanggalSelesai
+      tanggal_mulai,
+      tanggal_selesai
     );
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Pengumuman berhasil ditambahkan",
-        data: result,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Pengumuman berhasil ditambahkan",
+      data: result,
+    });
   } catch (error) {
     error;
     res.status(500).json({ success: false, message: error.message });
@@ -49,13 +47,13 @@ const getPengumumanById = async (req, res) => {
 const updatePengumuman = async (req, res) => {
   try {
     const { id } = req.params;
-    const { judul, isi, tanggalMulai, tanggalSelesai } = req.body;
+    const { judul, isi, tanggal_mulai, tanggal_selesai } = req.body;
     const result = await pengumumanServices.updatePengumuman(
       id,
       judul,
       isi,
-      tanggalMulai,
-      tanggalSelesai
+      tanggal_mulai,
+      tanggal_selesai
     );
     res.json({
       success: true,
