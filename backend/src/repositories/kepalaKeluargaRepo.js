@@ -2,7 +2,7 @@ import supabase from "../config/database.js";
 
 const getAllKepalaKeluarga = async () => {
   const { data, error } = await supabase
-    .from("kepalakeluarga")
+    .from("kepala_keluarga")
     .select("id, nama, nik")
     .order("nama", { ascending: true });
   if (error) throw new Error(error.message);
@@ -11,7 +11,7 @@ const getAllKepalaKeluarga = async () => {
 
 const getKepalaKeluargaById = async (id) => {
   const { data, error } = await supabase
-    .from("kepalakeluarga")
+    .from("kepala_keluarga")
     .select("id, nama, nik")
     .eq("id", id)
     .single();
@@ -21,7 +21,7 @@ const getKepalaKeluargaById = async (id) => {
 
 const getKepalaKeluargaByNik = async (nik) => {
   const { data, error } = await supabase
-    .from("kepalakeluarga")
+    .from("kepala_keluarga")
     .select("id, nama, nik")
     .eq("nik", nik)
     .single();
@@ -31,7 +31,7 @@ const getKepalaKeluargaByNik = async (nik) => {
 
 const addKepalaKeluarga = async (nama, nik) => {
   const { data, error } = await supabase
-    .from("kepalakeluarga")
+    .from("kepala_keluarga")
     .insert([{ nama, nik }])
     .select("id, nama, nik")
     .single();
@@ -41,7 +41,7 @@ const addKepalaKeluarga = async (nama, nik) => {
 
 const updateKepalaKeluarga = async (id, nama, nik) => {
   const { error, data } = await supabase
-    .from("kepalakeluarga")
+    .from("kepala_keluarga")
     .update({ nama, nik })
     .eq("id", id);
   if (error) throw new Error(error.message);
@@ -50,7 +50,7 @@ const updateKepalaKeluarga = async (id, nama, nik) => {
 
 const deleteKepalaKeluarga = async (id) => {
   const { error, data } = await supabase
-    .from("kepalakeluarga")
+    .from("kepala_keluarga")
     .delete()
     .eq("id", id);
   if (error) throw new Error(error.message);

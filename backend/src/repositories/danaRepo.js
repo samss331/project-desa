@@ -2,7 +2,7 @@ import supabase from "../config/database.js";
 
 const addDanaMasuk = async (tahun, bulan, jumlah, sumber, keterangan) => {
   const { data, error } = await supabase
-    .from("danamasuk")
+    .from("dana_masuk")
     .insert([{ tahun, bulan, jumlah, sumber, keterangan }])
     .select("*")
     .single();
@@ -12,7 +12,7 @@ const addDanaMasuk = async (tahun, bulan, jumlah, sumber, keterangan) => {
 
 const addDanaKeluar = async (tahun, bulan, jumlah, kategori, keterangan) => {
   const { data, error } = await supabase
-    .from("danakeluar")
+    .from("dana_keluar")
     .insert([{ tahun, bulan, jumlah, kategori, keterangan }])
     .select("*")
     .single();
@@ -22,7 +22,7 @@ const addDanaKeluar = async (tahun, bulan, jumlah, kategori, keterangan) => {
 
 const getAllDanaMasuk = async () => {
   const { data, error } = await supabase
-    .from("danamasuk")
+    .from("dana_masuk")
     .select("*")
     .order("bulan", { ascending: true });
   if (error) throw new Error(error.message);
@@ -31,7 +31,7 @@ const getAllDanaMasuk = async () => {
 
 const getAllDanaKeluar = async () => {
   const { data, error } = await supabase
-    .from("danakeluar")
+    .from("dana_keluar")
     .select("*")
     .order("bulan", { ascending: true });
   if (error) throw new Error(error.message);
@@ -40,7 +40,7 @@ const getAllDanaKeluar = async () => {
 
 const getDanaMasukById = async (id) => {
   const { data, error } = await supabase
-    .from("danamasuk")
+    .from("dana_masuk")
     .select("*")
     .eq("id", id)
     .single();
@@ -50,7 +50,7 @@ const getDanaMasukById = async (id) => {
 
 const getDanaKeluarById = async (id) => {
   const { data, error } = await supabase
-    .from("danakeluar")
+    .from("dana_keluar")
     .select("*")
     .eq("id", id)
     .single();
@@ -61,12 +61,12 @@ const getDanaKeluarById = async (id) => {
 const getSummaryByYear = async (tahun) => {
   // Ambil semua data pemasukan dan pengeluaran tahun tsb, lalu agregasi di JS
   const { data: pemasukan, error: err1 } = await supabase
-    .from("danamasuk")
+    .from("dana_masuk")
     .select("tahun, jumlah")
     .eq("tahun", tahun);
   if (err1) throw new Error(err1.message);
   const { data: pengeluaran, error: err2 } = await supabase
-    .from("danakeluar")
+    .from("dana_keluar")
     .select("tahun, jumlah")
     .eq("tahun", tahun);
   if (err2) throw new Error(err2.message);
@@ -87,12 +87,12 @@ const getSummaryByYear = async (tahun) => {
 const getDetailByYear = async (tahun) => {
   // Ambil semua data pemasukan dan pengeluaran tahun tsb, lalu group by bulan di JS
   const { data: pendapatan, error: err1 } = await supabase
-    .from("danamasuk")
+    .from("dana_masuk")
     .select("bulan, jumlah")
     .eq("tahun", tahun);
   if (err1) throw new Error(err1.message);
   const { data: pengeluaran, error: err2 } = await supabase
-    .from("danakeluar")
+    .from("dana_keluar")
     .select("bulan, jumlah")
     .eq("tahun", tahun);
   if (err2) throw new Error(err2.message);
@@ -124,7 +124,7 @@ const updateDanaMasuk = async (
   keterangan
 ) => {
   const { error, data } = await supabase
-    .from("danamasuk")
+    .from("dana_masuk")
     .update({ tahun, bulan, jumlah, sumber, keterangan })
     .eq("id", id);
   if (error) throw new Error(error.message);
@@ -140,7 +140,7 @@ const updateDanaKeluar = async (
   keterangan
 ) => {
   const { error, data } = await supabase
-    .from("danakeluar")
+    .from("dana_keluar")
     .update({ tahun, bulan, jumlah, kategori, keterangan })
     .eq("id", id);
   if (error) throw new Error(error.message);
@@ -149,7 +149,7 @@ const updateDanaKeluar = async (
 
 const deleteDanaMasuk = async (id) => {
   const { error, data } = await supabase
-    .from("danamasuk")
+    .from("dana_masuk")
     .delete()
     .eq("id", id);
   if (error) throw new Error(error.message);
@@ -158,7 +158,7 @@ const deleteDanaMasuk = async (id) => {
 
 const deleteDanaKeluar = async (id) => {
   const { error, data } = await supabase
-    .from("danakeluar")
+    .from("dana_keluar")
     .delete()
     .eq("id", id);
   if (error) throw new Error(error.message);

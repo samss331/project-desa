@@ -4,7 +4,7 @@ const getAllBerita = async () => {
   const { data, error } = await supabase
     .from("berita")
     .select("*")
-    .order("tanggalTerbit", { ascending: false });
+    .order("tanggal_terbit", { ascending: false });
   if (error) throw new Error(error.message);
   return data;
 };
@@ -14,7 +14,7 @@ const getBeritaByStatus = async (status) => {
     .from("berita")
     .select("*")
     .eq("status", status)
-    .order("tanggalTerbit", { ascending: false });
+    .order("tanggal_terbit", { ascending: false });
   if (error) throw new Error(error.message);
   return data;
 };
@@ -29,10 +29,10 @@ const getBeritaById = async (id) => {
   return data;
 };
 
-const addBerita = async (judul, foto, isi, tanggalTerbit, penulis, status) => {
+const addBerita = async (judul, foto, isi, tanggal_terbit, penulis, status) => {
   const { data, error } = await supabase
     .from("berita")
-    .insert([{ judul, foto, isi, tanggalTerbit, penulis, status }])
+    .insert([{ judul, foto, isi, tanggal_terbit, penulis, status }])
     .select("*")
     .single();
   if (error) throw new Error(error.message);
@@ -44,11 +44,11 @@ const updateBerita = async (
   judul,
   foto,
   isi,
-  tanggalTerbit,
+  tanggal_terbit,
   penulis,
   status
 ) => {
-  let updateObj = { judul, isi, tanggalTerbit, penulis, status };
+  let updateObj = { judul, isi, tanggal_terbit, penulis, status };
   if (foto) updateObj.foto = foto;
   const { error, data } = await supabase
     .from("berita")

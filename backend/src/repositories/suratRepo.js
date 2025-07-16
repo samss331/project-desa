@@ -1,15 +1,15 @@
 import supabase from "../config/database.js";
 
 const addSuratMasuk = async (
-  nomorSurat,
+  nomor_surat,
   pengirim,
   perihal,
-  tanggalTerima,
+  tanggal_terima,
   file
 ) => {
   const { data, error } = await supabase
-    .from("suratmasuk")
-    .insert([{ nomorSurat, pengirim, perihal, tanggalTerima, file }])
+    .from("surat_masuk")
+    .insert([{ nomor_surat, pengirim, perihal, tanggal_terima, file }])
     .select("*")
     .single();
   if (error) throw new Error(error.message);
@@ -17,15 +17,15 @@ const addSuratMasuk = async (
 };
 
 const addSuratKeluar = async (
-  nomorSurat,
+  nomor_surat,
   penerima,
   perihal,
-  tanggalKirim,
+  tanggal_kirim,
   file
 ) => {
   const { data, error } = await supabase
-    .from("suratkeluar")
-    .insert([{ nomorSurat, penerima, perihal, tanggalKirim, file }])
+    .from("surat_keluar")
+    .insert([{ nomor_surat, penerima, perihal, tanggal_kirim, file }])
     .select("*")
     .single();
   if (error) throw new Error(error.message);
@@ -34,25 +34,25 @@ const addSuratKeluar = async (
 
 const getAllSuratMasuk = async () => {
   const { data, error } = await supabase
-    .from("suratmasuk")
+    .from("surat_masuk")
     .select("*")
-    .order("tanggalTerima", { ascending: false });
+    .order("tanggal_terima", { ascending: false });
   if (error) throw new Error(error.message);
   return data;
 };
 
 const getAllSuratKeluar = async () => {
   const { data, error } = await supabase
-    .from("suratkeluar")
+    .from("surat_keluar")
     .select("*")
-    .order("tanggalKirim", { ascending: false });
+    .order("tanggal_kirim", { ascending: false });
   if (error) throw new Error(error.message);
   return data;
 };
 
 const getSuratMasukById = async (id) => {
   const { data, error } = await supabase
-    .from("suratmasuk")
+    .from("surat_masuk")
     .select("*")
     .eq("id", id)
     .single();
@@ -62,7 +62,7 @@ const getSuratMasukById = async (id) => {
 
 const getSuratKeluarById = async (id) => {
   const { data, error } = await supabase
-    .from("suratkeluar")
+    .from("surat_keluar")
     .select("*")
     .eq("id", id)
     .single();
@@ -72,15 +72,15 @@ const getSuratKeluarById = async (id) => {
 
 const updateSuratMasuk = async (
   id,
-  nomorSurat,
+  nomor_surat,
   pengirim,
   perihal,
-  tanggalTerima,
+  tanggal_terima,
   file
 ) => {
   const { error, data } = await supabase
-    .from("suratmasuk")
-    .update({ nomorSurat, pengirim, perihal, tanggalTerima, file })
+    .from("surat_masuk")
+    .update({ nomor_surat, pengirim, perihal, tanggal_terima, file })
     .eq("id", id);
   if (error) throw new Error(error.message);
   return data && data.length > 0;
@@ -88,15 +88,15 @@ const updateSuratMasuk = async (
 
 const updateSuratKeluar = async (
   id,
-  nomorSurat,
+  nomor_surat,
   penerima,
   perihal,
-  tanggalKirim,
+  tanggal_kirim,
   file
 ) => {
   const { error, data } = await supabase
-    .from("suratkeluar")
-    .update({ nomorSurat, penerima, perihal, tanggalKirim, file })
+    .from("surat_keluar")
+    .update({ nomor_surat, penerima, perihal, tanggal_kirim, file })
     .eq("id", id);
   if (error) throw new Error(error.message);
   return data && data.length > 0;
@@ -104,7 +104,7 @@ const updateSuratKeluar = async (
 
 const deleteSuratMasuk = async (id) => {
   const { error, data } = await supabase
-    .from("suratmasuk")
+    .from("surat_masuk")
     .delete()
     .eq("id", id);
   if (error) throw new Error(error.message);
@@ -113,7 +113,7 @@ const deleteSuratMasuk = async (id) => {
 
 const deleteSuratKeluar = async (id) => {
   const { error, data } = await supabase
-    .from("suratkeluar")
+    .from("surat_keluar")
     .delete()
     .eq("id", id);
   if (error) throw new Error(error.message);

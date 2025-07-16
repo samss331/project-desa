@@ -34,25 +34,25 @@ const updateUserRole = async (id, role) => {
   return data && data.length > 0;
 };
 
-const updateLastLogin = async (id, datetime) => {
+const updateLastLogin = async (id, last_login) => {
   const { error, data } = await supabase
     .from("user")
-    .update({ last_login: datetime })
+    .update({ last_login })
     .eq("id", id);
   if (error) throw new Error(error.message);
   return data && data.length > 0;
 };
 
-const transferSuperadmin = async (fromId, toId) => {
+const transferSuperadmin = async (from_id, to_id) => {
   let res1 = await supabase
     .from("user")
     .update({ role: "admin" })
-    .eq("id", fromId);
+    .eq("id", from_id);
   if (res1.error) throw new Error(res1.error.message);
   let res2 = await supabase
     .from("user")
     .update({ role: "superadmin" })
-    .eq("id", toId);
+    .eq("id", to_id);
   if (res2.error) throw new Error(res2.error.message);
   return true;
 };
@@ -68,12 +68,12 @@ const updateUserByEmail = async (nama, email, password) => {
   return data && data.length > 0;
 };
 
-const resetPasswordByEmail = async (email, newPassword) => {
+const resetPasswordByEmail = async (email, password) => {
   const user = await getUserByEmail(email);
   if (!user) throw new Error("User dengan email tersebut tidak ditemukan!");
   const { error, data } = await supabase
     .from("user")
-    .update({ password: newPassword })
+    .update({ password })
     .eq("email", email);
   if (error) throw new Error(error.message);
   return data && data.length > 0;
