@@ -186,10 +186,21 @@ export default function Penduduk() {
       return;
     }
     try {
+      // Mapping ke snake_case sebelum kirim ke service
+      const payload = {
+        nama: formData.nama,
+        nik: formData.nik,
+        alamat: formData.alamat,
+        tanggal_lahir: formData.tanggal_lahir || formData.tanggalLahir,
+        jenis_kelamin: formData.jenis_kelamin || formData.jenisKelamin,
+        agama: formData.agama,
+        is_kepala_keluarga: !!formData.kepalaKeluarga,
+        id_kepala_keluarga: formData.selectedKK || null,
+      };
       if (isEditing) {
-        await PendudukService.updatePenduduk(formData.nik, formData);
+        await PendudukService.updatePenduduk(formData.nik, payload);
       } else {
-        await PendudukService.addPenduduk(formData);
+        await PendudukService.addPenduduk(payload);
       }
       await fetchData();
       resetForm();

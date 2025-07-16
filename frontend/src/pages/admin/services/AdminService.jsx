@@ -30,8 +30,8 @@ const AdminService = {
     const response = await api.delete(`/auth/${id}`);
     return response.data;
   },
-  transferSuperadmin: async (toId) => {
-    const response = await api.post("/auth/transfer-superadmin", { toId });
+  transferSuperadmin: async (to_id) => {
+    const response = await api.post("/auth/transfer-superadmin", { to_id });
     return response.data;
   },
   addUser: async (nama, email, password, role = "admin") => {

@@ -313,6 +313,23 @@ const SuratService = {
         ("Renamed 'file' field to 'file_surat' to match server expectation");
       }
 
+      // Mapping semua field ke snake_case sebelum request
+      const mapping = [
+        ["nomorSurat", "nomor_surat"],
+        ["tanggalTerima", "tanggal_terima"],
+        ["tanggalKirim", "tanggal_kirim"],
+        ["penerima", "penerima"],
+        ["pengirim", "pengirim"],
+        ["perihal", "perihal"],
+        // tambahkan mapping lain jika perlu
+      ];
+      mapping.forEach(([camel, snake]) => {
+        if (formData.has(camel)) {
+          formData.append(snake, formData.get(camel));
+          formData.delete(camel);
+        }
+      });
+
       // Use axios directly with the token in headers
       const response = await axios.post(
         `${API_URL}/surat/addSuratMasuk`,
@@ -359,6 +376,23 @@ const SuratService = {
         ("Renamed 'file' field to 'file_surat' to match server expectation");
       }
 
+      // Mapping semua field ke snake_case sebelum request
+      const mapping = [
+        ["nomorSurat", "nomor_surat"],
+        ["tanggalTerima", "tanggal_terima"],
+        ["tanggalKirim", "tanggal_kirim"],
+        ["penerima", "penerima"],
+        ["pengirim", "pengirim"],
+        ["perihal", "perihal"],
+        // tambahkan mapping lain jika perlu
+      ];
+      mapping.forEach(([camel, snake]) => {
+        if (formData.has(camel)) {
+          formData.append(snake, formData.get(camel));
+          formData.delete(camel);
+        }
+      });
+
       // Use axios directly with the token in headers
       const response = await axios.post(
         `${API_URL}/surat/addSuratKeluar`,
@@ -400,6 +434,23 @@ const SuratService = {
         ("Renamed 'file' field to 'file_surat' to match server expectation");
       }
 
+      // Mapping semua field ke snake_case sebelum request
+      const mapping = [
+        ["nomorSurat", "nomor_surat"],
+        ["tanggalTerima", "tanggal_terima"],
+        ["tanggalKirim", "tanggal_kirim"],
+        ["penerima", "penerima"],
+        ["pengirim", "pengirim"],
+        ["perihal", "perihal"],
+        // tambahkan mapping lain jika perlu
+      ];
+      mapping.forEach(([camel, snake]) => {
+        if (formData.has(camel)) {
+          formData.append(snake, formData.get(camel));
+          formData.delete(camel);
+        }
+      });
+
       const response = await axios.put(
         `${API_URL}/surat/update-surat-masuk/${id}`,
         formData,
@@ -432,6 +483,23 @@ const SuratService = {
         formData.append("file_surat", fileObject);
         ("Renamed 'file' field to 'file_surat' to match server expectation");
       }
+
+      // Mapping semua field ke snake_case sebelum request
+      const mapping = [
+        ["nomorSurat", "nomor_surat"],
+        ["tanggalTerima", "tanggal_terima"],
+        ["tanggalKirim", "tanggal_kirim"],
+        ["penerima", "penerima"],
+        ["pengirim", "pengirim"],
+        ["perihal", "perihal"],
+        // tambahkan mapping lain jika perlu
+      ];
+      mapping.forEach(([camel, snake]) => {
+        if (formData.has(camel)) {
+          formData.append(snake, formData.get(camel));
+          formData.delete(camel);
+        }
+      });
 
       const response = await axios.put(
         `${API_URL}/surat/update-surat-keluar/${id}`,

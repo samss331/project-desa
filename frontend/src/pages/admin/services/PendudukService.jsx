@@ -49,16 +49,16 @@ const PendudukService = {
 
   addPenduduk: async (pendudukData) => {
     try {
-      // Kirim payload sesuai backend: isKepalaKeluarga dan id_kepalakeluarga
+      // Kirim payload sesuai backend: snake_case
       const payload = {
         nama: pendudukData.nama,
         nik: pendudukData.nik,
         alamat: pendudukData.alamat,
-        tanggalLahir: pendudukData.tanggalLahir,
-        jenisKelamin: pendudukData.jenisKelamin,
+        tanggal_lahir: pendudukData.tanggalLahir,
+        jenis_kelamin: pendudukData.jenisKelamin,
         agama: pendudukData.agama,
-        isKepalaKeluarga: !!pendudukData.kepalaKeluarga,
-        id_kepalakeluarga: pendudukData.kepalaKeluarga
+        is_kepala_keluarga: !!pendudukData.kepalaKeluarga,
+        id_kepala_keluarga: pendudukData.kepalaKeluarga
           ? null
           : pendudukData.selectedKK || null,
       };
@@ -73,17 +73,17 @@ const PendudukService = {
   updatePenduduk: async (oldNik, pendudukData) => {
     try {
       const updateData = {
-        oldNik,
-        newNik: pendudukData.nik,
+        old_nik: oldNik,
+        new_nik: pendudukData.nik,
         nama: pendudukData.nama,
         alamat: pendudukData.alamat,
-        tanggalLahir: pendudukData.tanggalLahir,
-        jenisKelamin: pendudukData.jenisKelamin,
+        tanggal_lahir: pendudukData.tanggalLahir,
+        jenis_kelamin: pendudukData.jenisKelamin,
         agama: pendudukData.agama,
-        id_kepalakeluarga: pendudukData.kepalaKeluarga
+        id_kepala_keluarga: pendudukData.kepalaKeluarga
           ? null
           : pendudukData.selectedKK || null,
-        isKepalaKeluarga: !!pendudukData.kepalaKeluarga,
+        is_kepala_keluarga: !!pendudukData.kepalaKeluarga,
       };
       const response = await api.put("/penduduk/update", updateData);
       return response.data;

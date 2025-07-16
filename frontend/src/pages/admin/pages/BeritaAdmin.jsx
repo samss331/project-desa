@@ -46,15 +46,15 @@ const BeritaAdmin = () => {
   const [formData, setFormData] = useState({
     judul: "",
     kategori: "Umum",
-    tanggalTerbit: "",
+    tanggal_terbit: "",
     penulis: "",
     status: "Draft",
     ringkasan: "",
     isi: "",
     foto: null,
-    fotoPreview: null,
-    deleteFoto: false,
-    originalFoto: null,
+    foto_preview: null,
+    delete_foto: false,
+    original_foto: null,
   });
 
   // Definisi animasi CSS
@@ -108,7 +108,7 @@ const BeritaAdmin = () => {
         id: item.id,
         judul: item.judul,
         kategori: item.kategori || "Umum", // Default to "Umum" if not provided
-        tanggalTerbit: item.tanggalTerbit,
+        tanggal_terbit: item.tanggal_terbit,
         penulis: item.penulis,
         status: item.status || "Dipublikasi", // Default to "Dipublikasi" if not provided
         ringkasan: item.ringkasan || item.isi?.substring(0, 150) || "", // Use first 150 chars of isi as ringkasan if not provided
@@ -155,15 +155,15 @@ const BeritaAdmin = () => {
     setFormData({
       judul: "",
       kategori: "Umum",
-      tanggalTerbit: new Date().toISOString().split("T")[0],
+      tanggal_terbit: new Date().toISOString().split("T")[0],
       penulis: "Admin",
       status: "Draft",
       ringkasan: "",
       isi: "",
       foto: null,
-      fotoPreview: null,
-      deleteFoto: false,
-      originalFoto: null,
+      foto_preview: null,
+      delete_foto: false,
+      original_foto: null,
     });
     setShowAddModal(true);
   };
@@ -173,8 +173,8 @@ const BeritaAdmin = () => {
     if (item) {
       setCurrentItem(item);
 
-      // Ensure tanggalTerbit is in the correct format for date input
-      let formattedDate = item.tanggalTerbit;
+      // Ensure tanggal_terbit is in the correct format for date input
+      let formattedDate = item.tanggal_terbit;
       if (formattedDate) {
         try {
           const date = new Date(formattedDate);
@@ -192,17 +192,17 @@ const BeritaAdmin = () => {
       setFormData({
         judul: item.judul || "",
         kategori: item.kategori || "Umum",
-        tanggalTerbit: formattedDate,
+        tanggal_terbit: formattedDate,
         penulis: item.penulis || "",
         status: item.status || "Draft",
         ringkasan: item.ringkasan || "",
         isi: item.isi || "",
         foto: null,
-        fotoPreview: item.foto
+        foto_preview: item.foto
           ? BeritaServiceAdmin.getImageUrl(item.foto)
           : null,
-        deleteFoto: false,
-        originalFoto: item.foto,
+        delete_foto: false,
+        original_foto: item.foto,
       });
 
       setShowEditModal(true);
@@ -231,8 +231,8 @@ const BeritaAdmin = () => {
       setFormData({
         ...formData,
         foto: file,
-        fotoPreview: URL.createObjectURL(file),
-        deleteFoto: false,
+        foto_preview: URL.createObjectURL(file),
+        delete_foto: false,
       });
     }
   };
@@ -246,8 +246,8 @@ const BeritaAdmin = () => {
     setFormData({
       ...formData,
       foto: null,
-      fotoPreview: null,
-      deleteFoto: true,
+      foto_preview: null,
+      delete_foto: true,
     });
   };
 
@@ -264,7 +264,7 @@ const BeritaAdmin = () => {
       if (
         !formData.judul ||
         !formData.isi ||
-        !formData.tanggalTerbit ||
+        !formData.tanggal_terbit ||
         !formData.penulis
       ) {
         toast.info("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
@@ -276,7 +276,7 @@ const BeritaAdmin = () => {
       const beritaData = {
         judul: formData.judul,
         isi: formData.isi,
-        tanggalTerbit: formData.tanggalTerbit,
+        tanggal_terbit: formData.tanggal_terbit,
         penulis: formData.penulis,
         status: formData.status,
         kategori: formData.kategori,
@@ -311,7 +311,7 @@ const BeritaAdmin = () => {
       if (
         !formData.judul ||
         !formData.isi ||
-        !formData.tanggalTerbit ||
+        !formData.tanggal_terbit ||
         !formData.penulis
       ) {
         toast.info("Judul, isi, tanggal terbit, dan penulis wajib diisi!");
@@ -323,13 +323,13 @@ const BeritaAdmin = () => {
       const beritaData = {
         judul: formData.judul,
         isi: formData.isi,
-        tanggalTerbit: formData.tanggalTerbit,
+        tanggal_terbit: formData.tanggal_terbit,
         penulis: formData.penulis,
         status: formData.status,
         kategori: formData.kategori,
         ringkasan: formData.ringkasan,
         foto: formData.foto,
-        deleteFoto: formData.deleteFoto,
+        delete_foto: formData.delete_foto,
       };
 
       // Send to API
@@ -677,7 +677,7 @@ const BeritaAdmin = () => {
                         <td className="px-4 py-3 text-sm text-gray-800">
                           <div className="flex items-center gap-2">
                             <FaCalendarAlt className="text-gray-400" />
-                            {formatDate(berita.tanggalTerbit)}
+                            {formatDate(berita.tanggal_terbit)}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-800">
@@ -809,10 +809,10 @@ const BeritaAdmin = () => {
                     onChange={handleFileChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
-                  {formData.fotoPreview && (
+                  {formData.foto_preview && (
                     <div className="relative w-16 h-16">
                       <img
-                        src={formData.fotoPreview || "/placeholder.svg"}
+                        src={formData.foto_preview || "/placeholder.svg"}
                         alt="Preview"
                         className="w-16 h-16 object-cover rounded-md"
                       />
@@ -821,7 +821,7 @@ const BeritaAdmin = () => {
                           setFormData({
                             ...formData,
                             foto: null,
-                            fotoPreview: null,
+                            foto_preview: null,
                           })
                         }
                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
@@ -859,19 +859,19 @@ const BeritaAdmin = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label
-                    htmlFor="tanggalTerbit"
+                    htmlFor="tanggal_terbit"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Tanggal
                   </label>
                   <input
-                    id="tanggalTerbit"
+                    id="tanggal_terbit"
                     type="date"
-                    value={formData.tanggalTerbit}
+                    value={formData.tanggal_terbit}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        tanggalTerbit: e.target.value,
+                        tanggal_terbit: e.target.value,
                       })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
@@ -1019,11 +1019,11 @@ const BeritaAdmin = () => {
                 </label>
                 <div className="flex flex-col gap-3">
                   {/* Thumbnail preview */}
-                  {formData.fotoPreview ? (
+                  {formData.foto_preview ? (
                     <div className="flex items-center gap-4">
                       <div className="w-24 h-24 relative">
                         <img
-                          src={formData.fotoPreview || "/placeholder.svg"}
+                          src={formData.foto_preview || "/placeholder.svg"}
                           alt="Thumbnail"
                           className="w-24 h-24 object-cover rounded-md"
                         />
@@ -1100,19 +1100,19 @@ const BeritaAdmin = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label
-                    htmlFor="edit-tanggalTerbit"
+                    htmlFor="edit-tanggal_terbit"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Tanggal
                   </label>
                   <input
-                    id="edit-tanggalTerbit"
+                    id="edit-tanggal_terbit"
                     type="date"
-                    value={formData.tanggalTerbit}
+                    value={formData.tanggal_terbit}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        tanggalTerbit: e.target.value,
+                        tanggal_terbit: e.target.value,
                       })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
@@ -1322,8 +1322,8 @@ const BeritaAdmin = () => {
                 </span>
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                   <FaCalendarAlt className="inline-block mr-1" />
-                  {currentItem?.tanggalTerbit &&
-                    formatDate(currentItem.tanggalTerbit)}
+                  {currentItem?.tanggal_terbit &&
+                    formatDate(currentItem.tanggal_terbit)}
                 </span>
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                   <FaUser className="inline-block mr-1" />

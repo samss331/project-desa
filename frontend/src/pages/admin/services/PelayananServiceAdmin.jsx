@@ -47,7 +47,15 @@ const PelayananServiceAdmin = {
   // POST method
   addPelayanan: async (pelayananData) => {
     try {
-      const response = await api.post("/pelayanan", pelayananData);
+      const payload = {
+        ...pelayananData,
+        nama_layanan: pelayananData.nama_layanan || pelayananData.namaLayanan,
+        link_google_form:
+          pelayananData.link_google_form || pelayananData.linkGoogleForm,
+      };
+      delete payload.namaLayanan;
+      delete payload.linkGoogleForm;
+      const response = await api.post("/pelayanan", payload);
       return response.data;
     } catch (error) {
       console.error("Error adding pelayanan:", error);
@@ -58,7 +66,15 @@ const PelayananServiceAdmin = {
   // PUT method
   updatePelayanan: async (id, pelayananData) => {
     try {
-      const response = await api.put(`/pelayanan/${id}`, pelayananData);
+      const payload = {
+        ...pelayananData,
+        nama_layanan: pelayananData.nama_layanan || pelayananData.namaLayanan,
+        link_google_form:
+          pelayananData.link_google_form || pelayananData.linkGoogleForm,
+      };
+      delete payload.namaLayanan;
+      delete payload.linkGoogleForm;
+      const response = await api.put(`/pelayanan/${id}`, payload);
       return response.data;
     } catch (error) {
       console.error(`Error updating pelayanan with id ${id}:`, error);

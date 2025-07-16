@@ -28,7 +28,7 @@ const DashboardService = {
           id: item.id,
           judul: item.judul,
           kategori: item.kategori || "Umum",
-          tanggal: item.tanggalTerbit,
+          tanggal: item.tanggal_terbit,
           status: item.status || "Dipublikasi",
         })),
         byCategory: processBeritaCategories(beritaData),
@@ -52,18 +52,20 @@ const DashboardService = {
       const pengumumanSummary = {
         total: pengumumanData.length,
         active: pengumumanData.filter(
-          (item) => new Date(item.tanggalSelesai) >= new Date()
+          (item) => new Date(item.tanggal_selesai) >= new Date()
         ).length,
         expired: pengumumanData.filter(
-          (item) => new Date(item.tanggalSelesai) < new Date()
+          (item) => new Date(item.tanggal_selesai) < new Date()
         ).length,
         recent: pengumumanData.slice(0, 3).map((item) => ({
           id: item.id,
           judul: item.judul,
           kategori: "Informasi", // Default category if not available
-          tanggal: item.tanggalMulai,
+          tanggal: item.tanggal_mulai,
           status:
-            new Date(item.tanggalSelesai) < new Date() ? "Kadaluarsa" : "Aktif",
+            new Date(item.tanggal_selesai) < new Date()
+              ? "Kadaluarsa"
+              : "Aktif",
         })),
         byPriority: [
           { priority: "Tinggi", count: 2 }, // Placeholder data
@@ -176,7 +178,7 @@ function generatealerts(pengumumanData, beritaData) {
 
   // Check for expiring announcements
   const expiringAnnouncements = pengumumanData.filter((item) => {
-    const expiryDate = new Date(item.tanggalSelesai);
+    const expiryDate = new Date(item.tanggal_selesai);
     const today = new Date();
     const daysUntilExpiry = Math.floor(
       (expiryDate - today) / (1000 * 60 * 60 * 24)
@@ -196,7 +198,7 @@ function generatealerts(pengumumanData, beritaData) {
   // Check for recent news
   const currentMonth = new Date().getMonth();
   const recentNews = beritaData.filter((item) => {
-    const newsDate = new Date(item.tanggalTerbit);
+    const newsDate = new Date(item.tanggal_terbit);
     return newsDate.getMonth() === currentMonth;
   });
 

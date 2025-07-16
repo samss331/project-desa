@@ -29,33 +29,35 @@ const PopupForm = ({
     useState(false);
   const [searchKK, setSearchKK] = useState("");
 
-  // Reset searchKK saat formData.kepalaKeluarga berubah (form dibuka ulang)
+  // Reset searchKK saat formData.kepala_keluarga berubah (form dibuka ulang)
   useEffect(() => {
     setSearchKK("");
-  }, [formData.kepalaKeluarga]);
+  }, [formData.kepala_keluarga]);
 
-  // Listen perubahan kepalaKeluargaList, reset selectedKK jika tidak valid atau sama dengan nik sendiri
+  // Listen perubahan kepalaKeluargaList, reset selected_kk jika tidak valid atau sama dengan nik sendiri
   useEffect(() => {
     if (
-      !formData.kepalaKeluarga &&
-      formData.selectedKK &&
+      !formData.kepala_keluarga &&
+      formData.selected_kk &&
       kepalaKeluargaList.find(
-        (kk) => kk.id === formData.selectedKK && kk.nik === formData.nik
+        (kk) => kk.id === formData.selected_kk && kk.nik === formData.nik
       )
     ) {
-      handleInputChange({ target: { name: "selectedKK", value: "" } });
+      handleInputChange({ target: { name: "selected_kk", value: "" } });
     }
   }, [kepalaKeluargaList, formData.nik]);
 
-  // Handler untuk checkbox kepala keluarga
+  // Handler untuk checkbox kepala_keluarga
   const handleKepalaKeluargaChange = (e) => {
     const checked = e.target.checked;
     // Jika sedang edit dan uncheck, tampilkan konfirmasi
-    if (isEditing && formData.kepalaKeluarga && !checked) {
+    if (isEditing && formData.kepala_keluarga && !checked) {
       setPendingKepalaKeluarga(false);
       setShowConfirm(true);
     } else {
-      handleInputChange({ target: { name: "kepalaKeluarga", value: checked } });
+      handleInputChange({
+        target: { name: "kepala_keluarga", value: checked },
+      });
     }
   };
 
@@ -72,9 +74,9 @@ const PopupForm = ({
         alert("Gagal menghapus data kepala keluarga!");
       }
       setIsFetchingKepalaKeluarga(false);
-      handleInputChange({ target: { name: "kepalaKeluarga", value: false } });
+      handleInputChange({ target: { name: "kepala_keluarga", value: false } });
     } else {
-      handleInputChange({ target: { name: "kepalaKeluarga", value: true } });
+      handleInputChange({ target: { name: "kepala_keluarga", value: true } });
     }
     setPendingKepalaKeluarga(null);
   };
@@ -147,9 +149,9 @@ const PopupForm = ({
               </label>
               <input
                 type="date"
-                id="tanggalLahir"
-                name="tanggalLahir"
-                value={toDateInputValue(formData.tanggalLahir)}
+                id="tanggal_lahir"
+                name="tanggal_lahir"
+                value={toDateInputValue(formData.tanggal_lahir)}
                 onChange={handleInputChange}
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
                 required
@@ -160,8 +162,8 @@ const PopupForm = ({
                 Jenis Kelamin
               </label>
               <select
-                name="jenisKelamin"
-                value={formData.jenisKelamin}
+                name="jenis_kelamin"
+                value={formData.jenis_kelamin}
                 onChange={handleInputChange}
                 required
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
@@ -191,14 +193,14 @@ const PopupForm = ({
             <div className="flex items-center">
               <input
                 type="checkbox"
-                id="kepalaKeluarga"
-                name="kepalaKeluarga"
-                checked={formData.kepalaKeluarga}
+                id="kepala_keluarga"
+                name="kepala_keluarga"
+                checked={formData.kepala_keluarga}
                 onChange={handleKepalaKeluargaChange}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label
-                htmlFor="kepalaKeluarga"
+                htmlFor="kepala_keluarga"
                 className="ml-2 block text-sm text-gray-700"
               >
                 Kepala Keluarga
@@ -207,7 +209,7 @@ const PopupForm = ({
           </div>
 
           {/* Tambahkan dropdown kepala keluarga jika bukan kepala keluarga */}
-          {!formData.kepalaKeluarga && (
+          {!formData.kepala_keluarga && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Pilih Kepala Keluarga
@@ -222,8 +224,8 @@ const PopupForm = ({
                 disabled={isFetchingKepalaKeluarga}
               />
               <select
-                name="selectedKK"
-                value={formData.selectedKK}
+                name="selected_kk"
+                value={formData.selected_kk}
                 onChange={handleInputChange}
                 required
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"

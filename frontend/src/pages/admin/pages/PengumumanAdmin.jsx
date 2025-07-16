@@ -190,8 +190,8 @@ const PengumumanAdmin = () => {
       const pengumumanData = {
         judul: formData.judul,
         isi: formData.isi,
-        tanggalMulai: formData.tanggalMulai,
-        tanggalSelesai: formData.tanggalSelesai,
+        tanggal_mulai: formData.tanggal_mulai,
+        tanggal_selesai: formData.tanggal_selesai,
       };
 
       // Call API
@@ -220,8 +220,8 @@ const PengumumanAdmin = () => {
       const pengumumanData = {
         judul: formData.judul,
         isi: formData.isi,
-        tanggalMulai: formData.tanggalMulai,
-        tanggalSelesai: formData.tanggalSelesai,
+        tanggal_mulai: formData.tanggal_mulai,
+        tanggal_selesai: formData.tanggal_selesai,
       };
 
       // Call API
@@ -328,8 +328,8 @@ const PengumumanAdmin = () => {
       const updateData = {
         judul: item.judul,
         isi: item.isi,
-        tanggalMulai: new Date().toISOString().split("T")[0],
-        tanggalSelesai: newEndDate.toISOString().split("T")[0],
+        tanggal_mulai: new Date().toISOString().split("T")[0],
+        tanggal_selesai: newEndDate.toISOString().split("T")[0],
       };
 
       await PengumumanServiceAdmin.updatePengumuman(id, updateData);

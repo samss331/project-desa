@@ -57,20 +57,20 @@ const validateBeritaData = (data) => {
   }
 
   // Periksa format tanggal jika ada
-  if (data.tanggalTerbit) {
+  if (data.tanggal_terbit) {
     // Jika tanggal sudah dalam format ISO string, konversi ke YYYY-MM-DD
-    if (data.tanggalTerbit.includes("T")) {
-      data.tanggalTerbit = data.tanggalTerbit.split("T")[0];
+    if (data.tanggal_terbit.includes("T")) {
+      data.tanggal_terbit = data.tanggal_terbit.split("T")[0];
     }
 
     // Periksa format tanggal
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(data.tanggalTerbit)) {
+    if (!dateRegex.test(data.tanggal_terbit)) {
       // Coba format ulang tanggal jika tidak sesuai format
       try {
-        const date = new Date(data.tanggalTerbit);
+        const date = new Date(data.tanggal_terbit);
         if (!isNaN(date.getTime())) {
-          data.tanggalTerbit = date.toISOString().split("T")[0];
+          data.tanggal_terbit = date.toISOString().split("T")[0];
         } else {
           throw new Error("Format tanggal harus YYYY-MM-DD");
         }
@@ -140,20 +140,19 @@ const BeritaServiceAdmin = {
         formData.append("judul", beritaData.judul);
         formData.append("isi", beritaData.isi);
 
-        if (beritaData.tanggalTerbit) {
-          // Pastikan format tanggal benar
-          const date = new Date(beritaData.tanggalTerbit);
+        if (beritaData.tanggal_terbit) {
+          const date = new Date(beritaData.tanggal_terbit);
           if (!isNaN(date.getTime())) {
-            formData.append("tanggalTerbit", date.toISOString().split("T")[0]);
+            formData.append("tanggal_terbit", date.toISOString().split("T")[0]);
           } else {
             formData.append(
-              "tanggalTerbit",
+              "tanggal_terbit",
               new Date().toISOString().split("T")[0]
             );
           }
         } else {
           formData.append(
-            "tanggalTerbit",
+            "tanggal_terbit",
             new Date().toISOString().split("T")[0]
           );
         }
@@ -176,16 +175,23 @@ const BeritaServiceAdmin = {
         });
         return response.data;
       } else {
-        // Jika tidak ada file foto
-        // Pastikan format tanggal benar
-        if (beritaData.tanggalTerbit) {
-          const date = new Date(beritaData.tanggalTerbit);
+        if (beritaData.tanggal_terbit) {
+          const date = new Date(beritaData.tanggal_terbit);
           if (!isNaN(date.getTime())) {
-            beritaData.tanggalTerbit = date.toISOString().split("T")[0];
+            beritaData.tanggal_terbit = date.toISOString().split("T")[0];
           }
         }
-
-        const response = await secureApi.post("/berita", beritaData);
+        // Mapping ke snake_case
+        const payload = {
+          judul: beritaData.judul,
+          isi: beritaData.isi,
+          tanggal_terbit: beritaData.tanggal_terbit,
+          penulis: beritaData.penulis || "Admin",
+          status: beritaData.status || "Draft",
+          kategori: beritaData.kategori,
+          ringkasan: beritaData.ringkasan,
+        };
+        const response = await secureApi.post("/berita", payload);
         return response.data;
       }
     } catch (error) {
@@ -206,20 +212,19 @@ const BeritaServiceAdmin = {
         formData.append("judul", beritaData.judul);
         formData.append("isi", beritaData.isi);
 
-        if (beritaData.tanggalTerbit) {
-          // Pastikan format tanggal benar
-          const date = new Date(beritaData.tanggalTerbit);
+        if (beritaData.tanggal_terbit) {
+          const date = new Date(beritaData.tanggal_terbit);
           if (!isNaN(date.getTime())) {
-            formData.append("tanggalTerbit", date.toISOString().split("T")[0]);
+            formData.append("tanggal_terbit", date.toISOString().split("T")[0]);
           } else {
             formData.append(
-              "tanggalTerbit",
+              "tanggal_terbit",
               new Date().toISOString().split("T")[0]
             );
           }
         } else {
           formData.append(
-            "tanggalTerbit",
+            "tanggal_terbit",
             new Date().toISOString().split("T")[0]
           );
         }
@@ -233,9 +238,7 @@ const BeritaServiceAdmin = {
           formData.append("ringkasan", beritaData.ringkasan);
         }
         formData.append("foto", beritaData.foto);
-
-        // Tambahkan flag untuk menandakan bahwa ini adalah update dengan foto baru
-        formData.append("updateFoto", "true");
+        formData.append("update_foto", "true");
 
         const response = await axios.put(`${API_URL}/berita/${id}`, formData, {
           headers: {
@@ -244,26 +247,24 @@ const BeritaServiceAdmin = {
           },
         });
         return response.data;
-      } else if (beritaData.deleteFoto) {
-        // Jika user ingin menghapus foto
+      } else if (beritaData.delete_foto) {
         const formData = new FormData();
         formData.append("judul", beritaData.judul);
         formData.append("isi", beritaData.isi);
 
-        if (beritaData.tanggalTerbit) {
-          // Pastikan format tanggal benar
-          const date = new Date(beritaData.tanggalTerbit);
+        if (beritaData.tanggal_terbit) {
+          const date = new Date(beritaData.tanggal_terbit);
           if (!isNaN(date.getTime())) {
-            formData.append("tanggalTerbit", date.toISOString().split("T")[0]);
+            formData.append("tanggal_terbit", date.toISOString().split("T")[0]);
           } else {
             formData.append(
-              "tanggalTerbit",
+              "tanggal_terbit",
               new Date().toISOString().split("T")[0]
             );
           }
         } else {
           formData.append(
-            "tanggalTerbit",
+            "tanggal_terbit",
             new Date().toISOString().split("T")[0]
           );
         }
@@ -276,9 +277,7 @@ const BeritaServiceAdmin = {
         if (beritaData.ringkasan) {
           formData.append("ringkasan", beritaData.ringkasan);
         }
-
-        // Tambahkan flag untuk menandakan bahwa foto harus dihapus
-        formData.append("deleteFoto", "true");
+        formData.append("delete_foto", "true");
 
         const response = await axios.put(`${API_URL}/berita/${id}`, formData, {
           headers: {
@@ -288,16 +287,22 @@ const BeritaServiceAdmin = {
         });
         return response.data;
       } else {
-        // Jika tidak ada file foto dan tidak menghapus foto
-        // Pastikan format tanggal benar
-        if (beritaData.tanggalTerbit) {
-          const date = new Date(beritaData.tanggalTerbit);
+        if (beritaData.tanggal_terbit) {
+          const date = new Date(beritaData.tanggal_terbit);
           if (!isNaN(date.getTime())) {
-            beritaData.tanggalTerbit = date.toISOString().split("T")[0];
+            beritaData.tanggal_terbit = date.toISOString().split("T")[0];
           }
         }
-
-        const response = await secureApi.put(`/berita/${id}`, beritaData);
+        const payload = {
+          judul: beritaData.judul,
+          isi: beritaData.isi,
+          tanggal_terbit: beritaData.tanggal_terbit,
+          penulis: beritaData.penulis || "Admin",
+          status: beritaData.status || "Draft",
+          kategori: beritaData.kategori,
+          ringkasan: beritaData.ringkasan,
+        };
+        const response = await secureApi.put(`/berita/${id}`, payload);
         return response.data;
       }
     } catch (error) {
@@ -316,21 +321,20 @@ const BeritaServiceAdmin = {
       }
 
       // Format tanggal dengan benar
-      let tanggalTerbit = currentBerita.tanggalTerbit;
-      if (tanggalTerbit) {
-        const date = new Date(tanggalTerbit);
+      let tanggal_terbit = currentBerita.tanggal_terbit;
+      if (!tanggal_terbit && currentBerita.tanggal_terbit) {
+        const date = new Date(currentBerita.tanggal_terbit);
         if (!isNaN(date.getTime())) {
-          tanggalTerbit = date.toISOString().split("T")[0];
+          tanggal_terbit = date.toISOString().split("T")[0];
         }
-      } else {
-        tanggalTerbit = new Date().toISOString().split("T")[0];
+      } else if (!tanggal_terbit) {
+        tanggal_terbit = new Date().toISOString().split("T")[0];
       }
-
       // Update only the status
       const response = await secureApi.put(`/berita/${id}`, {
         judul: currentBerita.judul,
         isi: currentBerita.isi,
-        tanggalTerbit: tanggalTerbit,
+        tanggal_terbit: tanggal_terbit,
         penulis: currentBerita.penulis || "Admin",
         status: status,
         kategori: currentBerita.kategori || "Umum",

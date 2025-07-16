@@ -296,7 +296,7 @@ function SuratAdmin() {
       }
 
       const formDataObj = new FormData();
-      formDataObj.append("nomorSurat", formData.nomor);
+      formDataObj.append("nomor_surat", formData.nomor);
       formDataObj.append("perihal", formData.perihal);
 
       if (formData.file) {
@@ -306,11 +306,11 @@ function SuratAdmin() {
       let result;
       if (formData.jenis === "Surat Masuk") {
         formDataObj.append("pengirim", formData.pengirim);
-        formDataObj.append("tanggalTerima", formData.tanggal);
+        formDataObj.append("tanggal_terima", formData.tanggal);
         result = await SuratService.addSuratMasuk(formDataObj);
       } else {
         formDataObj.append("penerima", formData.pengirim); // UI field pengirim digunakan untuk penerima
-        formDataObj.append("tanggalKirim", formData.tanggal);
+        formDataObj.append("tanggal_kirim", formData.tanggal);
         result = await SuratService.addSuratKeluar(formDataObj);
       }
 
@@ -348,7 +348,7 @@ function SuratAdmin() {
       setIsActionLoading(true);
 
       const formDataObj = new FormData();
-      formDataObj.append("nomorSurat", formData.nomor);
+      formDataObj.append("nomor_surat", formData.nomor);
       formDataObj.append("perihal", formData.perihal);
 
       if (formData.file) {
@@ -357,11 +357,11 @@ function SuratAdmin() {
 
       if (formData.jenis === "Surat Masuk") {
         formDataObj.append("pengirim", formData.pengirim);
-        formDataObj.append("tanggalTerima", formData.tanggal);
+        formDataObj.append("tanggal_terima", formData.tanggal);
         await SuratService.updateSuratMasuk(currentItem.id, formDataObj);
       } else {
         formDataObj.append("penerima", formData.pengirim);
-        formDataObj.append("tanggalKirim", formData.tanggal);
+        formDataObj.append("tanggal_kirim", formData.tanggal);
         await SuratService.updateSuratKeluar(currentItem.id, formDataObj);
       }
 

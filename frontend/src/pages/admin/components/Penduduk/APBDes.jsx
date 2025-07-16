@@ -117,7 +117,15 @@ export default function APBDes() {
   // Handle form submissions
   const handleAddDanaMasuk = async (formData) => {
     try {
-      await APBDesService.addDanaMasuk(formData);
+      // Mapping ke snake_case
+      const payload = {
+        tahun: formData.tahun,
+        bulan: formData.bulan,
+        jumlah_masuk: formData.jumlah,
+        sumber_dana: formData.sumber,
+        keterangan: formData.keterangan,
+      };
+      await APBDesService.addDanaMasuk(payload);
       setShowDanaMasukForm(false);
       fetchData();
     } catch (error) {
@@ -130,7 +138,14 @@ export default function APBDes() {
 
   const handleUpdateDanaMasuk = async (id, formData) => {
     try {
-      await APBDesService.updateDanaMasuk(id, formData);
+      const payload = {
+        tahun: formData.tahun,
+        bulan: formData.bulan,
+        jumlah_masuk: formData.jumlah,
+        sumber_dana: formData.sumber,
+        keterangan: formData.keterangan,
+      };
+      await APBDesService.updateDanaMasuk(id, payload);
       setShowDanaMasukForm(false);
       setEditingItem(null);
       fetchData();
@@ -160,7 +175,14 @@ export default function APBDes() {
 
   const handleAddDanaKeluar = async (formData) => {
     try {
-      await APBDesService.addDanaKeluar(formData);
+      const payload = {
+        tahun: formData.tahun,
+        bulan: formData.bulan,
+        jumlah_keluar: formData.jumlah,
+        bidang: formData.kategori,
+        keterangan: formData.keterangan,
+      };
+      await APBDesService.addDanaKeluar(payload);
       setShowDanaKeluarForm(false);
       fetchData();
     } catch (error) {
@@ -173,7 +195,14 @@ export default function APBDes() {
 
   const handleUpdateDanaKeluar = async (id, formData) => {
     try {
-      await APBDesService.updateDanaKeluar(id, formData);
+      const payload = {
+        tahun: formData.tahun,
+        bulan: formData.bulan,
+        jumlah_keluar: formData.jumlah,
+        bidang: formData.kategori,
+        keterangan: formData.keterangan,
+      };
+      await APBDesService.updateDanaKeluar(id, payload);
       setShowDanaKeluarForm(false);
       setEditingItem(null);
       fetchData();

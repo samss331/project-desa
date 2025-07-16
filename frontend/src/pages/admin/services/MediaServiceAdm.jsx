@@ -124,8 +124,15 @@ const MediaService = {
         });
         return response.data;
       } else {
-        // Jika tidak ada file
-        const response = await api.post("/media", mediaData);
+        // Mapping ke snake_case jika mediaData adalah objek biasa
+        const payload = {
+          ...mediaData,
+          original_filename: mediaData.originalFileName,
+          original_thumbnail_filename: mediaData.originalThumbnailFilename,
+        };
+        delete payload.originalFileName;
+        delete payload.originalThumbnailFilename;
+        const response = await api.post("/media", payload);
         return response.data;
       }
     } catch (error) {
@@ -187,8 +194,15 @@ const MediaService = {
         });
         return response.data;
       } else {
-        // Jika tidak ada file
-        const response = await api.put(`/media/${id}`, mediaData);
+        // Mapping ke snake_case jika mediaData adalah objek biasa
+        const payload = {
+          ...mediaData,
+          original_filename: mediaData.originalFileName,
+          original_thumbnail_filename: mediaData.originalThumbnailFilename,
+        };
+        delete payload.originalFileName;
+        delete payload.originalThumbnailFilename;
+        const response = await api.put(`/media/${id}`, payload);
         return response.data;
       }
     } catch (error) {

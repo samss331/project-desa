@@ -58,7 +58,13 @@ const PengumumanServiceAdmin = {
   // POST method
   addPengumuman: async (pengumumanData) => {
     try {
-      const response = await api.post("/pengumuman", pengumumanData);
+      const payload = {
+        judul: pengumumanData.judul,
+        isi: pengumumanData.isi,
+        tanggal_mulai: pengumumanData.tanggalMulai,
+        tanggal_selesai: pengumumanData.tanggalSelesai,
+      };
+      const response = await api.post("/pengumuman", payload);
       return response.data.data;
     } catch (error) {
       console.error("Error adding pengumuman:", error);
@@ -69,7 +75,13 @@ const PengumumanServiceAdmin = {
   // PUT method
   updatePengumuman: async (id, pengumumanData) => {
     try {
-      const response = await api.put(`/pengumuman/${id}`, pengumumanData);
+      const payload = {
+        judul: pengumumanData.judul,
+        isi: pengumumanData.isi,
+        tanggal_mulai: pengumumanData.tanggalMulai,
+        tanggal_selesai: pengumumanData.tanggalSelesai,
+      };
+      const response = await api.put(`/pengumuman/${id}`, payload);
       return response.data.data;
     } catch (error) {
       console.error(`Error updating pengumuman with id ${id}:`, error);
