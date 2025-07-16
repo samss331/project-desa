@@ -1,76 +1,60 @@
-import db from "../config/database.js";
+import supabase from "../config/database.js";
 
 const getAllKepalaKeluarga = async () => {
-  try {
-    const [results] = await db
-      .promise()
-      .query("SELECT * FROM kepalakeluarga ORDER BY nama ASC");
-    return results;
-  } catch (error) {
-    throw error;
-  }
+  const { data, error } = await supabase
+    .from("kepalakeluarga")
+    .select("id, nama, nik")
+    .order("nama", { ascending: true });
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const getKepalaKeluargaById = async (id) => {
-  try {
-    const [results] = await db
-      .promise()
-      .query("SELECT * FROM kepalakeluarga WHERE id = ?", [id]);
-    return results.length ? results[0] : null;
-  } catch (error) {
-    throw error;
-  }
+  const { data, error } = await supabase
+    .from("kepalakeluarga")
+    .select("id, nama, nik")
+    .eq("id", id)
+    .single();
+  if (error || !data) return null;
+  return data;
 };
 
 const getKepalaKeluargaByNik = async (nik) => {
-  try {
-    const [results] = await db
-      .promise()
-      .query("SELECT * FROM kepalakeluarga WHERE nik = ?", [nik]);
-    return results.length ? results[0] : null;
-  } catch (error) {
-    throw error;
-  }
+  const { data, error } = await supabase
+    .from("kepalakeluarga")
+    .select("id, nama, nik")
+    .eq("nik", nik)
+    .single();
+  if (error || !data) return null;
+  return data;
 };
 
 const addKepalaKeluarga = async (nama, nik) => {
-  try {
-    const [results] = await db
-      .promise()
-      .query("INSERT INTO kepalakeluarga (nama, nik) VALUES (?, ?)", [
-        nama,
-        nik,
-      ]);
-    return { id: results.insertId, nama, nik };
-  } catch (error) {
-    throw error;
-  }
+  const { data, error } = await supabase
+    .from("kepalakeluarga")
+    .insert([{ nama, nik }])
+    .select("id, nama, nik")
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const updateKepalaKeluarga = async (id, nama, nik) => {
-  try {
-    const [results] = await db
-      .promise()
-      .query("UPDATE kepalakeluarga SET nama = ?, nik = ? WHERE id = ?", [
-        nama,
-        nik,
-        id,
-      ]);
-    return results.affectedRows > 0;
-  } catch (error) {
-    throw error;
-  }
+  const { error, data } = await supabase
+    .from("kepalakeluarga")
+    .update({ nama, nik })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 const deleteKepalaKeluarga = async (id) => {
-  try {
-    const [results] = await db
-      .promise()
-      .query("DELETE FROM kepalakeluarga WHERE id = ?", [id]);
-    return results.affectedRows > 0;
-  } catch (error) {
-    throw error;
-  }
+  const { error, data } = await supabase
+    .from("kepalakeluarga")
+    .delete()
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 export default {

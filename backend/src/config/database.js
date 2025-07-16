@@ -1,21 +1,17 @@
+import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
-import mysql from "mysql2";
+dotenv.config();
 
-dotenv.config(); // Load .env sebelum digunakan
-
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PW,
-  database: process.env.DB_NAME,
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error("Koneksi ke database gagal:", err);
-    return;
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
   }
-  ("Terhubung ke Database");
-});
+);
 
-export default db;
+export default supabase;

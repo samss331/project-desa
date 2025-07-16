@@ -1,63 +1,42 @@
-import db from "../config/database.js";
+import supabase from "../config/database.js";
 
 const getAllBerita = async () => {
-  try {
-    const [results] = await db
-      .promise()
-      .query("SELECT * FROM berita ORDER BY tanggalTerbit DESC");
-    return results;
-  } catch (error) {
-    throw error;
-  }
+  const { data, error } = await supabase
+    .from("berita")
+    .select("*")
+    .order("tanggalTerbit", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data;
 };
 
-// Tambahkan fungsi untuk mendapatkan berita berdasarkan status
 const getBeritaByStatus = async (status) => {
-  try {
-    const [results] = await db
-      .promise()
-      .query(
-        "SELECT * FROM berita WHERE status = ? ORDER BY tanggalTerbit DESC",
-        [status]
-      );
-    return results;
-  } catch (error) {
-    throw error;
-  }
+  const { data, error } = await supabase
+    .from("berita")
+    .select("*")
+    .eq("status", status)
+    .order("tanggalTerbit", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const getBeritaById = async (id) => {
-  try {
-    const [result] = await db
-      .promise()
-      .query("SELECT * FROM berita WHERE id = ?", [id]);
-    return result.length > 0 ? result[0] : null;
-  } catch (error) {
-    throw error;
-  }
+  const { data, error } = await supabase
+    .from("berita")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error || !data) return null;
+  return data;
 };
 
 const addBerita = async (judul, foto, isi, tanggalTerbit, penulis, status) => {
-  try {
-    // Perbaikan: Tambahkan status dan sesuaikan jumlah placeholder
-    const [result] = await db
-      .promise()
-      .query(
-        "INSERT INTO berita (judul, foto, isi, tanggalTerbit, penulis, status) VALUES (?, ?, ?, ?, ?, ?)",
-        [judul, foto, isi, tanggalTerbit, penulis, status]
-      );
-
-    // Ambil ID yang baru dibuat
-    const id = result.insertId;
-
-    // Ambil data berita yang baru dibuat
-    const [newBerita] = await db
-      .promise()
-      .query("SELECT * FROM berita WHERE id = ?", [id]);
-    return newBerita[0];
-  } catch (error) {
-    throw error;
-  }
+  const { data, error } = await supabase
+    .from("berita")
+    .insert([{ judul, foto, isi, tanggalTerbit, penulis, status }])
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const updateBerita = async (
@@ -69,41 +48,20 @@ const updateBerita = async (
   penulis,
   status
 ) => {
-  try {
-    // Cek apakah foto diupdate
-    if (foto) {
-      // Jika foto diupdate
-      const [result] = await db
-        .promise()
-        .query(
-          "UPDATE berita SET judul = ?, foto = ?, isi = ?, tanggalTerbit = ?, penulis = ?, status = ? WHERE id = ?",
-          [judul, foto, isi, tanggalTerbit, penulis, status, id]
-        );
-      return result.affectedRows > 0;
-    } else {
-      // Jika foto tidak diupdate, jangan ubah nilai foto
-      const [result] = await db
-        .promise()
-        .query(
-          "UPDATE berita SET judul = ?, isi = ?, tanggalTerbit = ?, penulis = ?, status = ? WHERE id = ?",
-          [judul, isi, tanggalTerbit, penulis, status, id]
-        );
-      return result.affectedRows > 0;
-    }
-  } catch (error) {
-    throw error;
-  }
+  let updateObj = { judul, isi, tanggalTerbit, penulis, status };
+  if (foto) updateObj.foto = foto;
+  const { error, data } = await supabase
+    .from("berita")
+    .update(updateObj)
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 const deleteBerita = async (id) => {
-  try {
-    const [result] = await db
-      .promise()
-      .query("DELETE FROM berita WHERE id = ?", [id]);
-    return result.affectedRows > 0;
-  } catch (error) {
-    throw error;
-  }
+  const { error, data } = await supabase.from("berita").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 export default {

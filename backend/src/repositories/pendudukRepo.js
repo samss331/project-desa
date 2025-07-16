@@ -1,270 +1,219 @@
-import db from "../config/database.js"
+import supabase from "../config/database.js";
 
 const getAllPenduduk = async () => {
-  try {
-    const [results] = await db.promise().query(`
-      SELECT 
-        p.id,
-        p.nama,
-        p.nik,
-        p.alamat,
-        p.tanggalLahir,
-        p.jenisKelamin,
-        p.agama,
-        p.id_kepalakeluarga,
-        kk.nama as namaKepalaKeluarga,
-        kk.nik as nikKepalaKeluarga
-      FROM penduduk p 
-      LEFT JOIN kepalakeluarga kk ON p.id_kepalakeluarga = kk.id
-      ORDER BY p.id ASC
-    `)
-    return results
-  } catch (error) {
-    throw error
-  }
-}
+  const { data, error } = await supabase
+    .from("penduduk")
+    .select(
+      "id, nama, nik, alamat, tanggal_lahir, jenis_kelamin, agama, id_kepala_keluarga, kepala_keluarga:nama, kepala_keluarga:nik"
+    )
+    .order("id", { ascending: true });
+  if (error) throw new Error(error.message);
+  return data;
+};
 
 const getPendudukByNik = async (nik) => {
-  try {
-    const [results] = await db.promise().query(
-      `
-      SELECT 
-        p.id,
-        p.nama,
-        p.nik,
-        p.alamat,
-        p.tanggalLahir,
-        p.jenisKelamin,
-        p.agama,
-        p.id_kepalakeluarga,
-        kk.nama as namaKepalaKeluarga,
-        kk.nik as nikKepalaKeluarga
-      FROM penduduk p 
-      LEFT JOIN kepalakeluarga kk ON p.id_kepalakeluarga = kk.id 
-      WHERE p.nik = ?
-      `,
-      [nik],
+  const { data, error } = await supabase
+    .from("penduduk")
+    .select(
+      "id, nama, nik, alamat, tanggal_lahir, jenis_kelamin, agama, id_kepala_keluarga, kepala_keluarga:nama, kepala_keluarga:nik"
     )
-    return results.length ? results[0] : null
-  } catch (error) {
-    throw error
-  }
-}
+    .eq("nik", nik)
+    .single();
+  if (error || !data) return null;
+  return data;
+};
 
 const getPendudukById = async (id) => {
-  try {
-    const [results] = await db.promise().query(
-      `
-      SELECT 
-        p.id,
-        p.nama,
-        p.nik,
-        p.alamat,
-        p.tanggalLahir,
-        p.jenisKelamin,
-        p.agama,
-        p.id_kepalakeluarga,
-        kk.nama as namaKepalaKeluarga,
-        kk.nik as nikKepalaKeluarga
-      FROM penduduk p 
-      LEFT JOIN kepalakeluarga kk ON p.id_kepalakeluarga = kk.id 
-      WHERE p.id = ?
-      `,
-      [id],
+  const { data, error } = await supabase
+    .from("penduduk")
+    .select(
+      "id, nama, nik, alamat, tanggal_lahir, jenis_kelamin, agama, id_kepala_keluarga, kepala_keluarga:nama, kepala_keluarga:nik"
     )
-    return results.length ? results[0] : null
-  } catch (error) {
-    throw error
-  }
-}
+    .eq("id", id)
+    .single();
+  if (error || !data) return null;
+  return data;
+};
 
-const addPenduduk = async (nama, nik, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga) => {
-  try {
-    const [results] = await db
-      .promise()
-      .query(
-        "INSERT INTO penduduk (nama, nik, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [nama, nik, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga],
-      )
-
-    // Ambil data yang baru diinsert dengan JOIN
-    const newId = results.insertId
-    const newData = await getPendudukById(newId)
-
-    return (
-      newData || {
-        id: newId,
+const addPenduduk = async (
+  nama,
+  nik,
+  alamat,
+  tanggal_lahir,
+  jenis_kelamin,
+  agama,
+  id_kepala_keluarga
+) => {
+  const { data, error } = await supabase
+    .from("penduduk")
+    .insert([
+      {
         nama,
         nik,
         alamat,
-        tanggalLahir,
-        jenisKelamin,
+        tanggal_lahir,
+        jenis_kelamin,
         agama,
-        id_kepalakeluarga,
-      }
-    )
-  } catch (error) {
-    throw error
-  }
-}
+        id_kepala_keluarga,
+      },
+    ])
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+};
 
 const updateDataPenduduk = async (
   oldNik,
   nama,
   newNik,
   alamat,
-  tanggalLahir,
-  jenisKelamin,
+  tanggal_lahir,
+  jenis_kelamin,
   agama,
-  id_kepalakeluarga,
+  id_kepala_keluarga
 ) => {
-  try {
-    const [results] = await db
-      .promise()
-      .query(
-        "UPDATE penduduk SET nama = ?, nik = ?, alamat = ?, tanggalLahir = ?, jenisKelamin = ?, agama = ?, id_kepalakeluarga = ? WHERE nik = ?",
-        [nama, newNik, alamat, tanggalLahir, jenisKelamin, agama, id_kepalakeluarga, oldNik],
-      )
-    return results
-  } catch (error) {
-    throw error
-  }
-}
+  const { error, data } = await supabase
+    .from("penduduk")
+    .update({
+      nama,
+      nik: newNik,
+      alamat,
+      tanggal_lahir,
+      jenis_kelamin,
+      agama,
+      id_kepala_keluarga,
+    })
+    .eq("nik", oldNik);
+  if (error) throw new Error(error.message);
+  return data;
+};
 
 const deleteDataPenduduk = async (nik) => {
-  try {
-    const [results] = await db.promise().query("DELETE FROM penduduk WHERE nik = ?", [nik])
-    return results.affectedRows > 0
-  } catch (error) {
-    throw error
-  }
-}
+  const { error, data } = await supabase
+    .from("penduduk")
+    .delete()
+    .eq("nik", nik);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
+};
 
 const getTotalPenduduk = async () => {
-  try {
-    const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM penduduk")
-    return results[0].total
-  } catch (error) {
-    throw error
-  }
-}
+  const { count, error } = await supabase
+    .from("penduduk")
+    .select("id", { count: "exact", head: true });
+  if (error) throw new Error(error.message);
+  return count;
+};
 
 const getTotalKepalaKeluarga = async () => {
-  try {
-    const [results] = await db.promise().query("SELECT COUNT(*) AS total FROM kepalakeluarga")
-    return results[0].total
-  } catch (error) {
-    throw error
-  }
-}
+  const { count, error } = await supabase
+    .from("kepala_keluarga")
+    .select("id", { count: "exact", head: true });
+  if (error) throw new Error(error.message);
+  return count;
+};
 
 const getTotalLakiLaki = async () => {
-  try {
-    const [results] = await db
-      .promise()
-      .query("SELECT COUNT(*) AS total FROM penduduk WHERE jenisKelamin = 'laki-laki'")
-    return results[0].total
-  } catch (error) {
-    throw error
-  }
-}
+  const { count, error } = await supabase
+    .from("penduduk")
+    .select("id", { count: "exact", head: true })
+    .eq("jenis_kelamin", "Laki-laki");
+  if (error) throw new Error(error.message);
+  return count;
+};
 
 const getTotalPerempuan = async () => {
-  try {
-    const [results] = await db
-      .promise()
-      .query("SELECT COUNT(*) AS total FROM penduduk WHERE jenisKelamin = 'perempuan'")
-    return results[0].total
-  } catch (error) {
-    throw error
-  }
-}
+  const { count, error } = await supabase
+    .from("penduduk")
+    .select("id", { count: "exact", head: true })
+    .eq("jenis_kelamin", "Perempuan");
+  if (error) throw new Error(error.message);
+  return count;
+};
 
 const getPendudukByAgama = async () => {
-  try {
-    const [results] = await db.promise().query("SELECT agama, COUNT(*) AS total FROM penduduk GROUP BY agama")
-    return results
-  } catch (error) {
-    throw error
-  }
-}
+  const { data, error } = await supabase.from("penduduk").select("agama");
+  if (error) throw new Error(error.message);
+  // Group by agama in JS
+  const result = {};
+  data.forEach((row) => {
+    if (!result[row.agama]) result[row.agama] = 0;
+    result[row.agama]++;
+  });
+  return Object.entries(result).map(([agama, total]) => ({ agama, total }));
+};
 
 const getPendudukByUmur = async () => {
-  try {
-    const [results] = await db.promise().query(`
-      SELECT 
-        CASE 
-          WHEN TIMESTAMPDIFF(YEAR, tanggalLahir, CURDATE()) <= 12 THEN 'Anak-anak'
-          WHEN TIMESTAMPDIFF(YEAR, tanggalLahir, CURDATE()) <= 19 THEN 'Remaja'
-          WHEN TIMESTAMPDIFF(YEAR, tanggalLahir, CURDATE()) <= 35 THEN 'Dewasa Muda'
-          WHEN TIMESTAMPDIFF(YEAR, tanggalLahir, CURDATE()) <= 59 THEN 'Dewasa'
-          ELSE 'Lansia'
-        END AS kategori,
-        COUNT(*) AS total
-      FROM penduduk
-      GROUP BY kategori
-    `)
-    return results
-  } catch (error) {
-    throw error
-  }
-}
+  const { data, error } = await supabase
+    .from("penduduk")
+    .select("tanggal_lahir");
+  if (error) throw new Error(error.message);
+  // Group by umur kategori in JS
+  const now = new Date();
+  const kategori = {
+    "Anak-anak": 0,
+    Remaja: 0,
+    "Dewasa Muda": 0,
+    Dewasa: 0,
+    Lansia: 0,
+  };
+  data.forEach((row) => {
+    const tgl = new Date(row.tanggal_lahir);
+    let umur = now.getFullYear() - tgl.getFullYear();
+    const m = now.getMonth() - tgl.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < tgl.getDate())) umur--;
+    if (umur <= 12) kategori["Anak-anak"]++;
+    else if (umur <= 19) kategori["Remaja"]++;
+    else if (umur <= 35) kategori["Dewasa Muda"]++;
+    else if (umur <= 59) kategori["Dewasa"]++;
+    else kategori["Lansia"]++;
+  });
+  return Object.entries(kategori).map(([kategori, total]) => ({
+    kategori,
+    total,
+  }));
+};
 
-const getPendudukByKepalaKeluarga = async (id_kepalakeluarga) => {
-  try {
-    const [results] = await db.promise().query(
-      `
-      SELECT 
-        p.id,
-        p.nama,
-        p.nik,
-        p.alamat,
-        p.tanggalLahir,
-        p.jenisKelamin,
-        p.agama,
-        p.id_kepalakeluarga,
-        kk.nama as namaKepalaKeluarga,
-        kk.nik as nikKepalaKeluarga
-      FROM penduduk p 
-      LEFT JOIN kepalakeluarga kk ON p.id_kepalakeluarga = kk.id 
-      WHERE p.id_kepalakeluarga = ?
-      ORDER BY p.nama ASC
-      `,
-      [id_kepalakeluarga],
+const getPendudukByKepalaKeluarga = async (id_kepala_keluarga) => {
+  const { data, error } = await supabase
+    .from("penduduk")
+    .select(
+      "id, nama, nik, alamat, tanggal_lahir, jenis_kelamin, agama, id_kepala_keluarga, kepala_keluarga:nama, kepala_keluarga:nik"
     )
-    return results
-  } catch (error) {
-    throw error
-  }
-}
+    .eq("id_kepala_keluarga", id_kepala_keluarga)
+    .order("nama", { ascending: true });
+  if (error) throw new Error(error.message);
+  return data;
+};
 
 const searchPendudukByKepalaKeluarga = async (searchTerm) => {
-  try {
-    const [results] = await db.promise().query(
-      `
-      SELECT 
-        p.id,
-        p.nama,
-        p.nik,
-        p.alamat,
-        p.tanggalLahir,
-        p.jenisKelamin,
-        p.agama,
-        p.id_kepalakeluarga,
-        kk.nama as namaKepalaKeluarga,
-        kk.nik as nikKepalaKeluarga
-      FROM penduduk p 
-      LEFT JOIN kepalakeluarga kk ON p.id_kepalakeluarga = kk.id 
-      WHERE kk.nama LIKE ? OR kk.nik LIKE ?
-      ORDER BY kk.nama ASC, p.nama ASC
-      `,
-      [`%${searchTerm}%`, `%${searchTerm}%`],
-    )
-    return results
-  } catch (error) {
-    throw error
-  }
-}
+  // Supabase tidak support join + like, jadi fetch semua lalu filter di JS
+  const { data, error } = await supabase
+    .from("penduduk")
+    .select(
+      "id, nama, nik, alamat, tanggal_lahir, jenis_kelamin, agama, id_kepala_keluarga, kepala_keluarga:nama, kepala_keluarga:nik"
+    );
+  if (error) throw new Error(error.message);
+  const filtered = data.filter(
+    (row) =>
+      (row.kepala_keluarga_nama &&
+        row.kepala_keluarga_nama
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())) ||
+      (row.kepala_keluarga_nik && row.kepala_keluarga_nik.includes(searchTerm))
+  );
+  // Sort by kk.nama, p.nama
+  filtered.sort((a, b) => {
+    if (a.kepala_keluarga_nama === b.kepala_keluarga_nama) {
+      return a.nama.localeCompare(b.nama);
+    }
+    return (a.kepala_keluarga_nama || "").localeCompare(
+      b.kepala_keluarga_nama || ""
+    );
+  });
+  return filtered;
+};
 
 export default {
   getAllPenduduk,
@@ -281,4 +230,4 @@ export default {
   getTotalPerempuan,
   getPendudukByKepalaKeluarga,
   searchPendudukByKepalaKeluarga,
-}
+};

@@ -15,21 +15,21 @@ class PendudukDTO {
     nama,
     nik,
     alamat,
-    tanggalLahir,
-    jenisKelamin,
+    tanggal_lahir,
+    jenis_kelamin,
     agama,
-    id_kepalakeluarga,
-    namaKepalaKeluarga = null
+    id_kepala_keluarga,
+    nama_kepala_keluarga = null
   ) {
     this.id = id;
     this.nama = nama;
     this.nik = nik;
     this.alamat = alamat;
-    this.tanggalLahir = tanggalLahir;
-    this.jenisKelamin = jenisKelamin;
+    this.tanggal_lahir = tanggal_lahir;
+    this.jenis_kelamin = jenis_kelamin;
     this.agama = agama;
-    this.id_kepalakeluarga = id_kepalakeluarga;
-    this.namaKepalaKeluarga = namaKepalaKeluarga;
+    this.id_kepala_keluarga = id_kepala_keluarga;
+    this.nama_kepala_keluarga = nama_kepala_keluarga;
   }
 }
 

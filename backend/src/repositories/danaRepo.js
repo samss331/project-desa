@@ -1,171 +1,181 @@
-import db from "../config/database.js";
+import supabase from "../config/database.js";
 
 const addDanaMasuk = async (tahun, bulan, jumlah, sumber, keterangan) => {
-    try {
-        const [results] = await db
-            .promise()
-            .query(
-                "INSERT INTO DanaMasuk (tahun, bulan, jumlah, sumber, keterangan) VALUES (?, ?, ?, ?, ?)",
-                [tahun, bulan, jumlah, sumber, keterangan]
-            );
-        return { id: results.insertId, tahun, bulan, jumlah, sumber, keterangan };
-    } catch (error) {
-        throw error;
-    }
+  const { data, error } = await supabase
+    .from("danamasuk")
+    .insert([{ tahun, bulan, jumlah, sumber, keterangan }])
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const addDanaKeluar = async (tahun, bulan, jumlah, kategori, keterangan) => {
-    try {
-        const [results] = await db
-            .promise()
-            .query(
-                "INSERT INTO DanaKeluar (tahun, bulan, jumlah, kategori, keterangan) VALUES (?, ?, ?, ?, ?)",
-                [tahun, bulan, jumlah, kategori, keterangan]
-            );
-        return { id: results.insertId, tahun, bulan, jumlah, kategori,keterangan };
-    } catch (error) {
-        throw error;
-    }
+  const { data, error } = await supabase
+    .from("danakeluar")
+    .insert([{ tahun, bulan, jumlah, kategori, keterangan }])
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const getAllDanaMasuk = async () => {
-    try {
-        const [result] = await db.promise().query("SELECT * FROM danamasuk order by bulan asc")
-        return result
-    } catch (error) {
-        throw error        
-    }
-}
+  const { data, error } = await supabase
+    .from("danamasuk")
+    .select("*")
+    .order("bulan", { ascending: true });
+  if (error) throw new Error(error.message);
+  return data;
+};
 
 const getAllDanaKeluar = async () => {
-    try {
-        const [result] = await db.promise().query("SELECT * FROM danakeluar order by bulan asc")
-        return result
-    } catch (error) {
-        throw error        
-    }
-}
+  const { data, error } = await supabase
+    .from("danakeluar")
+    .select("*")
+    .order("bulan", { ascending: true });
+  if (error) throw new Error(error.message);
+  return data;
+};
 
 const getDanaMasukById = async (id) => {
-    try {
-        const [result] = await db.promise().query("SELECT * FROM danamasuk WHERE id = ?", [id]);
-        return result.length > 0 ? result[0] : null;
-    } catch (error) {
-        throw error;
-    }
+  const { data, error } = await supabase
+    .from("danamasuk")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error || !data) return null;
+  return data;
 };
 
 const getDanaKeluarById = async (id) => {
-    try {
-        const [result] = await db.promise().query("SELECT * FROM danakeluar WHERE id = ?", [id]);
-        return result.length > 0 ? result[0] : null;
-    } catch (error) {
-        throw error;
-    }
+  const { data, error } = await supabase
+    .from("danakeluar")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error || !data) return null;
+  return data;
 };
 
 const getSummaryByYear = async (tahun) => {
-    try {
-        const [pemasukanRows] = await db.promise().query(
-            `SELECT 'Pemasukan' AS tipe, tahun, COALESCE(SUM(jumlah), 0) AS total 
-            FROM danamasuk 
-            WHERE tahun = ? 
-            GROUP BY tahun`,
-            [tahun]
-        );
-
-        const [pengeluaranRows] = await db.promise().query(
-            `SELECT 'Pengeluaran' AS tipe, tahun, COALESCE(SUM(jumlah), 0) AS total 
-            FROM danakeluar 
-            WHERE tahun = ? 
-            GROUP BY tahun`,
-            [tahun]
-        );
-        
-        const result = [...pemasukanRows, ...pengeluaranRows];
-
-        if (result.length === 0) {
-            return [
-                { tipe: "Pemasukan", tahun, total: 0 },
-                { tipe: "Pengeluaran", tahun, total: 0 }
-            ];
-        }
-
-        return result;
-    } catch (error) {
-        console.error("Error saat mengambil data APBDes:", error);
-        throw error;
-    }
+  // Ambil semua data pemasukan dan pengeluaran tahun tsb, lalu agregasi di JS
+  const { data: pemasukan, error: err1 } = await supabase
+    .from("danamasuk")
+    .select("tahun, jumlah")
+    .eq("tahun", tahun);
+  if (err1) throw new Error(err1.message);
+  const { data: pengeluaran, error: err2 } = await supabase
+    .from("danakeluar")
+    .select("tahun, jumlah")
+    .eq("tahun", tahun);
+  if (err2) throw new Error(err2.message);
+  const totalPemasukan = pemasukan.reduce(
+    (sum, row) => sum + (row.jumlah || 0),
+    0
+  );
+  const totalPengeluaran = pengeluaran.reduce(
+    (sum, row) => sum + (row.jumlah || 0),
+    0
+  );
+  return [
+    { tipe: "Pemasukan", tahun, total: totalPemasukan },
+    { tipe: "Pengeluaran", tahun, total: totalPengeluaran },
+  ];
 };
 
 const getDetailByYear = async (tahun) => {
-    try {
-        const [pendapatan] = await db.promise().query(
-            "SELECT bulan, SUM(jumlah) as total FROM danamasuk WHERE tahun = ? GROUP BY bulan ORDER BY bulan",
-            [tahun]
-        );
-
-        const [pengeluaran] = await db.promise().query(
-            "SELECT bulan, SUM(jumlah) as total FROM danakeluar WHERE tahun = ? GROUP BY bulan ORDER BY bulan",
-            [tahun]
-        );
-
-        return { pendapatan, pengeluaran };
-    } catch (error) {
-        throw error;
-    }
+  // Ambil semua data pemasukan dan pengeluaran tahun tsb, lalu group by bulan di JS
+  const { data: pendapatan, error: err1 } = await supabase
+    .from("danamasuk")
+    .select("bulan, jumlah")
+    .eq("tahun", tahun);
+  if (err1) throw new Error(err1.message);
+  const { data: pengeluaran, error: err2 } = await supabase
+    .from("danakeluar")
+    .select("bulan, jumlah")
+    .eq("tahun", tahun);
+  if (err2) throw new Error(err2.message);
+  // Group by bulan
+  const groupByBulan = (arr) => {
+    const result = {};
+    arr.forEach((row) => {
+      if (!result[row.bulan]) result[row.bulan] = 0;
+      result[row.bulan] += row.jumlah || 0;
+    });
+    // Convert ke array
+    return Object.entries(result).map(([bulan, total]) => ({
+      bulan: parseInt(bulan),
+      total,
+    }));
+  };
+  return {
+    pendapatan: groupByBulan(pendapatan),
+    pengeluaran: groupByBulan(pengeluaran),
+  };
 };
 
-const updateDanaMasuk = async (id, tahun, bulan, jumlah, sumber, keterangan) => {
-    try {
-        const [result] = await db.promise().query(
-            "UPDATE danamasuk set tahun = ?, bulan = ?, jumlah = ?, sumber = ?, keterangan = ? where id = ? ", 
-            [tahun, bulan, jumlah, sumber, keterangan, id]);
-        return result.affectedRows > 0;
-    } catch (error) {
-        throw error
-    }
-}
+const updateDanaMasuk = async (
+  id,
+  tahun,
+  bulan,
+  jumlah,
+  sumber,
+  keterangan
+) => {
+  const { error, data } = await supabase
+    .from("danamasuk")
+    .update({ tahun, bulan, jumlah, sumber, keterangan })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
+};
 
-const updateDanaKeluar = async (id, tahun, bulan, jumlah, kategori, keterangan) => {
-    try {
-        const [result] = await db.promise().query(
-            "UPDATE danakeluar set tahun = ?, bulan = ?, jumlah = ?, kategori = ?, keterangan = ? where id = ? ", 
-            [tahun, bulan, jumlah, kategori, keterangan, id]);
-        return result.affectedRows > 0;
-    } catch (error) {
-        throw error
-    }
-}
+const updateDanaKeluar = async (
+  id,
+  tahun,
+  bulan,
+  jumlah,
+  kategori,
+  keterangan
+) => {
+  const { error, data } = await supabase
+    .from("danakeluar")
+    .update({ tahun, bulan, jumlah, kategori, keterangan })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
+};
 
 const deleteDanaMasuk = async (id) => {
-    try {
-        const [result] = await db.promise().query("DELETE FROM danamasuk WHERE id = ?", [id]);
-        return result.affectedRows > 0;
-    } catch (error) {
-        throw error;
-    }
+  const { error, data } = await supabase
+    .from("danamasuk")
+    .delete()
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 const deleteDanaKeluar = async (id) => {
-    try {
-        const [result] = await db.promise().query("DELETE FROM danakeluar WHERE id = ?", [id]);
-        return result.affectedRows > 0;
-    } catch (error) {
-        throw error;
-    }
+  const { error, data } = await supabase
+    .from("danakeluar")
+    .delete()
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 export default {
-    addDanaMasuk,
-    addDanaKeluar,
-    getAllDanaKeluar, 
-    getAllDanaMasuk,
-    getSummaryByYear,
-    getDetailByYear,
-    getDanaKeluarById, 
-    getDanaMasukById,
-    updateDanaKeluar,
-    updateDanaMasuk, 
-    deleteDanaKeluar,
-    deleteDanaMasuk};
+  addDanaMasuk,
+  addDanaKeluar,
+  getAllDanaKeluar,
+  getAllDanaMasuk,
+  getSummaryByYear,
+  getDetailByYear,
+  getDanaKeluarById,
+  getDanaMasukById,
+  updateDanaKeluar,
+  updateDanaMasuk,
+  deleteDanaKeluar,
+  deleteDanaMasuk,
+};

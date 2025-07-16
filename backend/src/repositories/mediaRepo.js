@@ -1,48 +1,47 @@
-import db from "../config/database.js";
+import supabase from "../config/database.js";
 
 const addMedia = async (nama, tipe, file, deskripsi, thumbnail) => {
-  try {
-    const [result] = await db
-      .promise()
-      .query(
-        "INSERT INTO Media (nama, tipe, file, deskripsi, thumbnail) VALUES (?, ?, ?, ?, ?)",
-        [nama, tipe, file, deskripsi, thumbnail]
-      );
-    return { id: result.insertId, nama, tipe, file, deskripsi, thumbnail };
-  } catch (error) {
-    "repo", error;
-  }
+  const { data, error } = await supabase
+    .from("media")
+    .insert([{ nama, tipe, file, deskripsi, thumbnail }])
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const getAllMedia = async () => {
-  const [results] = await db
-    .promise()
-    .query("SELECT * FROM Media ORDER BY id DESC");
-  return results;
+  const { data, error } = await supabase
+    .from("media")
+    .select("*")
+    .order("id", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const getMediaById = async (id) => {
-  const [result] = await db
-    .promise()
-    .query("SELECT * FROM Media WHERE id = ?", [id]);
-  return result.length > 0 ? result[0] : null;
+  const { data, error } = await supabase
+    .from("media")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error || !data) return null;
+  return data;
 };
 
 const updateMedia = async (id, nama, tipe, file, deskripsi, thumbnail) => {
-  const [result] = await db
-    .promise()
-    .query(
-      "UPDATE Media SET nama = ?, tipe = ?, file = ?, deskripsi = ?, thumbnail = ? WHERE id = ?",
-      [nama, tipe, file, deskripsi, thumbnail, id]
-    );
-  return result.affectedRows > 0;
+  const { error, data } = await supabase
+    .from("media")
+    .update({ nama, tipe, file, deskripsi, thumbnail })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 const deleteMedia = async (id) => {
-  const [result] = await db
-    .promise()
-    .query("DELETE FROM Media WHERE id = ?", [id]);
-  return result.affectedRows > 0;
+  const { error, data } = await supabase.from("media").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 export default {

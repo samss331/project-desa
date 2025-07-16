@@ -1,100 +1,134 @@
-import db from "../config/database.js";
+import supabase from "../config/database.js";
 
-const addSuratMasuk = async (nomorSurat, pengirim, perihal, tanggalTerima, file) => {
-    try {
-        const [result] = await db.promise().query(
-            "INSERT INTO suratmasuk (nomorSurat, pengirim, perihal, tanggalTerima, file) VALUES (?, ?, ?, ?, ?)",
-            [nomorSurat, pengirim, perihal, tanggalTerima, file]
-        );
-        return {id: result.insertId, nomorSurat, pengirim, perihal, tanggalTerima, file};
-    } catch (error) {
-        throw error;
-    }
+const addSuratMasuk = async (
+  nomorSurat,
+  pengirim,
+  perihal,
+  tanggalTerima,
+  file
+) => {
+  const { data, error } = await supabase
+    .from("suratmasuk")
+    .insert([{ nomorSurat, pengirim, perihal, tanggalTerima, file }])
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 };
 
-const addSuratKeluar = async (nomorSurat, penerima, perihal, tanggalKirim, file) => {
-    try {
-        const [result] = await db.promise().query(
-            "INSERT INTO suratkeluar (nomorSurat, penerima, perihal, tanggalKirim, file) VALUES (?, ?, ?, ?, ?)",
-            [nomorSurat, penerima, perihal, tanggalKirim, file]
-        );
-        return {id: result.insertId, nomorSurat, penerima, perihal, tanggalKirim, file};
-    } catch (error) {
-        throw error;
-    }
+const addSuratKeluar = async (
+  nomorSurat,
+  penerima,
+  perihal,
+  tanggalKirim,
+  file
+) => {
+  const { data, error } = await supabase
+    .from("suratkeluar")
+    .insert([{ nomorSurat, penerima, perihal, tanggalKirim, file }])
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const getAllSuratMasuk = async () => {
-    try {
-        const [results] = await db.promise().query("SELECT * FROM suratmasuk ORDER BY tanggalTerima DESC");
-        return results;
-    } catch (error) {
-        throw error;
-    }
+  const { data, error } = await supabase
+    .from("suratmasuk")
+    .select("*")
+    .order("tanggalTerima", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const getAllSuratKeluar = async () => {
-    try {
-        const [results] = await db.promise().query("SELECT * FROM suratkeluar ORDER BY tanggalKirim DESC");
-        return results;
-    } catch (error) {
-        throw error;
-    }
+  const { data, error } = await supabase
+    .from("suratkeluar")
+    .select("*")
+    .order("tanggalKirim", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const getSuratMasukById = async (id) => {
-    const [result] = await db.promise().query("SELECT * FROM suratmasuk WHERE id = ?", [id]);
-    return result.length > 0 ? result[0] : null;
+  const { data, error } = await supabase
+    .from("suratmasuk")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error || !data) return null;
+  return data;
 };
 
 const getSuratKeluarById = async (id) => {
-    const [result] = await db.promise().query("SELECT * FROM suratkeluar WHERE id = ?", [id]);
-    return result.length > 0 ? result[0] : null;
+  const { data, error } = await supabase
+    .from("suratkeluar")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error || !data) return null;
+  return data;
 };
 
-const updateSuratMasuk = async (id, nomorSurat, pengirim, perihal, tanggalTerima, file) => {
-    try {
-        const [result] = await db.promise().query(
-            "UPDATE suratmasuk SET nomorSurat = ?, pengirim = ?, perihal = ?, tanggalTerima = ?, file = ? WHERE id = ?",
-            [nomorSurat, pengirim, perihal, tanggalTerima, file, id]
-        );
-        return result.affectedRows > 0;
-    } catch (error) {
-        throw error;
-    }
+const updateSuratMasuk = async (
+  id,
+  nomorSurat,
+  pengirim,
+  perihal,
+  tanggalTerima,
+  file
+) => {
+  const { error, data } = await supabase
+    .from("suratmasuk")
+    .update({ nomorSurat, pengirim, perihal, tanggalTerima, file })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
-const updateSuratKeluar = async (id, nomorSurat, penerima, perihal, tanggalKirim, file) => {
-    try {
-        const [result] = await db.promise().query(
-            "UPDATE suratkeluar SET nomorSurat = ?, penerima = ?, perihal = ?, tanggalKirim = ?, file = ? WHERE id = ?",
-            [nomorSurat, penerima, perihal, tanggalKirim, file, id]
-        );
-        return result.affectedRows > 0;
-    } catch (error) {
-        throw error;
-    }
+const updateSuratKeluar = async (
+  id,
+  nomorSurat,
+  penerima,
+  perihal,
+  tanggalKirim,
+  file
+) => {
+  const { error, data } = await supabase
+    .from("suratkeluar")
+    .update({ nomorSurat, penerima, perihal, tanggalKirim, file })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 const deleteSuratMasuk = async (id) => {
-    try {
-        const [result] = await db.promise().query("DELETE FROM suratmasuk WHERE id = ?", [id]);
-        return result.affectedRows > 0;
-    } catch (error) {
-        throw error;
-    }
+  const { error, data } = await supabase
+    .from("suratmasuk")
+    .delete()
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 const deleteSuratKeluar = async (id) => {
-    try {
-        const [result] = await db.promise().query("DELETE FROM suratkeluar WHERE id = ?", [id]);
-        return result.affectedRows > 0;
-    } catch (error) {
-        throw error;
-    }
+  const { error, data } = await supabase
+    .from("suratkeluar")
+    .delete()
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
-export default { 
-    addSuratMasuk, getAllSuratMasuk, updateSuratMasuk, deleteSuratMasuk, getSuratMasukById,
-    addSuratKeluar, getAllSuratKeluar, updateSuratKeluar, deleteSuratKeluar, getSuratKeluarById
+export default {
+  addSuratMasuk,
+  getAllSuratMasuk,
+  updateSuratMasuk,
+  deleteSuratMasuk,
+  getSuratMasukById,
+  addSuratKeluar,
+  getAllSuratKeluar,
+  updateSuratKeluar,
+  deleteSuratKeluar,
+  getSuratKeluarById,
 };

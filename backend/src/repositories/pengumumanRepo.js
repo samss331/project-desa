@@ -1,71 +1,56 @@
-import db from "../config/database.js";
+import supabase from "../config/database.js";
 
 const getAllPengumuman = async () => {
-  try {
-    const [results] = await db
-      .promise()
-      .query("SELECT * FROM pengumuman ORDER BY tanggalMulai DESC");
-    return results;
-  } catch (error) {
-    throw error;
-  }
+  const { data, error } = await supabase
+    .from("pengumuman")
+    .select("*")
+    .order("tanggal_mulai", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const getPengumumanById = async (id) => {
-  try {
-    const [result] = await db
-      .promise()
-      .query("SELECT * from pengumuman where id = ?", [id]);
-    return result.length > 0 ? result[0] : null;
-  } catch (error) {
-    throw error;
-  }
+  const { data, error } = await supabase
+    .from("pengumuman")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error || !data) return null;
+  return data;
 };
 
-const addPengumuman = async (judul, isi, tanggalMulai, tanggalSelesai) => {
-  try {
-    const [result] = await db
-      .promise()
-      .query(
-        "INSERT INTO pengumuman (judul, isi, tanggalMulai, tanggalSelesai) VALUES (?, ?, ?, ?)",
-        [judul, isi, tanggalMulai, tanggalSelesai]
-      );
-    return result;
-  } catch (error) {
-    throw error;
-  }
+const addPengumuman = async (judul, isi, tanggal_mulai, tanggal_selesai) => {
+  const { data, error } = await supabase
+    .from("pengumuman")
+    .insert([{ judul, isi, tanggal_mulai, tanggal_selesai }])
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 const updatePengumuman = async (
   id,
   judul,
   isi,
-  tanggalMulai,
-  tanggalSelesai
+  tanggal_mulai,
+  tanggal_selesai
 ) => {
-  try {
-    const [result] = await db
-      .promise()
-      .query(
-        "UPDATE  pengumuman SET judul = ?, isi = ?, tanggalMulai = ?, tanggalSelesai = ? where id = ?",
-        [judul, isi, tanggalMulai, tanggalSelesai, id]
-      );
-    return result.affectedRows > 0;
-  } catch (error) {
-    error;
-    throw error;
-  }
+  const { error, data } = await supabase
+    .from("pengumuman")
+    .update({ judul, isi, tanggal_mulai, tanggal_selesai })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 const deletePengumuman = async (id) => {
-  try {
-    const [result] = await db
-      .promise()
-      .query("DELETE from pengumuman where id = ?", [id]);
-    return result.affectedRows > 0;
-  } catch (error) {
-    throw error;
-  }
+  const { error, data } = await supabase
+    .from("pengumuman")
+    .delete()
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return data && data.length > 0;
 };
 
 export default {
